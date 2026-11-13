@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Stormwatch</title>
+<title>WGO Weather</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -70,6 +70,11 @@ nav{overflow-x:auto}nav button{flex:1 0 auto;padding:0 12px}
 #dmap [data-id]{touch-action:none;cursor:grab}
 #dmap [data-v],#dmap [data-e]{touch-action:none;cursor:move}
 .lbl{font:600 5.5px "Barlow Semi Condensed";fill:var(--ink);paint-order:stroke;stroke:var(--surface);stroke-width:1.4px;text-anchor:middle;pointer-events:none}
+.brand{position:relative;overflow:hidden;border-radius:14px;margin-bottom:12px;min-height:130px;color:#fff;background:#141c2a}
+.brand svg{position:absolute;inset:0;width:100%;height:100%}
+.brand div{position:relative;padding:14px 16px;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.brand h1{font-size:32px;line-height:1}.brand span{font-size:14px;opacity:.9}
+.lp{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;margin:0 0 8px;font-size:15px}
 @media (prefers-reduced-motion:no-preference){.alert[open] .body{animation:o .15s ease-out}@keyframes o{from{opacity:0}to{opacity:1}}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
@@ -77,16 +82,16 @@ nav{overflow-x:auto}nav button{flex:1 0 auto;padding:0 12px}
 </head>
 <body>
 <main>
+  <header class="brand"><svg viewBox='0 0 400 120' preserveAspectRatio='xMidYMax slice' aria-hidden='true'><defs><linearGradient id='sk' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#141c2a'/><stop offset='1' stop-color='#3b6aa5'/></linearGradient><pattern id='wn' width='8' height='10' patternUnits='userSpaceOnUse'><rect x='2' y='3' width='3' height='4' fill='#f5c86a' opacity='.85'/></pattern></defs><rect width='400' height='120' fill='url(#sk)'/><path fill='#0c1320' d='M0 120V80H40V64H74V76H110V50L123 30L136 50V72H176V82H212V74H222L227 44L232 74H242V68H286V80H318V60H356V76H400V120Z'/><path fill='url(#wn)' d='M0 120V80H40V64H74V76H110V50L123 30L136 50V72H176V82H212V74H222L227 44L232 74H242V68H286V80H318V60H356V76H400V120Z'/><circle cx='123' cy='60' r='7' fill='#f1e7c8'/><path d='M123 60V55M123 60H127' stroke='#0c1320' stroke-width='1.2'/><rect y='112' width='400' height='8' fill='#1d3b63'/></svg><div><h1>WGO Weather</h1><span>Downtown Oswego</span></div></header>
   <div class="top">
-    <label for="city" style="position:absolute;left:-9999px">Location</label>
-    <select id="city"></select>
+    <label for="q" style="position:absolute;left:-9999px">Location</label>
+    <input id="q" list="pl" placeholder="Type your city or town" autocomplete="off" aria-label="City or town" style="flex:1;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);min-height:44px"><button class="icon" id="go" aria-label="Find this place" style="padding:0 14px">Go</button><datalist id="pl"></datalist>
     <button class="icon" id="theme" aria-label="Switch light or dark theme">◐</button>
   </div>
   <section class="hero" id="hero"></section>
   <div class="stats" id="stats"></div>
   <nav role="tablist" aria-label="Sections">
     <button role="tab" aria-selected="true" data-t="alerts">Alerts</button>
-    <button role="tab" aria-selected="false" data-t="map">Map</button>
     <button role="tab" aria-selected="false" data-t="design">Design</button>
     <button role="tab" aria-selected="false" data-t="forecast">Forecast</button>
     <button role="tab" aria-selected="false" data-t="settings">My alerts</button>
@@ -121,7 +126,7 @@ const CITIES={
   a:[["wsww","Cook County","Heavy snow possible Saturday. 6 to 10 inches",1500],["wi","Lake County, IL","Northwest winds 25 to 35 mph, gusts to 50",300]]}
 };
 const ICONS=["☀️","⛅","☁️","🌧️","⛈️","🌨️"];
-let city="okc",tab="alerts",filter=null,follow={};
+let city="okc",tab="design",filter=null,follow={};
 Object.keys(TYPES).forEach(k=>follow[k]=true);
 try{const s=localStorage.getItem("sw-follow");if(s)follow=Object.assign(follow,JSON.parse(s))}catch(e){}
 const $=s=>document.querySelector(s),C=()=>CITIES[city];
@@ -130,21 +135,21 @@ let you={x:100,y:100},sel=null;
 const R={tw:11,sw:20,fw:24,fww:55,sww:60,tww:65,wsw:45,wwa:50,wsww:60,wi:55};
 function geo(k,i){const ang=i*2.4+k.length,d=i*30+14,cx=100+Math.cos(ang)*d*.9,cy=100+Math.sin(ang)*d*.9,r=R[k],p=[];for(let j=0;j<10;j++){const t=j/10*6.283,rr=r*(.78+.22*Math.sin(j*2.3+i+k.length));p.push([cx+Math.cos(t)*rr*1.3,cy+Math.sin(t)*rr*.8])}return p}
 function dist(p,poly){let ins=false,min=1e9;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const[a,b]=poly[i],[c,d]=poly[j];if((b>p.y)!==(d>p.y)&&p.x<(c-a)*(p.y-b)/(d-b)+a)ins=!ins;const dx=c-a,dy=d-b,t=Math.max(0,Math.min(1,((p.x-a)*dx+(p.y-b)*dy)/(dx*dx+dy*dy||1))),ex=a+t*dx-p.x,ey=b+t*dy-p.y;min=Math.min(min,Math.hypot(ex,ey))}return ins?0:min}
-function active(){return C().a.map((a,i)=>{const poly=geo(a[0],i);return{k:a[0],area:a[1],txt:a[2],m:a[3],T:TYPES[a[0]],poly,d:dist(you,poly),i}}).filter(a=>follow[a.k]).sort((x,y)=>y.T.s-x.T.s)}
-function head(){
+function active(){const now=Date.now(),c0=loc&&CTY.length?cAt([loc.x,loc.y]):null;return D.filter(x=>x.kind==='area'&&follow[x.k]&&!(x.exp&&x.exp<now)&&(!loc||dist({x:loc.x,y:loc.y},x.pts)===0||(c0&&cof(x).includes(c0.n)&&sof(x).includes(c0.s)))).map(x=>({k:x.k,area:cl(x)||'Drawn area',txt:x.cn?'County alert':'Alert area',m:x.exp?Math.max(1,Math.round((x.exp-now)/6e4)):9999,T:TYPES[x.k],poly:x.pts,d:loc?dist({x:loc.x,y:loc.y},x.pts):null,i:x.id})).sort((a,b)=>b.T.s-a.T.s)}
+function head0(){
  const c=C(),al=active(),top=al[0];
  $("#hero").style.setProperty("--c",top?top.T.c:"var(--accent)");
- $("#hero").innerHTML=(top?`<div class="lvl">${al.length} active alert${al.length>1?"s":""}. Most serious:</div><h1>${top.T.n}</h1><div>${top.area}. ${top.txt}. Expires in ${fmt(top.m)}.</div>`:`<div class="lvl">No active alerts</div><h1>All clear</h1><div>Nothing to act on in ${c.n}.</div>`)+
+ $("#hero").innerHTML=(top?`<div class="lvl">${al.length} active alert${al.length>1?"s":""}. Most serious:</div><h1>${top.T.n}</h1><div>${top.area}. ${top.txt}. Expires in ${fmt(top.m)}.</div>`:`<div class="lvl">No active alerts</div><h1>All clear</h1><div>No alerts have been drawn yet. Add some in the Design tab.</div>`)+
  `<div class="now"><div class="num">${c.t}°</div><div><div style="font-size:22px">${c.ic} ${c.cond}</div><div class="meta">Feels like ${c.f}° · ${c.n}</div></div></div>`;
  $("#stats").innerHTML=[["Wind",c.w],["Humidity",c.h+"%"],["UV",c.uv],["Visibility",c.vis]].map(x=>`<div class="stat"><b>${x[1]}</b><span>${x[0]}</span></div>`).join("");
 }
 function alerts(){
- const all=C().a.map(a=>a[0]),kinds=[...new Set(all)].filter(k=>follow[k]);
+ const all=active().map(a=>a.k),kinds=[...new Set(all)].filter(k=>follow[k]);
  let list=active().filter(a=>!filter||a.k===filter);
  let h="";
  if(kinds.length>1)h+=`<div class="chips">`+`<button class="chip" style="--c:var(--accent)" aria-pressed="${!filter}" data-f="">All</button>`+kinds.map(k=>`<button class="chip" style="--c:${TYPES[k].c}" aria-pressed="${filter===k}" data-f="${k}">${TYPES[k].n}</button>`).join("")+`</div>`;
  if(!list.length)return h+`<div class="empty">No alerts for this place. Open “My alerts” to change which types you see.</div>`;
- return h+list.map((a,i)=>`<details class="alert" style="--c:${a.T.c}" ${i===0?"open":""}><summary><span class="tag ${a.k==="tww"?"dk":""}">${a.T.n.split(" ").pop().toUpperCase()}</span><h3 style="display:inline">${a.T.n}</h3><div class="sub">${a.area} · ${a.d?Math.round(a.d)+" mi away":"you’re inside this area"} · expires in ${fmt(a.m)}</div></summary><div class="body"><p style="margin:0">${a.txt}.</p><b>What to do</b><ul>${a.T.tip.map(t=>`<li>${t}</li>`).join("")}</ul></div></details>`).join("");
+ return h+list.map((a,i)=>`<details class="alert" style="--c:${a.T.c}" ${i===0?"open":""}><summary><span class="tag ${a.k==="tww"?"dk":""}">${a.T.n.split(" ").pop().toUpperCase()}</span><h3 style="display:inline">${a.T.n}</h3><div class="sub">${a.area} · ${a.d===null?"no location set":a.d?Math.round(a.d*15)+" mi away":"you’re inside this area"} · expires in ${fmt(a.m)}</div></summary><div class="body"><p style="margin:0">${a.txt}.</p><b>What to do</b><ul>${a.T.tip.map(t=>`<li>${t}</li>`).join("")}</ul></div></details>`).join("");
 }
 function forecast(){
  const c=C();let h=`<h2>Next 12 hours</h2><div class="row">`;
@@ -175,62 +180,70 @@ const nid=()=>Math.floor(Math.random()*1e9),save=()=>{try{localStorage.setItem('
 const WI=['☀️','⛅','☁️','🌧️','⛈️','🌨️','💨','🌫️'];
 const cen=p=>[p.reduce((s,q)=>s+q[0],0)/p.length,p.reduce((s,q)=>s+q[1],0)/p.length];
 const pts=p=>p.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join(' ');
-function finish(){const x={id:nid(),kind:'area',k:tool.k,pts:draft};D.push(x);draft=[];dsel=x.id;tool=null;save()}
+function finish(){const x={id:nid(),kind:'area',k:tool.k,pts:draft,exp:Date.now()+dur*6e4};D.push(x);draft=[];dsel=x.id;tool=null;save()}
 function design(){
  const k=vb.w/200,S=D.find(x=>x.id===dsel),tc=tool&&tool.k?TYPES[tool.k].c:'var(--accent)';
- const pal=`<button class='chip' style='--c:var(--accent)' aria-pressed='${!tool}' data-dt='s'>Select and move</button>`+Object.keys(TYPES).sort((a,b)=>TYPES[b].s-TYPES[a].s).map(k=>`<button class='chip' style='--c:${TYPES[k].c}' aria-pressed='${!!tool&&tool.k===k}' data-dt='a:${k}'>${TYPES[k].n}</button>`).join('');
+ const pal=`<button class='chip' style='--c:var(--accent)' aria-pressed='${!tool}' data-dt='s'>Select and move</button><button class='chip' style='--c:var(--accent)' aria-pressed='${!!tool&&!!tool.cty}' data-dt='c'>Select counties</button>`+Object.keys(TYPES).sort((a,b)=>TYPES[b].s-TYPES[a].s).map(k=>`<button class='chip' style='--c:${TYPES[k].c}' aria-pressed='${!!tool&&tool.k===k}' data-dt='a:${k}'>${TYPES[k].n}</button>`).join('');
  const ics=WI.map(i=>`<button class='chip' style='--c:var(--accent)' aria-label='Place forecast icon ${i}' aria-pressed='${!!tool&&tool.ic===i}' data-dt='m:${i}'>${i}</button>`).join('');
- const hint=pan?'Pan is on. Drag the map to move around and use Zoom in to see counties. Turn Pan off to draw or select.':tool&&tool.k&&free?'Press and drag on the map to draw the outline. Lift your finger to finish.':tool&&tool.k?(draft.length?draft.length+' corner'+(draft.length>1?'s':'')+' placed. Keep tapping, then tap Finish area or the first corner.':'Tap the map to place the corners of the area.'):tool?'Set a temperature below, then tap the map to place the forecast icon.':'Pick an alert type or a forecast icon, then tap the map. Tap a shape to select it. Drag it to move, or drag its corner dots to reshape. Drag a faint dot between two corners to add a corner.';
+ const hint=pan?'Pan is on. Drag the map to move around and use Zoom in to see counties. Turn Pan off to draw or select.':tool&&tool.k&&bycty?'Tap a county to put the alert on its boundary. The county name is added for you.':tool&&tool.k&&free?'Press and drag on the map to draw the outline. Lift your finger to finish.':tool&&tool.k?(draft.length?draft.length+' corner'+(draft.length>1?'s':'')+' placed. Keep tapping, then tap Finish area or the first corner.':'Tap the map to place the corners of the area.'):tool&&tool.cty?'Tap counties to select or unselect them. New corners snap to the borders of selected counties.':tool?'Set a temperature below, then tap the map to place the forecast icon.':'Pick an alert type or a forecast icon, then tap the map. Tap a shape to select it. Drag it to move, or drag its corner dots to reshape. Drag a faint dot between two corners to add a corner.';
  let s=`<svg id='dmap' style='${pan||tool&&tool.k&&free?'touch-action:none':''}' viewBox='${vb.x} ${vb.y} ${vb.w} ${vb.w*.625}' role='img' aria-label='Design canvas. 1 grid square is 25 miles.'>`;
- s+=base();
+ s+=base()+cfill()+radarL();
  s+=``;
  D.forEach(x=>{const on=x.id===dsel;
-  if(x.kind==='area'){const c=TYPES[x.k].c,m=cen(x.pts);s+=`<g data-id='${x.id}'><polygon points='${pts(x.pts)}' style='fill:${c};fill-opacity:${on?.5:.3};stroke:${c};stroke-width:${on?3:2}px;vector-effect:non-scaling-stroke${on?';stroke-dasharray:6 3':''}'/><text class='lbl' style='font-size:${5.5*k}px;stroke-width:${1.4*k}px' x='${m[0]}' y='${m[1]}'>${TYPES[x.k].n}</text></g>`}
+  if(x.kind==='area'){const c=TYPES[x.k].c,m=cen(x.pts);s+=`<g data-id='${x.id}'><polygon points='${pts(x.pts)}' style='fill:${c};fill-opacity:${exd(x)?.06:on?.5:.3};stroke:${c};stroke-width:${on?3:2}px;vector-effect:non-scaling-stroke${on?';stroke-dasharray:6 3':''}'/><text class='lbl' style='font-size:${5.5*k}px;stroke-width:${1.4*k}px' x='${m[0]}' y='${m[1]}'>${TYPES[x.k].n+tl(x)}</text><text class='lbl' style='font-size:${4*k}px;stroke-width:${k}px;fill:var(--mute)' x='${m[0]}' y='${m[1]+5*k}'>${cl(x)}</text></g>`}
   else s+=`<g data-id='${x.id}'><circle cx='${x.x}' cy='${x.y}' r='${10*k}' style='fill:${on?'var(--surface)':'transparent'};stroke:${on?'var(--accent)':'none'};stroke-width:1.5px'/><text x='${x.x}' y='${x.y}' font-size='${11*k}' text-anchor='middle' dominant-baseline='central'>${x.ic}</text><text class='lbl' style='font-size:${5.5*k}px;stroke-width:${1.4*k}px' x='${x.x}' y='${x.y+12*k}'>${x.t}°</text></g>`});
+ s+=placesL(k);
  if(S&&S.kind==='area'&&!tool){const c=TYPES[S.k].c;S.pts.forEach((q,i)=>{const n=S.pts[(i+1)%S.pts.length],mx=(q[0]+n[0])/2,my=(q[1]+n[1])/2;s+=`<g data-e='${i}'><circle cx='${mx}' cy='${my}' r='${7*k}' style='fill:transparent'/><circle cx='${mx}' cy='${my}' r='${2*k}' style='fill:${c};opacity:.55;pointer-events:none'/></g>`});S.pts.forEach((q,i)=>{s+=`<g data-v='${i}'><circle cx='${q[0]}' cy='${q[1]}' r='${7*k}' style='fill:transparent'/><circle cx='${q[0]}' cy='${q[1]}' r='${3.5*k}' style='fill:${rm?'#d62828':'#fff'};stroke:${c};stroke-width:1.6px;pointer-events:none'/></g>`})}
  if(draft.length)s+=`<g style='pointer-events:none'><polyline points='${pts(draft)}' style='fill:none;stroke:${tc};stroke-width:1.5px;stroke-dasharray:3 2'/>`+draft.map((q,i)=>`<circle cx='${q[0]}' cy='${q[1]}' r='${(i?2.2:3.5)*k}' style='fill:${tc};stroke:#fff;stroke-width:1px'/>`).join('')+`</g>`;
  s+='</svg>';
- const a=[],zc=`<button data-da='zo'>Zoom out</button><button data-da='zi'>Zoom in</button><button data-da='pan'>${pan?'Pan: on':'Pan: off'}</button>`;
+ const a=[],zc=`<button data-da='zo'>Zoom out</button><button data-da='zi'>Zoom in</button><button data-da='pan'>${pan?'Pan: on':'Pan: off'}</button><button data-da='snp'>${snap?'Snap: on':'Snap: off'}</button><button data-da='rad'>${radar?'Radar: on':'Radar: off'}</button>`;
+ if(tool&&tool.k)a.push(`<button data-da='bcy'>${bycty?'By county: on':'By county: off'}</button>`);
  if(tool&&tool.k)a.push(`<button data-da='free'>${free?'Freehand: on':'Freehand: off'}</button>`);
  if(S&&S.kind==='area'&&!tool)a.push(`<button data-da='rm'>${rm?'Done removing':'Remove corner'}</button>`);
  if(draft.length>=3)a.push(`<button class='pri' data-da='fin'>Finish area</button>`);
  if(draft.length)a.push(`<button data-da='undo'>Undo corner</button><button data-da='cancel'>Cancel</button>`);
  if(S&&!draft.length)a.push(`<button data-da='del'>Delete ${S.kind==='mark'?'icon':'area'}</button>`);
- if((tool&&!tool.k)||(!tool&&S&&S.kind==='mark'))a.push(`<label>Temp <input id='dtemp' type='number' value='${tool?dtemp:S.t}' aria-label='Temperature in degrees'> °</label>`);
+ if((tool&&tool.ic)||(!tool&&S&&S.kind==='mark'))a.push(`<label>Temp <input id='dtemp' type='number' value='${tool?dtemp:S.t}' aria-label='Temperature in degrees'> °</label>`);
+ if((tool&&tool.k)||(!tool&&S&&S.kind==='area'))a.push(`<label>Expires in <input id='dexp' type='number' value='${tool?dur:S.exp?Math.max(0,Math.round((S.exp-Date.now())/6e4)):''}' aria-label='Minutes until the alert expires'> min</label>`);
+ if(tool&&tool.k&&Object.keys(selC).length)a.push(`<button class='pri' data-da='cal'>Alert selected counties</button>`);
+ if(Object.keys(selC).length)a.push(`<button data-da='ccl'>Clear counties</button>`);
  if(D.length&&!draft.length)a.push(`<button data-da='clr'>${clr?'Tap again to clear all':'Clear all'}</button>`);
- return `<div id='dz'><div class='chips wrap'>${pal}</div><div class='chips wrap'>${ics}</div><p class='note' style='margin:0 0 8px'>${hint}</p><div class='act' style='margin:0 0 8px'>${zc}</div>${s}<div class='act'>${a.join('')}</div></div>`}
+ return `<div id='dz'>${srch()}<div class='chips wrap'>${pal}</div><div class='chips wrap'>${ics}</div><p class='note' style='margin:0 0 8px'>${hint}</p><div class='act' style='margin:0 0 8px'>${zc}</div>${s}${S&&S.kind==='area'?`<div class='lp'><b>${TYPES[S.k].n}</b>${tl(S)}<br>Counties: ${cof(S).join(', ')||'none found'}<br>States: ${sof(S).join(', ')||'none found'}</div>`:''}<div class='act'>${a.join('')}</div></div>`}
 function setupDesign(){
  const dz=$('#dz'),svg=$('#dmap'),pt=e=>{const r=svg.getBoundingClientRect();return[Math.max(0,Math.min(200,vb.x+(e.clientX-r.left)/r.width*vb.w)),Math.max(0,Math.min(125,vb.y+(e.clientY-r.top)/r.height*vb.w*.625))]};
  let drag=null;
  dz.onclick=e=>{
   const t=e.target.closest('[data-dt]'),a=e.target.closest('[data-da]'),was=clr;
-  if(t){draft=[];clr=false;const v=t.dataset.dt;tool=v==='s'?null:v[0]==='a'?{k:v.slice(2)}:{ic:v.slice(2)};render();return}
+  if(t){draft=[];clr=false;const v=t.dataset.dt;tool=v==='s'?null:v==='c'?{cty:1}:v[0]==='a'?{k:v.slice(2)}:{ic:v.slice(2)};render();return}
   if(a){const v=a.dataset.da;clr=false;
-   if(v==='zi'||v==='zo')zoom(v==='zi'?.5:2);else if(v==='pan'){pan=!pan;draft=[]}else if(v==='fin'&&draft.length>=3)finish();else if(v==='free'){free=!free;draft=[]}else if(v==='rm')rm=!rm;else if(v==='undo')draft.pop();else if(v==='cancel')draft=[];
+   if(v==='cal')calert();else if(v==='bcy')bycty=!bycty;else if(v==='ccl')selC={};else if(v==='snp')snap=!snap;else if(v==='rad')radar=!radar;else if(v==='go')gotoLoc();else if(v==='zi'||v==='zo')zoom(v==='zi'?.5:2);else if(v==='pan'){pan=!pan;draft=[]}else if(v==='fin'&&draft.length>=3)finish();else if(v==='free'){free=!free;draft=[]}else if(v==='rm')rm=!rm;else if(v==='undo')draft.pop();else if(v==='cancel')draft=[];
    else if(v==='del'){D=D.filter(x=>x.id!==dsel);dsel=null;save()}
    else if(v==='clr'){if(was){D=[];dsel=null;save()}else clr=true}
    render();return}
   if(!e.target.closest('#dmap')||pan)return;
   if(!tool){if(Date.now()-lastUp<400)return;if(!e.target.closest('[data-id]')){dsel=null;render()}return}
-  const p=pt(e);
+  const p=tool.k?snapTo(pt(e),svg):pt(e);
+  if(tool.cty){const c=cAt(p);if(c){if(selC[c.id])delete selC[c.id];else selC[c.id]=1}render();return}
+  if(tool.k&&bycty){const c=cAt(p);if(c){addC(c);save()}render();return}
   if(tool.k&&free)return;if(tool.k){if(draft.length>=3&&Math.hypot(p[0]-draft[0][0],p[1]-draft[0][1])<6*vb.w/200)finish();else draft.push(p)}
   else{const x={id:nid(),kind:'mark',ic:tool.ic,t:dtemp,x:p[0],y:p[1]};D.push(x);dsel=x.id;save()}
   render()};
- dz.onchange=e=>{if(e.target.id!=='dtemp')return;const v=Math.round(+e.target.value),S=D.find(x=>x.id===dsel);if(isNaN(v))return;if(!tool&&S&&S.kind==='mark'){S.t=v;save();render()}else dtemp=v};
+ dz.onkeydown=e=>{if(e.key==='Enter'&&e.target.id==='q')gotoLoc()};
+ dz.onchange=e=>{if(e.target.id==='dexp'){const v=Math.max(1,Math.round(+e.target.value)),S=D.find(x=>x.id===dsel);if(isNaN(v))return;if(!tool&&S&&S.kind==='area'){S.exp=Date.now()+v*6e4;save();render()}else dur=v;return}if(e.target.id!=='dtemp')return;const v=Math.round(+e.target.value),S=D.find(x=>x.id===dsel);if(isNaN(v))return;if(!tool&&S&&S.kind==='mark'){S.t=v;save();render()}else dtemp=v};
  svg.onpointerdown=e=>{const el=e.target.closest('[data-id]');if(tool||!el)return;drag={id:+el.dataset.id,el,p:pt(e),dx:0,dy:0,m:false};svg.setPointerCapture(e.pointerId)};
  svg.onpointermove=e=>{if(!drag)return;const p=pt(e);drag.dx=p[0]-drag.p[0];drag.dy=p[1]-drag.p[1];if(Math.hypot(drag.dx,drag.dy)>1.5)drag.m=true;if(drag.m)drag.el.setAttribute('transform',`translate(${drag.dx} ${drag.dy})`)};
  svg.onpointerup=()=>{if(!drag)return;const d=drag,x=D.find(q=>q.id===d.id);drag=null;lastUp=Date.now();if(d.m&&x){if(x.kind==='mark'){x.x+=d.dx;x.y+=d.dy}else x.pts=x.pts.map(q=>[q[0]+d.dx,q[1]+d.dy]);save()}dsel=d.id;render()};
  let fd=false,fh=null;const od=svg.onpointerdown,om=svg.onpointermove,ou=svg.onpointerup;
  svg.onpointerdown=e=>{
   if(pan){panD={x:e.clientX,y:e.clientY,vx:vb.x,vy:vb.y};svg.setPointerCapture(e.pointerId);return}
-  if(tool&&tool.k&&free){draft=[pt(e)];fh=document.createElementNS('http://www.w3.org/2000/svg','polyline');fh.setAttribute('style','fill:none;stroke:'+TYPES[tool.k].c+';stroke-width:1.5px');svg.appendChild(fh);svg.setPointerCapture(e.pointerId);fd=true;return}
+  if(tool&&tool.k&&free&&!bycty){draft=[pt(e)];fh=document.createElementNS('http://www.w3.org/2000/svg','polyline');fh.setAttribute('style','fill:none;stroke:'+TYPES[tool.k].c+';stroke-width:1.5px');svg.appendChild(fh);svg.setPointerCapture(e.pointerId);fd=true;return}
   const v=!tool&&e.target.closest('[data-v],[data-e]'),S=D.find(x=>x.id===dsel);
   if(v&&S){if(v.dataset.e!==undefined){const i=+v.dataset.e;S.pts.splice(i+1,0,pt(e));drag={S,vi:i+1,m:true}}else drag={S,vi:+v.dataset.v,m:false};svg.setPointerCapture(e.pointerId);return}
   od(e)};
  svg.onpointermove=e=>{
   if(panD){const r=svg.getBoundingClientRect(),q=vb.w/r.width;vb.x=Math.max(0,Math.min(200-vb.w,panD.vx-(e.clientX-panD.x)*q));vb.y=Math.max(0,Math.min(125-vb.w*.625,panD.vy-(e.clientY-panD.y)*q));svg.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.w*.625);return}
-  if(fd){const p=pt(e),l=draft[draft.length-1];if(Math.hypot(p[0]-l[0],p[1]-l[1])>2.5*vb.w/200){draft.push(p);fh.setAttribute('points',pts(draft))}return}
-  if(drag&&drag.vi!==undefined){drag.S.pts[drag.vi]=pt(e);drag.m=true;svg.querySelector(`[data-id='${drag.S.id}'] polygon`).setAttribute('points',pts(drag.S.pts));return}
+  if(fd){const p=snapTo(pt(e),svg),l=draft[draft.length-1];if(Math.hypot(p[0]-l[0],p[1]-l[1])>2.5*vb.w/200){draft.push(p);fh.setAttribute('points',pts(draft))}return}
+  if(drag&&drag.vi!==undefined){drag.S.pts[drag.vi]=snapTo(pt(e),svg);drag.m=true;svg.querySelector(`[data-id='${drag.S.id}'] polygon`).setAttribute('points',pts(drag.S.pts));return}
   om(e)};
  svg.onpointerup=e=>{
   if(panD){panD=null;lastUp=Date.now();render();return}
@@ -240,14 +253,44 @@ function setupDesign(){
  svg.onpointercancel=()=>{drag=null;panD=null;fd=false;draft=[];render()}}
 function zoom(f){const nw=Math.max(8,Math.min(200,vb.w*f)),cx=vb.x+vb.w/2,cy=vb.y+vb.w*.3125;vb.w=nw;vb.x=Math.max(0,Math.min(200-nw,cx-nw/2));vb.y=Math.max(0,Math.min(125-nw*.625,cy-nw*.3125))}
 function base(){
- if(US)return `<rect width='200' height='125' style='fill:var(--bg)'/><g transform='scale(.205128)'><path d='${US.nation}' style='fill:var(--surface)'/><path d='${US.counties}' style='fill:none;stroke:var(--line);stroke-width:.6px;vector-effect:non-scaling-stroke'/><path d='${US.states}' style='fill:none;stroke:var(--mute);stroke-width:1px;vector-effect:non-scaling-stroke'/><path d='${US.nation}' style='fill:none;stroke:var(--ink);stroke-width:1.2px;vector-effect:non-scaling-stroke'/></g>`;
+ if(US)return `<rect width='200' height='125' style='fill:var(--bg)'/><g transform='scale(.205128)'><path d='${US.nation}' style='fill:var(--surface)'/><path d='${US.counties}' style='fill:none;stroke:var(--mute);stroke-width:.8px;opacity:.6;vector-effect:non-scaling-stroke'/><path d='${US.states}' style='fill:none;stroke:var(--ink);stroke-width:2px;vector-effect:non-scaling-stroke'/><path d='${US.nation}' style='fill:none;stroke:var(--ink);stroke-width:3.5px;vector-effect:non-scaling-stroke'/></g>`;
  let g=`<rect width='200' height='125' style='fill:var(--surface)'/>`;for(let i=25;i<200;i+=25)g+=`<path class='gl' d='M${i} 0V125M0 ${i}H200'/>`;
  return g+`<text class='rl' x='4' y='10' style='font-size:6px'>${usErr?'The real map could not load. Showing a plain grid.':'Loading the US map...'}</text>`}
 async function loadUS(){try{
  const u='https://cdn.jsdelivr.net/npm/us-atlas@3.0.1/counties-albers-10m.json',m=await import(u,{with:{type:'json'}}),t=m.default,P=d3.geoPath();
- US={nation:P(topojson.feature(t,t.objects.nation)),states:P(topojson.mesh(t,t.objects.states,(a,b)=>a!==b)),counties:P(topojson.mesh(t,t.objects.counties,(a,b)=>a!==b))}
+ US={nation:P(topojson.feature(t,t.objects.nation)),states:P(topojson.mesh(t,t.objects.states,(a,b)=>a!==b)),counties:P(topojson.mesh(t,t.objects.counties,(a,b)=>a!==b))};try{setCounties(t);PLC=PL.map(p=>{const z=proj(p[2],p[3]);return z&&{n:p[0],t:p[1],x:z[0],y:z[1]}}).filter(Boolean)}catch(e){}
 }catch(e){usErr=true}
  render()}
+const K=.205128,PL=[['Oswego, IL','t',41.6828,-88.3515],['Montgomery, IL','t',41.7306,-88.3462],['Yorkville, IL','t',41.6411,-88.4473],['Plano, IL','t',41.662,-88.5296],['Sandwich, IL','t',41.6456,-88.6218],['Plainfield, IL','t',41.6192,-88.2062],['Minooka, IL','t',41.4547,-88.2623],['Batavia, IL','t',41.85,-88.3126],['Aurora, IL','c',41.7606,-88.3201],['Naperville, IL','c',41.7508,-88.1535],['Joliet, IL','c',41.525,-88.0817],['Oswego, NY','t',43.4553,-76.5105],['Fulton, NY','t',43.3228,-76.4177],['Pulaski, NY','t',43.5667,-76.1283],['Mexico, NY','t',43.4595,-76.2299],['Phoenix, NY','t',43.23,-76.3016],['Syracuse, NY','c',43.0481,-76.1474],['Rochester, NY','c',43.1566,-77.6088],['Buffalo, NY','c',42.8864,-78.8784],['Albany, NY','c',42.6526,-73.7562],['New York, NY','c',40.7128,-74.006],['Boston, MA','c',42.3601,-71.0589],['Philadelphia, PA','c',39.9526,-75.1652],['Washington, DC','c',38.9072,-77.0369],['Atlanta, GA','c',33.749,-84.388],['Miami, FL','c',25.7617,-80.1918],['Charlotte, NC','c',35.2271,-80.8431],['Nashville, TN','c',36.1627,-86.7816],['Memphis, TN','c',35.1495,-90.049],['New Orleans, LA','c',29.9511,-90.0715],['Houston, TX','c',29.7604,-95.3698],['Dallas, TX','c',32.7767,-96.797],['San Antonio, TX','c',29.4241,-98.4936],['Oklahoma City, OK','c',35.4676,-97.5164],['Kansas City, MO','c',39.0997,-94.5786],['St. Louis, MO','c',38.627,-90.1994],['Chicago, IL','c',41.8781,-87.6298],['Milwaukee, WI','c',43.0389,-87.9065],['Minneapolis, MN','c',44.9778,-93.265],['Detroit, MI','c',42.3314,-83.0458],['Cleveland, OH','c',41.4993,-81.6944],['Indianapolis, IN','c',39.7684,-86.1581],['Omaha, NE','c',41.2565,-95.9345],['Denver, CO','c',39.7392,-104.9903],['Salt Lake City, UT','c',40.7608,-111.891],['Phoenix, AZ','c',33.4484,-112.074],['Las Vegas, NV','c',36.1699,-115.1398],['Los Angeles, CA','c',34.0522,-118.2437],['San Diego, CA','c',32.7157,-117.1611],['Seattle, WA','c',47.6062,-122.3321],['Portland, OR','c',45.5152,-122.6784]];
+let PLC=[],loc=null,msg='',CTY=[],selC={},snap=true,radar=false,dur=60,bycty=false,cc={};
+const exd=x=>x.exp&&x.exp<Date.now(),tl=x=>x.exp?(exd(x)?' · expired':' · '+fmt(Math.max(1,Math.round((x.exp-Date.now())/6e4)))):'';
+function proj(lat,lon){const q=d3.geoAlbersUsa().scale(1300).translate([487.5,305])([lon,lat]);return q&&[q[0]*K,q[1]*K]}
+function setCounties(t){const ST={};topojson.feature(t,t.objects.states).features.forEach(f=>{ST[f.id]=f.properties.name});CTY=topojson.feature(t,t.objects.counties).features.filter(f=>f.geometry).map(f=>{const g=(f.geometry.type==='Polygon'?[f.geometry.coordinates]:f.geometry.coordinates).map(pl=>pl.map(r=>r.map(q=>[q[0]*K,q[1]*K]))),a=g.map(pl=>pl[0]).flat(),xs=a.map(q=>q[0]),ys=a.map(q=>q[1]),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys);return{id:f.id,n:f.properties.name,s:ST[String(f.id).slice(0,2)]||'',g,b:[x0,y0,x1,y1],cx:(x0+x1)/2,cy:(y0+y1)/2}})}
+function cAt(p){for(const c of CTY){const b=c.b;if(p[0]<b[0]||p[0]>b[2]||p[1]<b[1]||p[1]>b[3])continue;for(const pl of c.g)if(dist({x:p[0],y:p[1]},pl[0])===0)return c}return null}
+function snapTo(p,svg){if(!snap)return p;const ids=Object.keys(selC);if(!ids.length)return p;let best=null,bd=14/(svg.getBoundingClientRect().width/vb.w);ids.forEach(id=>{const c=CTY.find(q=>q.id===id);if(c)c.g.forEach(pl=>{const r=pl[0];for(let i=0;i<r.length-1;i++){const a=r[i],b=r[i+1],dx=b[0]-a[0],dy=b[1]-a[1],t=Math.max(0,Math.min(1,((p[0]-a[0])*dx+(p[1]-a[1])*dy)/(dx*dx+dy*dy||1))),x=a[0]+t*dx,y=a[1]+t*dy,d=Math.hypot(x-p[0],y-p[1]);if(d<bd){bd=d;best=[x,y]}}})});return best||p}
+function cfill(){let s='';Object.keys(selC).forEach(id=>{const c=CTY.find(q=>q.id===id);if(c)c.g.forEach(pl=>s+=`<polygon points='${pts(pl[0])}' style='fill:var(--accent);fill-opacity:.18;stroke:var(--accent);stroke-width:2px;vector-effect:non-scaling-stroke;pointer-events:none'/>`)});return s}
+function calert(){Object.keys(selC).forEach(id=>{const c=CTY.find(q=>q.id===id);if(c)addC(c)});selC={};tool=null;save()}
+function placesL(k){const inv=(x,y)=>x>vb.x&&x<vb.x+vb.w&&y>vb.y&&y<vb.y+vb.w*.625,f=`font-size:${5*k}px;stroke-width:${1.4*k}px`;let s=`<g style='pointer-events:none'>`;
+ if(vb.w<=45)CTY.forEach(c=>{if(inv(c.cx,c.cy))s+=`<text class='lbl' style='font-size:${3*k}px;stroke-width:${k}px;font-style:italic;fill:var(--mute)' x='${c.cx}' y='${c.cy}'>${c.n} Co.</text>`});
+ PLC.forEach(p=>{if((p.t==='t'&&vb.w>60)||!inv(p.x,p.y))return;s+=`<circle cx='${p.x}' cy='${p.y}' r='${(p.t==='c'?2:1.2)*k}' style='fill:var(--ink)'/><text class='lbl' style='${f}' x='${p.x}' y='${p.y-2*k}'>${p.n.split(',')[0]}</text>`});
+ if(loc)s+=`<circle cx='${loc.x}' cy='${loc.y}' r='${3*k}' style='fill:#d62828;stroke:#fff;stroke-width:${k}px'/><text class='lbl' style='${f}' x='${loc.x}' y='${loc.y-5*k}'>${loc.n}</text>`;
+ return s+'</g>'}
+function radarL(){if(!radar)return'';let s=`<g style='pointer-events:none'>`;for(let i=0;i<14;i++){const x=30+i*10+(i*37)%13,y=70-i*3+(i*53)%17-8,r=4+(i*7)%9;[['#3fc25f',1,.35],['#f2d13a',.62,.45],['#e03a3a',.3,.5]].forEach(c=>s+=`<ellipse cx='${x}' cy='${y}' rx='${r*c[1]*1.5}' ry='${r*c[1]}' transform='rotate(-25 ${x} ${y})' style='fill:${c[0]};fill-opacity:${c[2]}'/>`)}return s+`<text class='lbl' style='font-size:${5*vb.w/200}px' x='${vb.x+vb.w/2}' y='${vb.y+6*vb.w/200}'>Simulated radar</text></g>`}
+function lp(){if(!loc)return msg?`<p class='note' style='margin:0 0 8px'>${msg}</p>`:'';const c=CTY.length?cAt([loc.x,loc.y]):null,hit=D.filter(x=>x.kind==='area'&&(dist({x:loc.x,y:loc.y},x.pts)===0||(c&&cof(x).includes(c.n)&&sof(x).includes(c.s)))),on=hit.filter(x=>!exd(x));return `<div class='lp'><b>${loc.n}</b>${c?' · '+c.n+' County':''}<br>${on.length?on.map(x=>`<span class='tag' style='--c:${TYPES[x.k].c}'>${TYPES[x.k].n.split(' ').pop().toUpperCase()}</span>${TYPES[x.k].n}${tl(x)}${cl(x)?' · '+cl(x):''}`).join('<br>'):'No active alerts here.'}${hit.length>on.length?'<br><small>Expired alerts are not counted.</small>':''}</div>`}
+function srch(){return `${lp()}`}
+async function gotoLoc(){const q=($('#q')||{value:''}).value.trim().toLowerCase(),m=q.match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/);let p=null;
+ if(m){const z=proj(+m[1],+m[2]);if(z)p={n:m[1]+', '+m[2],x:z[0],y:z[1]}}
+ else if(q)p=PLC.find(a=>a.n.toLowerCase()===q)||PLC.find(a=>a.n.toLowerCase().includes(q));
+ if(!p&&q&&!m){try{const r=await fetch('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(q.split(',')[0].trim())+'&count=5&language=en&format=json&countryCode=US'),j=await r.json(),h=j.results||[],st=(q.split(',')[1]||'').trim(),f=h.find(a=>st&&(a.admin1||'').toLowerCase().startsWith(st))||h[0];if(f){const z=proj(f.latitude,f.longitude);if(z)p={n:f.name+(f.admin1?', '+f.admin1:''),x:z[0],y:z[1]}}}catch(e){}}
+ if(!p){loc=null;msg=PLC.length?'I could not find that place. Pick one from the suggestions, or type latitude, longitude.':'The map is still loading. Try again in a moment.';render();return}
+ loc=p;msg='';vb.w=30;vb.x=Math.max(0,Math.min(170,p.x-15));vb.y=Math.max(0,Math.min(106,p.y-9.4));render()}
+function addC(c){c.g.forEach(pl=>{const r=pl[0],n=Math.ceil(r.length/150);D.push({id:nid(),kind:'area',k:tool.k,pts:r.filter((_,i)=>i%n===0),cn:[c.n],st:[c.s],exp:Date.now()+dur*6e4})})}
+function cof(x){if(x.cn)return x.cn;if(!CTY.length)return[];const key=x.pts.reduce((s,q)=>s+q[0]*3+q[1],0).toFixed(2);if(cc[x.id]&&cc[x.id].k===key)return cc[x.id].v;const xs=x.pts.map(q=>q[0]),ys=x.pts.map(q=>q[1]),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys),v=[];CTY.forEach(c=>{const b=c.b;if(b[2]<x0||b[0]>x1||b[3]<y0||b[1]>y1)return;if(dist({x:c.cx,y:c.cy},x.pts)===0||c.g.some(pl=>x.pts.some(q=>dist({x:q[0],y:q[1]},pl[0])===0)))v.push(c)});const names=v.map(c=>c.n).sort(),ss=[...new Set(v.map(c=>c.s).filter(Boolean))].sort();cc[x.id]={k:key,v:names,s:ss};return names}
+const sof=x=>x.st||(cof(x),cc[x.id]?cc[x.id].s:[]),cl=x=>{const n=cof(x);return n.length?n.slice(0,3).join(', ')+(n.length>3?' +'+(n.length-3):'')+(n.length>1?' Cos.':' Co.')+(sof(x).length?' · '+sof(x).join(', '):''):''};
+function head(){const al=active(),top=al[0],c=loc&&CTY.length?cAt([loc.x,loc.y]):null;
+ $('#hero').style.setProperty('--c',top?top.T.c:'var(--accent)');
+ $('#hero').innerHTML=top?`<div class='lvl'>${al.length} active alert${al.length>1?'s':''}${loc?' for '+loc.n:''}. Most serious:</div><h1>${top.T.n}</h1><div>${top.area}. Expires in ${top.m>9000?'no set time':fmt(top.m)}.</div>`:loc?`<div class='lvl'>${loc.n}${c?' · '+c.n+' County, '+c.s:''}</div><h1>All clear</h1><div>No active alerts for this place.</div>`:`<div class='lvl'>${msg?'Place not found':'No location set'}</div><h1>${msg?'Try another name':'Type your town'}</h1><div>${msg||'Type a city or town above and tap Go to see its alerts.'}</div>`;
+ $('#stats').innerHTML=''}
 function settings(){
  return `<h2>Alert types you follow</h2>`+Object.keys(TYPES).sort((a,b)=>TYPES[b].s-TYPES[a].s).map(k=>`<button class="sw" role="switch" aria-checked="${follow[k]}" style="--c:${TYPES[k].c}" data-s="${k}"><span>${TYPES[k].n}</span><i>${follow[k]?"On":"Off"}</i></button>`).join("")+`<p class="note">Warnings mean the hazard is happening or about to. Watches mean conditions allow it. Advisories mean an inconvenience or hazard is likely.</p>`;
 }
@@ -256,8 +299,8 @@ function render(){
  $("#view").innerHTML=tab==="alerts"?alerts():tab==="map"?map():tab==="design"?design():tab==="forecast"?forecast():settings();if(tab==="map")setupMap();if(tab==="design")setupDesign();$("#hero").hidden=$("#stats").hidden=tab==="design";
  document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-selected",b.dataset.t===tab));
 }
-$("#city").innerHTML=Object.entries(CITIES).map(([k,v])=>`<option value="${k}">${v.n}</option>`).join("");
-$("#city").onchange=e=>{city=e.target.value;filter=null;sel=null;you={x:100,y:100};render()};
+$("#pl").innerHTML=PL.map(p=>`<option value="${p[0]}">`).join("");$("#q").onkeydown=e=>{if(e.key==="Enter")gotoLoc()};$("#go").onclick=gotoLoc;
+
 document.querySelector("nav").onclick=e=>{const b=e.target.closest("button");if(b){tab=b.dataset.t;render()}};
 $("#view").onclick=e=>{
  const m=e.target.closest("[data-m]");if(m){const i=+m.dataset.m;sel=sel===i?null:i;render();return}
