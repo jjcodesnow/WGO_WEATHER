@@ -1,271 +1,533 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Stormwatch</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stormwatch | WGO Weather</title>
 <style>
-:root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
---tw:#d62828;--tww:#c9a400;--sw:#e8700a;--sww:#c2477a;--fw:#1f8f3a;--fww:#2a7a5a;--wsw:#d6409f;--wwa:#6a5acd;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1620;--surface:#17222f;--ink:#e8eef4;--mute:#93a4b4;--line:#2a3a4a;--accent:#6aa9ea;--tww:#e0bd2a;--wwa:#9a8cf0;--fw:#3fc25f;--fww:#4cb589;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#0e1620;--surface:#17222f;--ink:#e8eef4;--mute:#93a4b4;--line:#2a3a4a;--accent:#6aa9ea;--tww:#e0bd2a;--wwa:#9a8cf0;--fw:#3fc25f;--fww:#4cb589;color-scheme:dark}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
+:root{
+ --bg:#edf2f7;--card:white;--text:#172536;
+ --line:#d7e0ea;--blue:#1769b2;
+}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 Barlow,system-ui,sans-serif}
-h1,h2,h3,.num{font-family:"Barlow Semi Condensed",Barlow,system-ui,sans-serif;margin:0}
-main{max-width:560px;margin:0 auto;padding:12px 14px 40px}
-.top{display:flex;gap:8px;align-items:center;margin-bottom:12px}
-select,button{font:inherit;color:inherit}
-select{flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);min-height:44px}
-.icon{min-height:44px;min-width:44px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);cursor:pointer}
-:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.hero{border-radius:14px;padding:16px;background:var(--surface);border:1px solid var(--line);border-left:8px solid var(--c,var(--accent))}
-.hero .lvl{font:600 14px "Barlow Semi Condensed";color:var(--c,var(--mute))}
-.hero h1{font-size:28px;line-height:1.1;margin:2px 0 6px}
-.now{display:flex;align-items:center;gap:14px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
-.now .num{font-size:64px;font-weight:600;line-height:1}
-.now .meta{color:var(--mute);font-size:15px}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
-.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:8px;text-align:center}
-.stat b{display:block;font:600 18px "Barlow Semi Condensed"}.stat span{font-size:13px;color:var(--mute)}
-nav{display:flex;gap:6px;margin:14px 0 10px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding:4px 0;z-index:2}
-nav button{flex:1;min-height:44px;border:1px solid var(--line);background:var(--surface);border-radius:var(--r);cursor:pointer;font-weight:500}
-nav button[aria-selected=true]{background:var(--accent);border-color:var(--accent);color:#fff}
-.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px}
-.chip{flex:none;min-height:36px;padding:0 12px;border:1px solid var(--line);border-radius:18px;background:var(--surface);cursor:pointer;font-size:14px}
-.chip[aria-pressed=true]{border-color:var(--c);box-shadow:inset 0 0 0 1px var(--c)}
-.alert{background:var(--surface);border:1px solid var(--line);border-left:8px solid var(--c);border-radius:var(--r);margin-bottom:10px}
-.alert summary{list-style:none;cursor:pointer;padding:12px;min-height:44px}
-.alert summary::-webkit-details-marker{display:none}
-.alert h3{font-size:19px}
-.alert .sub{color:var(--mute);font-size:14px}
-.alert .body{padding:0 12px 12px;font-size:15px}
-.alert ul{margin:6px 0 0;padding-left:20px}
-.tag{display:inline-block;font:600 13px "Barlow Semi Condensed";padding:2px 8px;border-radius:6px;color:#fff;background:var(--c);margin-right:6px}
-.tag.dk{color:#1a1400}
-.empty{padding:24px 12px;text-align:center;color:var(--mute);background:var(--surface);border:1px dashed var(--line);border-radius:var(--r)}
-.row{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}
-.hr{flex:none;width:64px;text-align:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:8px 4px}
-.hr b{display:block;font:600 18px "Barlow Semi Condensed"}.hr span{font-size:13px;color:var(--mute)}
-.day{display:grid;grid-template-columns:56px 32px 1fr auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
-.bar{height:6px;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--sw))}
-.sw{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-left:8px solid var(--c);border-radius:var(--r);padding:10px 12px;margin-bottom:8px;min-height:52px;width:100%;text-align:left;cursor:pointer}
-.sw i{font-style:normal;font-weight:600;min-width:44px;text-align:right;color:var(--mute)}
-.sw[aria-checked=true] i{color:var(--fw)}
-h2{font-size:20px;margin:14px 0 8px}
-.note{color:var(--mute);font-size:14px;margin-top:12px}
-#map,#dmap{width:100%;height:auto;display:block;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
-.gl{stroke:var(--line);stroke-width:.3}.rv{stroke:var(--accent);opacity:.5;fill:none;stroke-width:2}.rd{stroke:var(--line);fill:none;stroke-width:1}
-.ring{fill:none;stroke:var(--mute);stroke-dasharray:2 2;stroke-width:.3}.rl{font-size:4px;fill:var(--mute)}
-#map polygon{cursor:pointer}
-[hidden]{display:none!important}
-nav{overflow-x:auto}nav button{flex:1 0 auto;padding:0 12px}
-.wrap{flex-wrap:wrap;overflow:visible}
-.act{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0}
-.act button{min-height:44px;padding:0 14px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);cursor:pointer}
-.act button.pri{background:var(--accent);border-color:var(--accent);color:#fff}
-.act input{width:72px;min-height:44px;padding:0 8px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
-#dmap [data-id]{touch-action:none;cursor:grab}
-#dmap [data-v],#dmap [data-e]{touch-action:none;cursor:move}
-.lbl{font:600 5.5px "Barlow Semi Condensed";fill:var(--ink);paint-order:stroke;stroke:var(--surface);stroke-width:1.4px;text-anchor:middle;pointer-events:none}
-@media (prefers-reduced-motion:no-preference){.alert[open] .body{animation:o .15s ease-out}@keyframes o{from{opacity:0}to{opacity:1}}}
+body{
+ margin:0;background:var(--bg);color:var(--text);
+ font-family:Arial,sans-serif;
+}
+body.dark{
+ --bg:#101b29;--card:#1d2b3b;
+ --text:#edf4ff;--line:#405064;
+}
+header{
+ background:#123b66;color:white;
+ padding:18px;text-align:center;
+}
+header h1{margin:0;font-size:27px}
+header p{margin:5px}
+nav{
+ display:flex;overflow-x:auto;gap:5px;
+ background:var(--card);padding:9px;
+ position:sticky;top:0;z-index:10;
+}
+button,input,select,textarea{
+ font:inherit;border-radius:8px;
+ border:1px solid var(--line);
+ padding:10px;
+}
+button{cursor:pointer}
+nav button{flex:1;white-space:nowrap}
+button.active,.primary{
+ background:var(--blue);color:white;
+ border-color:var(--blue);
+}
+main{max-width:850px;margin:auto;padding:14px}
+.panel{
+ background:var(--card);border:1px solid var(--line);
+ border-radius:12px;padding:16px;margin-bottom:14px;
+}
+h2{margin-top:0}
+label{display:block;font-weight:bold;margin-top:12px}
+input,textarea,select{
+ display:block;width:100%;margin-top:5px;
+ background:var(--card);color:var(--text);
+}
+textarea{min-height:115px;resize:vertical}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.actions button{flex:1}
+.map{
+ width:100%;border-radius:10px;
+ border:1px solid var(--line);
+ background:#e2ebdb;touch-action:none;
+}
+.alert{
+ border-left:8px solid var(--alert);
+ padding:14px;margin:12px 0;
+ background:var(--card);
+ border-radius:10px;
+ border-top:1px solid var(--line);
+ border-right:1px solid var(--line);
+ border-bottom:1px solid var(--line);
+}
+.alert h3{margin:6px 0}
+.alert p{white-space:pre-wrap;line-height:1.5}
+.tag{
+ display:inline-block;background:var(--alert);
+ color:white;border-radius:5px;
+ padding:4px 9px;font-weight:bold;font-size:12px;
+}
+.small{font-size:13px;opacity:.75}
+.empty{
+ text-align:center;padding:25px;
+ border:1px dashed var(--line);
+ border-radius:10px;
+}
+.hidden{display:none}
+footer{text-align:center;padding:25px;font-size:12px;opacity:.7}
 </style>
-<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
 </head>
 <body>
+
+<header>
+<h1>🌪️ Stormwatch</h1>
+<p>WGO Weather</p>
+</header>
+
+<nav>
+<button onclick="show('alerts')" id="nav-alerts">Alerts</button>
+<button onclick="show('map')" id="nav-map">Map</button>
+<button onclick="show('design')" id="nav-design">Design</button>
+<button onclick="show('forecast')" id="nav-forecast">Forecast</button>
+<button onclick="show('settings')" id="nav-settings">Settings</button>
+</nav>
+
 <main>
-  <div class="top">
-    <label for="city" style="position:absolute;left:-9999px">Location</label>
-    <select id="city"></select>
-    <button class="icon" id="theme" aria-label="Switch light or dark theme">◐</button>
-  </div>
-  <section class="hero" id="hero"></section>
-  <div class="stats" id="stats"></div>
-  <nav role="tablist" aria-label="Sections">
-    <button role="tab" aria-selected="true" data-t="alerts">Alerts</button>
-    <button role="tab" aria-selected="false" data-t="map">Map</button>
-    <button role="tab" aria-selected="false" data-t="design">Design</button>
-    <button role="tab" aria-selected="false" data-t="forecast">Forecast</button>
-    <button role="tab" aria-selected="false" data-t="settings">My alerts</button>
-  </nav>
-  <div id="view"></div>
-  <p class="note">Sample data for design and testing. Connect a live source such as the National Weather Service API before relying on it for safety.</p>
+<section id="alerts" class="page">
+<div class="panel">
+<h2>⚠️ Weather Alerts</h2>
+<p>Warnings, watches, and advisories added to your map appear here automatically.</p>
+<div id="alertList"></div>
+</div>
+</section>
+
+<section id="map" class="page hidden">
+<div class="panel">
+<h2>🗺️ Weather Alert Map</h2>
+<p class="small">Colored areas represent your custom alerts. Tap an area to edit its details.</p>
+<div id="publicMap"></div>
+</div>
+</section>
+
+<section id="design" class="page hidden">
+<div class="panel">
+<h2>✏️ Design Weather Alerts</h2>
+<p>Select an alert type, then tap at least three points on the map to draw its area.</p>
+
+<label>Weather Alert Type</label>
+<select id="alertType">
+<option value="tornado-warning">Tornado Warning</option>
+<option value="tornado-watch">Tornado Watch</option>
+<option value="severe-warning">Severe Thunderstorm Warning</option>
+<option value="severe-watch">Severe Thunderstorm Watch</option>
+<option value="flood-warning">Flood Warning</option>
+<option value="flood-watch">Flood Watch</option>
+<option value="flash-flood">Flash Flood Warning</option>
+<option value="winter-warning">Winter Storm Warning</option>
+<option value="winter-watch">Winter Storm Watch</option>
+<option value="winter-advisory">Winter Weather Advisory</option>
+<option value="blizzard">Blizzard Warning</option>
+<option value="ice-warning">Ice Storm Warning</option>
+<option value="wind-advisory">Wind Advisory</option>
+<option value="high-wind">High Wind Warning</option>
+<option value="heat-advisory">Heat Advisory</option>
+<option value="excessive-heat">Excessive Heat Warning</option>
+<option value="special-weather">Special Weather Statement</option>
+</select>
+
+<div class="actions">
+<button class="primary" onclick="startDrawing()">Draw Area</button>
+<button onclick="finishDrawing()">Finish Area</button>
+<button onclick="undoPoint()">Undo Point</button>
+</div>
+
+<div id="designMap"></div>
+
+<div class="actions">
+<button onclick="zoomMap(1.5)">Zoom +</button>
+<button onclick="zoomMap(1/1.5)">Zoom −</button>
+<button onclick="resetZoom()">Reset Zoom</button>
+</div>
+</div>
+
+<div class="panel">
+<h2>📋 Alert Details</h2>
+<p class="small">Select a drawn area or finish a new one to edit its details.</p>
+
+<label>Alert Type</label>
+<select id="editType"></select>
+
+<label>Affected Location</label>
+<input id="editLocation" placeholder="Example: Kendall County, Illinois">
+
+<label>Alert Description</label>
+<textarea id="editDescription" placeholder="Enter the full weather alert description..."></textarea>
+
+<label>Expiration Time (optional)</label>
+<input id="editExpiration" type="datetime-local">
+
+<div class="actions">
+<button class="primary" onclick="saveAlert()">Save Alert</button>
+<button onclick="deleteAlert()">Delete Alert</button>
+</div>
+
+<p id="saveMessage" class="small"></p>
+</div>
+</section>
+
+<section id="forecast" class="page hidden">
+<div class="panel">
+<h2>🌤️ Weather Forecast</h2>
+<p>Forecast information can be connected to a live weather data provider.</p>
+<p class="small">No live weather data is currently connected in this version.</p>
+</div>
+</section>
+
+<section id="settings" class="page hidden">
+<div class="panel">
+<h2>⚙️ Settings</h2>
+<button onclick="toggleTheme()">Toggle Dark Mode</button>
+<p id="alertCount"></p>
+<p class="small">Your custom alerts are saved on this device using browser storage.</p>
+</div>
+</section>
 </main>
+
+<footer>
+WGO Weather — Stormwatch<br>
+Custom alerts are not official National Weather Service alerts.
+</footer>
+
 <script>
+"use strict";
+
 const TYPES={
- tw:{n:"Tornado Warning",s:5,c:"var(--tw)",d:0,tip:["Go to a basement or an interior room on the lowest floor now","Stay away from windows","Cover your head and neck","If in a vehicle, don’t outrun it. Find a sturdy building"]},
- tww:{n:"Tornado Watch",s:3,c:"var(--tww)",d:1,tip:["Conditions favor tornadoes. Stay alert","Pick your shelter spot now","Keep a phone charged and a weather radio on","Be ready to move fast if a warning is issued"]},
- sw:{n:"Severe Thunderstorm Warning",s:4,c:"var(--sw)",d:0,tip:["Move indoors away from windows","Expect damaging wind and large hail","Unplug sensitive electronics","Wait 30 minutes after the last thunder before going out"]},
- sww:{n:"Severe Thunderstorm Watch",s:2,c:"var(--sww)",d:0,tip:["Storms may become severe in the next few hours","Secure outdoor furniture","Check the sky and your alerts often"]},
- fw:{n:"Flood Warning",s:4,c:"var(--fw)",d:0,tip:["Move to higher ground","Never drive through flooded roads. Turn around","Avoid walking in moving water","Shut off utilities if told to evacuate"]},
- fww:{n:"Flood Watch",s:2,c:"var(--fww)",d:0,tip:["Flooding is possible. Know your route to high ground","Move valuables out of basements","Don’t park near streams or low spots"]},
- wsw:{n:"Winter Storm Warning",s:4,c:"var(--wsw)",d:0,tip:["Avoid travel. Roads may become impassable","Keep a blanket, food and water in your car","Prepare for power outages","Never run a generator indoors"]},
- wwa:{n:"Winter Weather Advisory",s:1,c:"var(--wwa)",d:0,tip:["Slick roads likely. Slow down and leave extra distance","Dress in layers","Allow extra time for your commute"]},
- wsww:{n:"Winter Storm Watch",s:2,c:"#3b82c4",d:0,tip:["Heavy snow or ice is possible in the next 12 to 48 hours","Fill your gas tank and stock food and water","Charge devices and check on neighbors"]},
- wi:{n:"Wind Advisory",s:1,c:"#a9825a",d:0,tip:["Secure trash cans, patio furniture and loose items","Take extra care driving a high-profile vehicle","Watch for downed branches and power lines"]}
+"tornado-warning":["Tornado Warning","#e02020"],
+"tornado-watch":["Tornado Watch","#e1ba00"],
+"severe-warning":["Severe Thunderstorm Warning","#ed8000"],
+"severe-watch":["Severe Thunderstorm Watch","#d76a9c"],
+"flood-warning":["Flood Warning","#20934c"],
+"flood-watch":["Flood Watch","#398d6a"],
+"flash-flood":["Flash Flood Warning","#a51616"],
+"winter-warning":["Winter Storm Warning","#d83d98"],
+"winter-watch":["Winter Storm Watch","#347dc4"],
+"winter-advisory":["Winter Weather Advisory","#7655b7"],
+"blizzard":["Blizzard Warning","#ba2222"],
+"ice-warning":["Ice Storm Warning","#ae4cbd"],
+"wind-advisory":["Wind Advisory","#b88c51"],
+"high-wind":["High Wind Warning","#ad642c"],
+"heat-advisory":["Heat Advisory","#e69b25"],
+"excessive-heat":["Excessive Heat Warning","#a52020"],
+"special-weather":["Special Weather Statement","#587ca4"]
 };
-const CITIES={
- okc:{n:"Oklahoma City, OK",t:74,f:78,cond:"Humid, storms building",ic:"⛈️",w:"S 22 mph",h:78,uv:6,vis:"6 mi",
-  a:[["tw","Cleveland County","Tornado near Moore moving northeast at 30 mph",45],["sw","Oklahoma County","Wind gusts to 70 mph and quarter-size hail",90],["tww","Central Oklahoma","Until 10 PM CDT",300],["fww","Southern Oklahoma","Heavy rain on saturated ground",600]]},
- msp:{n:"Minneapolis, MN",t:24,f:15,cond:"Heavy snow",ic:"🌨️",w:"NW 18 mph",h:82,uv:1,vis:"1 mi",
-  a:[["wsw","Hennepin County","8 to 12 inches of snow with blowing snow",840],["wwa","Anoka County","2 to 4 inches of snow and slick roads",360]]},
- hou:{n:"Houston, TX",t:71,f:71,cond:"Steady heavy rain",ic:"🌧️",w:"E 14 mph",h:94,uv:2,vis:"3 mi",
-  a:[["fw","Harris County","Bayou levels rising. Street flooding underway",420],["fww","Brazoria County","3 to 5 inches of additional rain possible",720]]},
- bna:{n:"Nashville, TN",t:68,f:68,cond:"Warm and gusty",ic:"🌥️",w:"SW 20 mph",h:70,uv:4,vis:"8 mi",
-  a:[["sww","Davidson County","Until 9 PM CST",240],["wi","Middle Tennessee","Southwest winds 20 to 30 mph, gusts to 45",420]]},
- san:{n:"San Diego, CA",t:72,f:71,cond:"Sunny",ic:"☀️",w:"W 8 mph",h:55,uv:7,vis:"10 mi",a:[]},
- chi:{n:"Chicago, IL",t:31,f:22,cond:"Windy and cold",ic:"💨",w:"NW 28 mph",h:64,uv:2,vis:"7 mi",
-  a:[["wsww","Cook County","Heavy snow possible Saturday. 6 to 10 inches",1500],["wi","Lake County, IL","Northwest winds 25 to 35 mph, gusts to 50",300]]}
-};
-const ICONS=["☀️","⛅","☁️","🌧️","⛈️","🌨️"];
-let city="okc",tab="alerts",filter=null,follow={};
-Object.keys(TYPES).forEach(k=>follow[k]=true);
-try{const s=localStorage.getItem("sw-follow");if(s)follow=Object.assign(follow,JSON.parse(s))}catch(e){}
-const $=s=>document.querySelector(s),C=()=>CITIES[city];
-const fmt=m=>m<60?m+" min":(Math.round(m/6)/10)+" hr";
-let you={x:100,y:100},sel=null;
-const R={tw:11,sw:20,fw:24,fww:55,sww:60,tww:65,wsw:45,wwa:50,wsww:60,wi:55};
-function geo(k,i){const ang=i*2.4+k.length,d=i*30+14,cx=100+Math.cos(ang)*d*.9,cy=100+Math.sin(ang)*d*.9,r=R[k],p=[];for(let j=0;j<10;j++){const t=j/10*6.283,rr=r*(.78+.22*Math.sin(j*2.3+i+k.length));p.push([cx+Math.cos(t)*rr*1.3,cy+Math.sin(t)*rr*.8])}return p}
-function dist(p,poly){let ins=false,min=1e9;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const[a,b]=poly[i],[c,d]=poly[j];if((b>p.y)!==(d>p.y)&&p.x<(c-a)*(p.y-b)/(d-b)+a)ins=!ins;const dx=c-a,dy=d-b,t=Math.max(0,Math.min(1,((p.x-a)*dx+(p.y-b)*dy)/(dx*dx+dy*dy||1))),ex=a+t*dx-p.x,ey=b+t*dy-p.y;min=Math.min(min,Math.hypot(ex,ey))}return ins?0:min}
-function active(){return C().a.map((a,i)=>{const poly=geo(a[0],i);return{k:a[0],area:a[1],txt:a[2],m:a[3],T:TYPES[a[0]],poly,d:dist(you,poly),i}}).filter(a=>follow[a.k]).sort((x,y)=>y.T.s-x.T.s)}
-function head(){
- const c=C(),al=active(),top=al[0];
- $("#hero").style.setProperty("--c",top?top.T.c:"var(--accent)");
- $("#hero").innerHTML=(top?`<div class="lvl">${al.length} active alert${al.length>1?"s":""}. Most serious:</div><h1>${top.T.n}</h1><div>${top.area}. ${top.txt}. Expires in ${fmt(top.m)}.</div>`:`<div class="lvl">No active alerts</div><h1>All clear</h1><div>Nothing to act on in ${c.n}.</div>`)+
- `<div class="now"><div class="num">${c.t}°</div><div><div style="font-size:22px">${c.ic} ${c.cond}</div><div class="meta">Feels like ${c.f}° · ${c.n}</div></div></div>`;
- $("#stats").innerHTML=[["Wind",c.w],["Humidity",c.h+"%"],["UV",c.uv],["Visibility",c.vis]].map(x=>`<div class="stat"><b>${x[1]}</b><span>${x[0]}</span></div>`).join("");
+
+const KEY="wgo-stormwatch-alerts-v1";
+
+let alerts=[];
+try{
+ const saved=JSON.parse(localStorage.getItem(KEY));
+ if(Array.isArray(saved))alerts=saved;
+}catch(e){
+ console.warn("Could not load alerts",e);
 }
-function alerts(){
- const all=C().a.map(a=>a[0]),kinds=[...new Set(all)].filter(k=>follow[k]);
- let list=active().filter(a=>!filter||a.k===filter);
- let h="";
- if(kinds.length>1)h+=`<div class="chips">`+`<button class="chip" style="--c:var(--accent)" aria-pressed="${!filter}" data-f="">All</button>`+kinds.map(k=>`<button class="chip" style="--c:${TYPES[k].c}" aria-pressed="${filter===k}" data-f="${k}">${TYPES[k].n}</button>`).join("")+`</div>`;
- if(!list.length)return h+`<div class="empty">No alerts for this place. Open “My alerts” to change which types you see.</div>`;
- return h+list.map((a,i)=>`<details class="alert" style="--c:${a.T.c}" ${i===0?"open":""}><summary><span class="tag ${a.k==="tww"?"dk":""}">${a.T.n.split(" ").pop().toUpperCase()}</span><h3 style="display:inline">${a.T.n}</h3><div class="sub">${a.area} · ${a.d?Math.round(a.d)+" mi away":"you’re inside this area"} · expires in ${fmt(a.m)}</div></summary><div class="body"><p style="margin:0">${a.txt}.</p><b>What to do</b><ul>${a.T.tip.map(t=>`<li>${t}</li>`).join("")}</ul></div></details>`).join("");
+
+let selectedId=null;
+let drawing=false;
+let points=[];
+let zoom=1;
+
+const $=id=>document.getElementById(id);
+
+function escapeHTML(value){
+ return String(value??"").replace(/[&<>"']/g,c=>({
+ "&":"&amp;","<":"&lt;",">":"&gt;",
+ '"':"&quot;","'":"&#39;"
+ })[c]);
 }
-function forecast(){
- const c=C();let h=`<h2>Next 12 hours</h2><div class="row">`;
- for(let i=0;i<12;i++){const hr=(new Date().getHours()+i)%24,t=Math.round(c.t+3*Math.sin(i/3)-i*.4),lab=(hr%12||12)+(hr<12?" AM":" PM");h+=`<div class="hr"><span>${i?lab:"Now"}</span><b>${ICONS[(i+city.length)%4===3&&c.a.length?4:(i%3)]}</b><b>${t}°</b></div>`}
- h+=`</div><h2>7 days</h2>`;
- const D=["Today","Fri","Sat","Sun","Mon","Tue","Wed"];
- D.forEach((d,i)=>{const hi=Math.round(c.t+4+Math.cos(i)*5-i),lo=hi-14+i%3;h+=`<div class="day"><b>${d}</b><span>${ICONS[(i*2+city.length)%6]}</span><div class="bar" style="width:${50+(hi%40)}%"></div><span>${hi}° / ${lo}°</span></div>`});
- return h;
+
+function persist(){
+ try{
+  localStorage.setItem(KEY,JSON.stringify(alerts));
+  return true;
+ }catch(e){
+  alert("Unable to save alerts in this browser.");
+  return false;
+ }
 }
-function mlist(){return active().sort((x,y)=>x.d-y.d).map(a=>`<button class="sw" style="--c:${a.T.c};${sel===a.i?"box-shadow:0 0 0 2px "+a.T.c:""}" data-m="${a.i}"><span><b>${a.T.n}</b><br><small>${a.area}${sel===a.i?". "+a.txt:""}</small></span><i>${a.d?Math.round(a.d)+" mi":"Inside"}</i></button>`).join("")||`<div class="empty">No alerts to map. Open “My alerts” to turn types back on.</div>`}
-function map(){
- let s=`<svg id="map" viewBox="0 0 200 200" role="img" aria-label="Alert map. 1 grid square is 25 miles.">`;
- for(let i=25;i<200;i+=25)s+=`<path class="gl" d="M${i} 0V200M0 ${i}H200"/>`;
- s+=`<path class="rv" d="M0 150C40 120 60 170 100 140S160 90 200 110"/><path class="rd" d="M20 0L70 200M0 60H200M130 0L180 200"/>`;
- [25,50,75].forEach(r=>s+=`<circle class="ring" cx="${you.x}" cy="${you.y}" r="${r}"/><text class="rl" x="${you.x+r+1}" y="${you.y-1}">${r} mi</text>`);
- active().reverse().forEach(a=>s+=`<polygon data-m="${a.i}" points="${a.poly.map(p=>p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ")}" fill="${a.T.c}" fill-opacity="${sel===a.i?.55:.3}" stroke="${a.T.c}" stroke-width="${sel===a.i?2.5:1.2}"/>`);
- s+=`<g id="you" tabindex="0" role="slider" aria-label="Your location. Drag or use arrow keys." transform="translate(${you.x} ${you.y})" style="touch-action:none;cursor:grab"><circle r="12" fill="transparent"/><circle r="4.5" fill="var(--accent)" stroke="#fff" stroke-width="1.5"/></g><text class="rl" x="4" y="9">N ↑</text></svg>`;
- return `<p class="note" style="margin:0 0 8px">Drag the blue dot to see how far each alert is from you. Tap an area for details.</p>`+s+`<h2>Nearest first</h2><div id="mlist">${mlist()}</div>`}
-function setupMap(){const svg=$("#map"),me=$("#you");
- const mv=()=>{me.setAttribute("transform",`translate(${you.x} ${you.y})`);$("#mlist").innerHTML=mlist()},cl=v=>Math.max(0,Math.min(200,v));
- me.onpointerdown=e=>{me.setPointerCapture(e.pointerId);me.dataset.d=1};
- me.onpointermove=e=>{if(!me.dataset.d)return;const r=svg.getBoundingClientRect();you.x=cl((e.clientX-r.left)/r.width*200);you.y=cl((e.clientY-r.top)/r.height*200);mv()};
- me.onpointerup=()=>{delete me.dataset.d;render()};
- me.onkeydown=e=>{const k={ArrowLeft:[-5,0],ArrowRight:[5,0],ArrowUp:[0,-5],ArrowDown:[0,5]}[e.key];if(k){e.preventDefault();you.x=cl(you.x+k[0]);you.y=cl(you.y+k[1]);mv()}}}
-let D=[],tool=null,draft=[],dsel=null,dtemp=72,clr=false,lastUp=0,free=false,rm=false,pan=false,panD=null,vb={x:0,y:0,w:200},US=null,usErr=false;
-try{const s=localStorage.getItem('sw-design2');if(s)D=JSON.parse(s)}catch(e){}
-const nid=()=>Math.floor(Math.random()*1e9),save=()=>{try{localStorage.setItem('sw-design2',JSON.stringify(D))}catch(e){}};
-const WI=['☀️','⛅','☁️','🌧️','⛈️','🌨️','💨','🌫️'];
-const cen=p=>[p.reduce((s,q)=>s+q[0],0)/p.length,p.reduce((s,q)=>s+q[1],0)/p.length];
-const pts=p=>p.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join(' ');
-function finish(){const x={id:nid(),kind:'area',k:tool.k,pts:draft};D.push(x);draft=[];dsel=x.id;tool=null;save()}
-function design(){
- const k=vb.w/200,S=D.find(x=>x.id===dsel),tc=tool&&tool.k?TYPES[tool.k].c:'var(--accent)';
- const pal=`<button class='chip' style='--c:var(--accent)' aria-pressed='${!tool}' data-dt='s'>Select and move</button>`+Object.keys(TYPES).sort((a,b)=>TYPES[b].s-TYPES[a].s).map(k=>`<button class='chip' style='--c:${TYPES[k].c}' aria-pressed='${!!tool&&tool.k===k}' data-dt='a:${k}'>${TYPES[k].n}</button>`).join('');
- const ics=WI.map(i=>`<button class='chip' style='--c:var(--accent)' aria-label='Place forecast icon ${i}' aria-pressed='${!!tool&&tool.ic===i}' data-dt='m:${i}'>${i}</button>`).join('');
- const hint=pan?'Pan is on. Drag the map to move around and use Zoom in to see counties. Turn Pan off to draw or select.':tool&&tool.k&&free?'Press and drag on the map to draw the outline. Lift your finger to finish.':tool&&tool.k?(draft.length?draft.length+' corner'+(draft.length>1?'s':'')+' placed. Keep tapping, then tap Finish area or the first corner.':'Tap the map to place the corners of the area.'):tool?'Set a temperature below, then tap the map to place the forecast icon.':'Pick an alert type or a forecast icon, then tap the map. Tap a shape to select it. Drag it to move, or drag its corner dots to reshape. Drag a faint dot between two corners to add a corner.';
- let s=`<svg id='dmap' style='${pan||tool&&tool.k&&free?'touch-action:none':''}' viewBox='${vb.x} ${vb.y} ${vb.w} ${vb.w*.625}' role='img' aria-label='Design canvas. 1 grid square is 25 miles.'>`;
- s+=base();
- s+=``;
- D.forEach(x=>{const on=x.id===dsel;
-  if(x.kind==='area'){const c=TYPES[x.k].c,m=cen(x.pts);s+=`<g data-id='${x.id}'><polygon points='${pts(x.pts)}' style='fill:${c};fill-opacity:${on?.5:.3};stroke:${c};stroke-width:${on?3:2}px;vector-effect:non-scaling-stroke${on?';stroke-dasharray:6 3':''}'/><text class='lbl' style='font-size:${5.5*k}px;stroke-width:${1.4*k}px' x='${m[0]}' y='${m[1]}'>${TYPES[x.k].n}</text></g>`}
-  else s+=`<g data-id='${x.id}'><circle cx='${x.x}' cy='${x.y}' r='${10*k}' style='fill:${on?'var(--surface)':'transparent'};stroke:${on?'var(--accent)':'none'};stroke-width:1.5px'/><text x='${x.x}' y='${x.y}' font-size='${11*k}' text-anchor='middle' dominant-baseline='central'>${x.ic}</text><text class='lbl' style='font-size:${5.5*k}px;stroke-width:${1.4*k}px' x='${x.x}' y='${x.y+12*k}'>${x.t}°</text></g>`});
- if(S&&S.kind==='area'&&!tool){const c=TYPES[S.k].c;S.pts.forEach((q,i)=>{const n=S.pts[(i+1)%S.pts.length],mx=(q[0]+n[0])/2,my=(q[1]+n[1])/2;s+=`<g data-e='${i}'><circle cx='${mx}' cy='${my}' r='${7*k}' style='fill:transparent'/><circle cx='${mx}' cy='${my}' r='${2*k}' style='fill:${c};opacity:.55;pointer-events:none'/></g>`});S.pts.forEach((q,i)=>{s+=`<g data-v='${i}'><circle cx='${q[0]}' cy='${q[1]}' r='${7*k}' style='fill:transparent'/><circle cx='${q[0]}' cy='${q[1]}' r='${3.5*k}' style='fill:${rm?'#d62828':'#fff'};stroke:${c};stroke-width:1.6px;pointer-events:none'/></g>`})}
- if(draft.length)s+=`<g style='pointer-events:none'><polyline points='${pts(draft)}' style='fill:none;stroke:${tc};stroke-width:1.5px;stroke-dasharray:3 2'/>`+draft.map((q,i)=>`<circle cx='${q[0]}' cy='${q[1]}' r='${(i?2.2:3.5)*k}' style='fill:${tc};stroke:#fff;stroke-width:1px'/>`).join('')+`</g>`;
- s+='</svg>';
- const a=[],zc=`<button data-da='zo'>Zoom out</button><button data-da='zi'>Zoom in</button><button data-da='pan'>${pan?'Pan: on':'Pan: off'}</button>`;
- if(tool&&tool.k)a.push(`<button data-da='free'>${free?'Freehand: on':'Freehand: off'}</button>`);
- if(S&&S.kind==='area'&&!tool)a.push(`<button data-da='rm'>${rm?'Done removing':'Remove corner'}</button>`);
- if(draft.length>=3)a.push(`<button class='pri' data-da='fin'>Finish area</button>`);
- if(draft.length)a.push(`<button data-da='undo'>Undo corner</button><button data-da='cancel'>Cancel</button>`);
- if(S&&!draft.length)a.push(`<button data-da='del'>Delete ${S.kind==='mark'?'icon':'area'}</button>`);
- if((tool&&!tool.k)||(!tool&&S&&S.kind==='mark'))a.push(`<label>Temp <input id='dtemp' type='number' value='${tool?dtemp:S.t}' aria-label='Temperature in degrees'> °</label>`);
- if(D.length&&!draft.length)a.push(`<button data-da='clr'>${clr?'Tap again to clear all':'Clear all'}</button>`);
- return `<div id='dz'><div class='chips wrap'>${pal}</div><div class='chips wrap'>${ics}</div><p class='note' style='margin:0 0 8px'>${hint}</p><div class='act' style='margin:0 0 8px'>${zc}</div>${s}<div class='act'>${a.join('')}</div></div>`}
-function setupDesign(){
- const dz=$('#dz'),svg=$('#dmap'),pt=e=>{const r=svg.getBoundingClientRect();return[Math.max(0,Math.min(200,vb.x+(e.clientX-r.left)/r.width*vb.w)),Math.max(0,Math.min(125,vb.y+(e.clientY-r.top)/r.height*vb.w*.625))]};
- let drag=null;
- dz.onclick=e=>{
-  const t=e.target.closest('[data-dt]'),a=e.target.closest('[data-da]'),was=clr;
-  if(t){draft=[];clr=false;const v=t.dataset.dt;tool=v==='s'?null:v[0]==='a'?{k:v.slice(2)}:{ic:v.slice(2)};render();return}
-  if(a){const v=a.dataset.da;clr=false;
-   if(v==='zi'||v==='zo')zoom(v==='zi'?.5:2);else if(v==='pan'){pan=!pan;draft=[]}else if(v==='fin'&&draft.length>=3)finish();else if(v==='free'){free=!free;draft=[]}else if(v==='rm')rm=!rm;else if(v==='undo')draft.pop();else if(v==='cancel')draft=[];
-   else if(v==='del'){D=D.filter(x=>x.id!==dsel);dsel=null;save()}
-   else if(v==='clr'){if(was){D=[];dsel=null;save()}else clr=true}
-   render();return}
-  if(!e.target.closest('#dmap')||pan)return;
-  if(!tool){if(Date.now()-lastUp<400)return;if(!e.target.closest('[data-id]')){dsel=null;render()}return}
-  const p=pt(e);
-  if(tool.k&&free)return;if(tool.k){if(draft.length>=3&&Math.hypot(p[0]-draft[0][0],p[1]-draft[0][1])<6*vb.w/200)finish();else draft.push(p)}
-  else{const x={id:nid(),kind:'mark',ic:tool.ic,t:dtemp,x:p[0],y:p[1]};D.push(x);dsel=x.id;save()}
-  render()};
- dz.onchange=e=>{if(e.target.id!=='dtemp')return;const v=Math.round(+e.target.value),S=D.find(x=>x.id===dsel);if(isNaN(v))return;if(!tool&&S&&S.kind==='mark'){S.t=v;save();render()}else dtemp=v};
- svg.onpointerdown=e=>{const el=e.target.closest('[data-id]');if(tool||!el)return;drag={id:+el.dataset.id,el,p:pt(e),dx:0,dy:0,m:false};svg.setPointerCapture(e.pointerId)};
- svg.onpointermove=e=>{if(!drag)return;const p=pt(e);drag.dx=p[0]-drag.p[0];drag.dy=p[1]-drag.p[1];if(Math.hypot(drag.dx,drag.dy)>1.5)drag.m=true;if(drag.m)drag.el.setAttribute('transform',`translate(${drag.dx} ${drag.dy})`)};
- svg.onpointerup=()=>{if(!drag)return;const d=drag,x=D.find(q=>q.id===d.id);drag=null;lastUp=Date.now();if(d.m&&x){if(x.kind==='mark'){x.x+=d.dx;x.y+=d.dy}else x.pts=x.pts.map(q=>[q[0]+d.dx,q[1]+d.dy]);save()}dsel=d.id;render()};
- let fd=false,fh=null;const od=svg.onpointerdown,om=svg.onpointermove,ou=svg.onpointerup;
- svg.onpointerdown=e=>{
-  if(pan){panD={x:e.clientX,y:e.clientY,vx:vb.x,vy:vb.y};svg.setPointerCapture(e.pointerId);return}
-  if(tool&&tool.k&&free){draft=[pt(e)];fh=document.createElementNS('http://www.w3.org/2000/svg','polyline');fh.setAttribute('style','fill:none;stroke:'+TYPES[tool.k].c+';stroke-width:1.5px');svg.appendChild(fh);svg.setPointerCapture(e.pointerId);fd=true;return}
-  const v=!tool&&e.target.closest('[data-v],[data-e]'),S=D.find(x=>x.id===dsel);
-  if(v&&S){if(v.dataset.e!==undefined){const i=+v.dataset.e;S.pts.splice(i+1,0,pt(e));drag={S,vi:i+1,m:true}}else drag={S,vi:+v.dataset.v,m:false};svg.setPointerCapture(e.pointerId);return}
-  od(e)};
- svg.onpointermove=e=>{
-  if(panD){const r=svg.getBoundingClientRect(),q=vb.w/r.width;vb.x=Math.max(0,Math.min(200-vb.w,panD.vx-(e.clientX-panD.x)*q));vb.y=Math.max(0,Math.min(125-vb.w*.625,panD.vy-(e.clientY-panD.y)*q));svg.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.w*.625);return}
-  if(fd){const p=pt(e),l=draft[draft.length-1];if(Math.hypot(p[0]-l[0],p[1]-l[1])>2.5*vb.w/200){draft.push(p);fh.setAttribute('points',pts(draft))}return}
-  if(drag&&drag.vi!==undefined){drag.S.pts[drag.vi]=pt(e);drag.m=true;svg.querySelector(`[data-id='${drag.S.id}'] polygon`).setAttribute('points',pts(drag.S.pts));return}
-  om(e)};
- svg.onpointerup=e=>{
-  if(panD){panD=null;lastUp=Date.now();render();return}
-  if(fd){fd=false;lastUp=Date.now();if(draft.length>=3)finish();else draft=[];render();return}
-  if(drag&&drag.vi!==undefined){const d=drag;drag=null;lastUp=Date.now();if(rm&&!d.m&&d.S.pts.length>3)d.S.pts.splice(d.vi,1);save();render();return}
-  ou(e)};
- svg.onpointercancel=()=>{drag=null;panD=null;fd=false;draft=[];render()}}
-function zoom(f){const nw=Math.max(8,Math.min(200,vb.w*f)),cx=vb.x+vb.w/2,cy=vb.y+vb.w*.3125;vb.w=nw;vb.x=Math.max(0,Math.min(200-nw,cx-nw/2));vb.y=Math.max(0,Math.min(125-nw*.625,cy-nw*.3125))}
-function base(){
- if(US)return `<rect width='200' height='125' style='fill:var(--bg)'/><g transform='scale(.205128)'><path d='${US.nation}' style='fill:var(--surface)'/><path d='${US.counties}' style='fill:none;stroke:var(--line);stroke-width:.6px;vector-effect:non-scaling-stroke'/><path d='${US.states}' style='fill:none;stroke:var(--mute);stroke-width:1px;vector-effect:non-scaling-stroke'/><path d='${US.nation}' style='fill:none;stroke:var(--ink);stroke-width:1.2px;vector-effect:non-scaling-stroke'/></g>`;
- let g=`<rect width='200' height='125' style='fill:var(--surface)'/>`;for(let i=25;i<200;i+=25)g+=`<path class='gl' d='M${i} 0V125M0 ${i}H200'/>`;
- return g+`<text class='rl' x='4' y='10' style='font-size:6px'>${usErr?'The real map could not load. Showing a plain grid.':'Loading the US map...'}</text>`}
-async function loadUS(){try{
- const u='https://cdn.jsdelivr.net/npm/us-atlas@3.0.1/counties-albers-10m.json',m=await import(u,{with:{type:'json'}}),t=m.default,P=d3.geoPath();
- US={nation:P(topojson.feature(t,t.objects.nation)),states:P(topojson.mesh(t,t.objects.states,(a,b)=>a!==b)),counties:P(topojson.mesh(t,t.objects.counties,(a,b)=>a!==b))}
-}catch(e){usErr=true}
- render()}
-function settings(){
- return `<h2>Alert types you follow</h2>`+Object.keys(TYPES).sort((a,b)=>TYPES[b].s-TYPES[a].s).map(k=>`<button class="sw" role="switch" aria-checked="${follow[k]}" style="--c:${TYPES[k].c}" data-s="${k}"><span>${TYPES[k].n}</span><i>${follow[k]?"On":"Off"}</i></button>`).join("")+`<p class="note">Warnings mean the hazard is happening or about to. Watches mean conditions allow it. Advisories mean an inconvenience or hazard is likely.</p>`;
+
+function show(page){
+ document.querySelectorAll(".page").forEach(el=>{
+  el.classList.toggle("hidden",el.id!==page);
+ });
+ document.querySelectorAll("nav button").forEach(el=>{
+  el.classList.toggle("active",el.id==="nav-"+page);
+ });
+ renderAll();
 }
-function render(){
- head();
- $("#view").innerHTML=tab==="alerts"?alerts():tab==="map"?map():tab==="design"?design():tab==="forecast"?forecast():settings();if(tab==="map")setupMap();if(tab==="design")setupDesign();$("#hero").hidden=$("#stats").hidden=tab==="design";
- document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-selected",b.dataset.t===tab));
+
+function renderAlerts(){
+ const list=$("alertList");
+ list.innerHTML="";
+ if(!alerts.length){
+  list.innerHTML='<div class="empty">No custom weather alerts yet. Go to Design to add one.</div>';
+  return;
+ }
+ const sorted=[...alerts].sort((a,b)=>b.created-a.created);
+ for(const item of sorted){
+  const type=TYPES[item.type]||TYPES["special-weather"];
+  const card=document.createElement("div");
+  card.className="alert";
+  card.style.setProperty("--alert",type[1]);
+  const expires=item.expiration
+   ?new Date(item.expiration).toLocaleString()
+   :"Not specified";
+  card.innerHTML=`
+   <span class="tag">${escapeHTML(type[0])}</span>
+   <h3>${escapeHTML(type[0])}</h3>
+   <strong>Location:</strong>
+   ${escapeHTML(item.location||"Unspecified area")}
+   <p><strong>Description:</strong></p>
+   <p>${escapeHTML(item.description||"No description provided.")}</p>
+   <p class="small">Expires: ${escapeHTML(expires)}</p>
+   <p class="small">User-created alert, not an official warning.</p>
+  `;
+  const edit=document.createElement("button");
+  edit.textContent="View / Edit on Map";
+  edit.onclick=()=>{
+   selectedId=item.id;
+   loadEditor();
+   show("design");
+  };
+  card.appendChild(edit);
+  list.appendChild(card);
+ }
 }
-$("#city").innerHTML=Object.entries(CITIES).map(([k,v])=>`<option value="${k}">${v.n}</option>`).join("");
-$("#city").onchange=e=>{city=e.target.value;filter=null;sel=null;you={x:100,y:100};render()};
-document.querySelector("nav").onclick=e=>{const b=e.target.closest("button");if(b){tab=b.dataset.t;render()}};
-$("#view").onclick=e=>{
- const m=e.target.closest("[data-m]");if(m){const i=+m.dataset.m;sel=sel===i?null:i;render();return}
- const f=e.target.closest("[data-f]");if(f){filter=f.dataset.f||null;render();return}
- const s=e.target.closest("[data-s]");if(s){follow[s.dataset.s]=!follow[s.dataset.s];try{localStorage.setItem("sw-follow",JSON.stringify(follow))}catch(x){}render()}
-};
-$("#theme").onclick=()=>{const r=document.documentElement,d=getComputedStyle(r).colorScheme==="dark";r.dataset.theme=d?"light":"dark"};
-render();loadUS();
+
+function svgMap(edit){
+ const svgNS="http://www.w3.org/2000/svg";
+ const svg=document.createElementNS(svgNS,"svg");
+ svg.setAttribute("viewBox","0 0 600 360");
+ svg.setAttribute("class","map");
+ svg.setAttribute("role","img");
+ svg.setAttribute("aria-label","Custom weather alert drawing map");
+
+ const bg=document.createElementNS(svgNS,"rect");
+ bg.setAttribute("width","600");
+ bg.setAttribute("height","360");
+ bg.setAttribute("fill","#dce8d8");
+ svg.appendChild(bg);
+
+ // Simplified map grid
+ for(let x=0;x<=600;x+=40){
+  const line=document.createElementNS(svgNS,"line");
+  line.setAttribute("x1",x);
+  line.setAttribute("x2",x);
+  line.setAttribute("y1",0);
+  line.setAttribute("y2",360);
+  line.setAttribute("stroke","#a5bca5");
+  line.setAttribute("stroke-width","0.7");
+  svg.appendChild(line);
+ }
+ for(let y=0;y<=360;y+=40){
+  const line=document.createElementNS(svgNS,"line");
+  line.setAttribute("x1",0);
+  line.setAttribute("x2",600);
+  line.setAttribute("y1",y);
+  line.setAttribute("y2",y);
+  line.setAttribute("stroke","#a5bca5");
+  line.setAttribute("stroke-width","0.7");
+  svg.appendChild(line);
+ }
+
+ const group=document.createElementNS(svgNS,"g");
+ group.setAttribute("transform",
+  `translate(300 180) scale(${zoom}) translate(-300 -180)`
+ );
+ svg.appendChild(group);
+
+ for(const item of alerts){
+  if(!Array.isArray(item.points)||item.points.length<3)continue;
+  const type=TYPES[item.type]||TYPES["special-weather"];
+  const polygon=document.createElementNS(svgNS,"polygon");
+  polygon.setAttribute("points",
+   item.points.map(p=>p.join(",")).join(" ")
+  );
+  polygon.setAttribute("fill",type[1]);
+  polygon.setAttribute("fill-opacity",
+   item.id===selectedId?".6":".35"
+  );
+  polygon.setAttribute("stroke",type[1]);
+  polygon.setAttribute("stroke-width",
+   item.id===selectedId?"4":"2"
+  );
+  polygon.style.cursor="pointer";
+  polygon.addEventListener("click",e=>{
+   e.stopPropagation();
+   selectedId=item.id;
+   loadEditor();
+   if(!edit)show("design");
+   else renderAll();
+  });
+  group.appendChild(polygon);
+ }
+
+ if(edit&&points.length){
+  const line=document.createElementNS(svgNS,"polyline");
+  line.setAttribute("points",points.map(p=>p.join(",")).join(" "));
+  line.setAttribute("fill","none");
+  line.setAttribute("stroke","#1758c4");
+  line.setAttribute("stroke-width","3");
+  line.setAttribute("stroke-dasharray","7 5");
+  group.appendChild(line);
+
+  for(const p of points){
+   const dot=document.createElementNS(svgNS,"circle");
+   dot.setAttribute("cx",p[0]);
+   dot.setAttribute("cy",p[1]);
+   dot.setAttribute("r","5");
+   dot.setAttribute("fill","#1758c4");
+   group.appendChild(dot);
+  }
+ }
+
+ if(edit){
+  svg.addEventListener("click",e=>{
+   if(!drawing)return;
+   const rect=svg.getBoundingClientRect();
+   const x=(e.clientX-rect.left)/rect.width*600;
+   const y=(e.clientY-rect.top)/rect.height*360;
+   const px=300+(x-300)/zoom;
+   const py=180+(y-180)/zoom;
+   points.push([
+    Math.max(0,Math.min(600,px)),
+    Math.max(0,Math.min(360,py))
+   ]);
+   renderMaps();
+  });
+ }
+
+ return svg;
+}
+
+function renderMaps(){
+ $("designMap").replaceChildren(svgMap(true));
+ $("publicMap").replaceChildren(svgMap(false));
+}
+
+function startDrawing(){
+ drawing=true;
+ points=[];
+ selectedId=null;
+ $("saveMessage").textContent="Tap the map to draw your alert area.";
+ renderMaps();
+}
+
+function undoPoint(){
+ if(points.length)points.pop();
+ renderMaps();
+}
+
+function finishDrawing(){
+ if(!drawing||points.length<3){
+  alert("Draw at least three points on the map first.");
+  return;
+ }
+ const item={
+  id:Date.now()+"-"+Math.random().toString(36).slice(2),
+  type:$("alertType").value,
+  location:"",
+  description:"",
+  expiration:"",
+  points:points.map(p=>[...p]),
+  created:Date.now()
+ };
+ alerts.push(item);
+ selectedId=item.id;
+ drawing=false;
+ points=[];
+ persist();
+ loadEditor();
+ $("saveMessage").textContent="Area created! Add a description and save your alert.";
+ renderAll();
+}
+
+function loadEditor(){
+ const item=alerts.find(a=>a.id===selectedId);
+ if(!item)return;
+ $("editType").value=item.type;
+ $("editLocation").value=item.location||"";
+ $("editDescription").value=item.description||"";
+ $("editExpiration").value=item.expiration||"";
+}
+
+function saveAlert(){
+ const item=alerts.find(a=>a.id===selectedId);
+ if(!item){
+  alert("Please draw or select an alert area first.");
+  return;
+ }
+ item.type=$("editType").value;
+ item.location=$("editLocation").value.trim();
+ item.description=$("editDescription").value.trim();
+ item.expiration=$("editExpiration").value;
+ if(persist()){
+  $("saveMessage").textContent="Saved! Your alert is now updated in the Alerts section.";
+ }
+ renderAll();
+}
+
+function deleteAlert(){
+ if(!selectedId)return;
+ if(!confirm("Delete this weather alert?"))return;
+ alerts=alerts.filter(a=>a.id!==selectedId);
+ selectedId=null;
+ $("editLocation").value="";
+ $("editDescription").value="";
+ $("editExpiration").value="";
+ persist();
+ $("saveMessage").textContent="Alert deleted.";
+ renderAll();
+}
+
+function zoomMap(factor){
+ zoom=Math.max(1,Math.min(5,zoom*factor));
+ renderMaps();
+}
+function resetZoom(){
+ zoom=1;
+ renderMaps();
+}
+function toggleTheme(){
+ document.body.classList.toggle("dark");
+ localStorage.setItem("wgo-theme",
+  document.body.classList.contains("dark")?"dark":"light"
+ );
+}
+function renderAll(){
+ renderAlerts();
+ renderMaps();
+ $("alertCount").textContent=
+  "Saved custom weather alerts: "+alerts.length;
+}
+
+$("editType").innerHTML=Object.entries(TYPES).map(([key,t])=>
+ `<option value="${key}">${escapeHTML(t[0])}</option>`
+).join("");
+
+if(localStorage.getItem("wgo-theme")==="dark"){
+ document.body.classList.add("dark");
+}
+
+show("alerts");
 </script>
 </body>
 </html>
