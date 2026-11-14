@@ -1,0 +1,9 @@
+// Settings Cloudflare uses when it deploys the alert server from GitHub.
+// The storage (KV) is created automatically on the first deploy.
+{
+  "name": "wgo-alerts",
+  "main": "worker.js",
+  "compatibility_date": "2025-11-01",
+  "kv_namespaces": [{ "binding": "DB" }],
+  "triggers": { "crons": ["* * * * *"] }
+}
