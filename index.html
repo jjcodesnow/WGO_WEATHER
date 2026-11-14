@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261113231100">
+<meta name="wgo-version" content="20261113231629">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -111,6 +111,9 @@ nav{overflow-x:auto}nav button{flex:1 0 auto;padding:0 12px}
 .hrow .hc{font-size:16px;line-height:1.2}.hrow .hc small{display:block;font-size:12px;color:#c9d6ea;margin-top:2px}
 .hrow .hT{font-size:22px;text-align:right}
 .hrow .hw{font-size:15px;text-align:right}
+.ptr{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 6px);z-index:60;transform:translate(-50%,-60px);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:20px;padding:8px 14px;font-size:14px;box-shadow:0 2px 10px rgba(0,0,0,.2);display:flex;gap:8px;align-items:center;pointer-events:none;opacity:0}
+.ptr b{display:inline-block;font-size:16px;transition:transform .15s}
+.ptr.go b{transform:rotate(180deg)}
 .lp{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;margin:0 0 8px;font-size:15px}
 @media (prefers-reduced-motion:no-preference){.alert[open] .body{animation:o .15s ease-out}@keyframes o{from{opacity:0}to{opacity:1}}}
 </style>
@@ -398,6 +401,12 @@ $("#view").onclick=e=>{
 };
 $("#theme").onclick=()=>{const r=document.documentElement,d=getComputedStyle(r).colorScheme==="dark";r.dataset.theme=d?"light":"dark"};
 render();loadUS();
+(function(){const el=document.createElement('div');el.className='ptr';el.setAttribute('aria-hidden','true');el.innerHTML='<b>↓</b><span>Pull to refresh</span>';document.body.appendChild(el);
+ const on=navigator.standalone||matchMedia('(display-mode: standalone)').matches||/[?&]ptr=1/.test(location.search);if(!on)return;
+ let y0=null,dy=0,busy=false;const T=90,skip=t=>t.closest('#dmap,.mw,.row,.chips,input,select,textarea,.pop');
+ addEventListener('touchstart',e=>{if(busy||e.touches.length!==1||scrollY>0||document.body.style.overflow==='hidden'||skip(e.target)){y0=null;return}y0=e.touches[0].clientY;dy=0},{passive:true});
+ addEventListener('touchmove',e=>{if(y0===null)return;if(scrollY>0||e.touches.length!==1){y0=null;el.style.opacity=0;return}dy=e.touches[0].clientY-y0;if(dy<=0){el.style.opacity=0;return}const p=Math.min(dy,T*1.4);el.style.opacity=Math.min(1,p/T);el.style.transform='translate(-50%,'+(p*.6-60)+'px)';el.classList.toggle('go',dy>=T);el.lastChild.textContent=dy>=T?'Release to refresh':'Pull to refresh'},{passive:true});
+ addEventListener('touchend',()=>{if(y0===null)return;y0=null;if(dy>=T){busy=true;el.classList.remove('go');el.firstChild.textContent='↻';el.lastChild.textContent='Refreshing…';el.style.transform='translate(-50%,0)';setTimeout(()=>location.replace(location.pathname+'?r='+Date.now()),150)}else{el.style.opacity=0;el.style.transform='translate(-50%,-60px)'}},{passive:true})})();
 (function(){const mine=(document.querySelector('meta[name=wgo-version]')||{}).content;let last=0;
  async function check(){if(Date.now()-last<6e4)return;last=Date.now();try{const t=await (await fetch(location.pathname+'?check='+Date.now(),{cache:'no-store'})).text(),m=t.match(/wgo-version"\s+content="([^"]+)"/);if(m&&m[1]!==mine)location.replace(location.pathname+'?v='+m[1])}catch(e){}}
  check();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')check()})})();
