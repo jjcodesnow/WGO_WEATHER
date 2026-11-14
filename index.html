@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#141c2a">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261114104445">
+<meta name="wgo-version" content="20261114104647">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -128,10 +128,12 @@ nav{overflow-x:auto}nav button{flex:1 0 auto;padding:0 12px}
 .act .tms input{width:100%;color:var(--ink)}
 #fav{font-size:22px;line-height:1}
 #favs{margin:-4px 0 10px}
-.lgd{position:absolute;top:8px;left:8px;z-index:3;background:rgba(20,28,42,.88);color:#fff;border-radius:10px;padding:6px 10px;display:flex;flex-direction:column;gap:4px;pointer-events:none;width:min(200px,calc(100% - 76px))}
-.mw.fs .lgd{top:calc(8px + env(safe-area-inset-top,0px));left:calc(8px + env(safe-area-inset-left,0px))}
-.lgd div{display:flex;align-items:center;gap:6px}.lgd b{font-size:14px;width:18px;text-align:center}
-.lgd .lg{flex:1;height:9px;border-radius:5px}.lgd small{font-size:11px;color:#c9d6ea;text-align:right}
+.lgd{position:absolute;top:0;left:0;right:0;z-index:3;background:#1f3459;color:#fff;border-radius:var(--r) var(--r) 0 0;padding:7px 10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;pointer-events:none}
+.lgd.one{grid-template-columns:1fr}
+.mw.fs .lgd{border-radius:0;padding-top:calc(7px + env(safe-area-inset-top,0px))}
+.lgd div{display:flex;align-items:center;gap:6px;min-width:0}.lgd b{font-size:15px;font-weight:400;width:16px;text-align:center;line-height:1}
+.lgd .lg{flex:1;height:12px;border-radius:6px;min-width:0}
+.mw:has(.lgd) .mbs{top:42px}.mw.fs:has(.lgd) .mbs{top:calc(42px + env(safe-area-inset-top,0px))}
 .lp{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;margin:0 0 8px;font-size:15px}
 @media (prefers-reduced-motion:no-preference){.alert[open] .body{animation:o .15s ease-out}@keyframes o{from{opacity:0}to{opacity:1}}}
 </style>
@@ -480,9 +482,9 @@ async function getRadar(){if(RF.length&&Date.now()-rtime<3e5)return;
  getRadarIEM()}
 function rurl(f,z,x,y){return RSRC==='lwx'?`${RH}${f.path}/256/${z}/${x}/${y}/4/1_1.png`:`https://mesonet.agron.iastate.edu/c/tile.py/1.0.0/ridge::USCOMP-N0Q-${f.s}/${z}/${x}/${y}.png`}
 function radarBad(){if(RSRC!=='lwx'||++lwxBad<3)return;stopRadar();RF=[];rtime=0;getRadarIEM();if(tab==='design')render()}
-function legendH(){const g=(c)=>`<span class='lg' style='background:linear-gradient(90deg,${c})'></span>`;
- return RSRC==='lwx'?`<div class='lgd' aria-label='Radar key: rain from light green to red, snow from light to dark blue'><div><b aria-hidden='true'>💧</b>${g('#9be564,#2e9d34,#0e5f22,#f2e23a,#f29d25,#d7301f,#9e1a5e')}</div><div><b aria-hidden='true'>❄️</b>${g('#d6f1ff,#8fd3f2,#4aa3e0,#2457b8,#1a2f6e')}</div><small>Light → Heavy</small></div>`
- :`<div class='lgd' aria-label='Radar key: rain or snow from light to heavy'><div><b aria-hidden='true'>💧</b>${g('#4ad7e8,#2f8ef0,#1fc23a,#0c7d1a,#f5e132,#f28f1c,#e3241b,#b5125f,#f0f0f0')}</div><small>Rain or snow · Light → Heavy</small></div>`}
+function legendH(){const g=c=>`<span class='lg' style='background:linear-gradient(90deg,${c})'></span>`,drop=`<svg width='16' height='16' viewBox='0 0 24 24' aria-hidden='true'><path d='M12 2C9 7 6 10.5 6 14a6 6 0 0 0 12 0c0-3.5-3-7-6-12z' fill='#fff'/></svg>`,flake=`<b aria-hidden='true'>❄︎</b>`;
+ return RSRC==='lwx'?`<div class='lgd' role='img' aria-label='Radar key: rain from light green to red, snow from light to dark blue'><div>${drop}${g('#9be564,#2e9d34,#0e5f22,#f2e23a,#f29d25,#d7301f,#9e1a5e,#f4f4f4')}</div><div>${flake}${g('#d6f1ff,#8fd3f2,#4aa3e0,#2457b8,#1a2f6e')}</div></div>`
+ :`<div class='lgd one' role='img' aria-label='Radar key: rain or snow from light to heavy'><div>${drop}${g('#4ad7e8,#2f8ef0,#1fc23a,#0c7d1a,#f5e132,#f28f1c,#e3241b,#b5125f,#f0f0f0')}</div></div>`}
 function settings(){
  return `<h2>Alert types you follow</h2>`+Object.keys(TYPES).sort((a,b)=>TYPES[b].s-TYPES[a].s).map(k=>`<button class="sw" role="switch" aria-checked="${follow[k]}" style="--c:${TYPES[k].c}" data-s="${k}"><span>${TYPES[k].n}</span><i>${follow[k]?"On":"Off"}</i></button>`).join("")+`<p class="note">Warnings mean the hazard is happening or about to. Watches mean conditions allow it. Advisories mean an inconvenience or hazard is likely.</p>`+pushH();
 }
