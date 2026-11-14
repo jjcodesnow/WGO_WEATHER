@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#141c2a">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261114154752">
+<meta name="wgo-version" content="20261114154956">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -317,7 +317,7 @@ function setupDesign(){
   const t=e.target.closest('[data-dt]'),a=e.target.closest('[data-da]'),was=clr;
   if(t){draft=[];clr=false;pop=null;const v=t.dataset.dt;tool=v==='s'?null:v==='c'?{cty:1}:v[0]==='a'?{k:v.slice(2)}:{ic:v.slice(2)};render();return}
   if(a){const v=a.dataset.da;clr=false;
-   if(v==='full'){full=!full;pop=null;fsPrep(full);setAR(full?innerHeight/innerWidth:.625)}else if(v==='cal')calert();else if(v==='bcy')bycty=!bycty;else if(v==='ccl')selC={};else if(v==='snp')snap=!snap;else if(v==='sat')sat=!sat;else if(v==='rad'){radar=!radar;if(radar)getRadar().then(()=>{if(MT())render()});else stopRadar()}else if(v==='rpl'){if(rplay)stopRadar();else if(RF.length)rplay=setInterval(()=>{if(!RF.length||!MT()||!radar){stopRadar();return}ri=ri+1>=RF.length||ri<rlo()?rlo():ri+1;showRF()},700)}else if(v==='go')gotoLoc();else if(v==='zi'||v==='zo')zoom(v==='zi'?.5:2);else if(v==='pan'){pan=!pan;draft=[]}else if(v==='fin'&&draft.length>=3)finish();else if(v==='free'){free=!free;draft=[]}else if(v==='rm')rm=!rm;else if(v==='undo')draft.pop();else if(v==='cancel')draft=[];
+   if(v==='full'){full=!full;pop=null;fsPrep(full);setAR(full?innerHeight/innerWidth:.625)}else if(v==='cal')calert();else if(v==='bcy')bycty=!bycty;else if(v==='ccl')selC={};else if(v==='snp')snap=!snap;else if(v==='sat')sat=!sat;else if(v==='rad'){radar=!radar;if(radar)getRadar().then(()=>{if(MT())render()});else stopRadar()}else if(v==='rpl'){if(rplay){stopRadar();userPaused=true}else{userPaused=false;playRadar()}}else if(v==='go')gotoLoc();else if(v==='zi'||v==='zo')zoom(v==='zi'?.5:2);else if(v==='pan'){pan=!pan;draft=[]}else if(v==='fin'&&draft.length>=3)finish();else if(v==='free'){free=!free;draft=[]}else if(v==='rm')rm=!rm;else if(v==='undo')draft.pop();else if(v==='cancel')draft=[];
    else if(v==='del'){D=D.filter(x=>x.id!==dsel);dsel=null;save()}
    else if(v==='clr'){if(was){D=[];dsel=null;save()}else clr=true}
    render();return}
@@ -526,10 +526,15 @@ function legendH(){const g=c=>`<span class='lg' style='background:linear-gradien
  rain=ic(D1(6,9,3.2)+D1(15,8,4)),snow=ic(F(11,8,6)),mix=ic(D1(5,9,3)+F(15,8,5)),hail=ic(`<g stroke='#fff' stroke-width='1.8' stroke-linecap='round'><path d='M4 13L8 3M8.5 13L12.5 3'/></g>`+D1(17,9,3.4));
  return RSRC==='lwx'?`<div class='lgd' role='img' aria-label='Radar key: rain green to white, snow light to dark blue, rain and snow mix pink, hail purple'><div>${rain}${g('#7fe07f 0%,#2f9a3a 22%,#0f4a12 38%,#f3d23c 48%,#e0702a 58%,#c0281e 70%,#8b1a1a 82%,#ffffff 92%')}</div><div>${snow}${g('#a9f2ff 0%,#7fd6e6 25%,#3c8e9e 50%,#1e4f5e 72%,#16303f 100%')}</div><div>${mix}${g('#f4b3d2 0%,#e07bb0 35%,#b94080 70%,#8c1a55 100%')}</div><div>${hail}${g('#c9b6f2 0%,#9b7fe0 40%,#6c4cc4 75%,#4b2f96 100%')}</div>${sat?`<small class='lgn'>Ocean rain: NASA satellite estimate, about 7 hours old</small>`:''}</div>`
  :`<div class='lgd one' role='img' aria-label='Radar key: rain or snow from light to heavy'><div>${rain}${g('#4ad7e8,#2f8ef0,#1fc23a,#0c7d1a,#f5e132,#f28f1c,#e3241b,#b5125f,#f0f0f0')}</div>${sat?`<small class='lgn'>Ocean rain: NASA satellite estimate, about 7 hours old</small>`:''}</div>`}
-const rlo=()=>tab==='map'?Math.max(0,rnow-1):0;
+// On the Map tab the slider runs from now into the forecast. If there is no
+// forecast radar, it plays the past radar up to now instead, so the rain still moves.
+const hasFc=()=>RF.length-1>rnow-1,rlo=()=>tab==='map'&&hasFc()?Math.max(0,rnow-1):0;
+let userPaused=false;
+function playRadar(){if(rplay||RF.length<2)return;rplay=setInterval(()=>{if(!RF.length||!MT()||!radar){stopRadar();return}ri=ri+1>=RF.length||ri<rlo()?rlo():ri+1;showRF()},700)}
+function autoPlay(){if(tab==='map'&&radar&&!userPaused&&RF.length>1&&!rplay){playRadar();const b=document.querySelector('.rpb');if(b){b.textContent='\u275a\u275a';b.setAttribute('aria-label','Pause radar')}}}
 const t12=s=>{const d=new Date(s*1000),h=d.getHours(),m=d.getMinutes();return (h%12||12)+':'+String(m).padStart(2,'0')+(h<12?'a':'p')};
 function bottomH(){const lo=rlo(),hasF=RF.length-1>lo;if(RF.length&&ri<lo)ri=lo;const nowT=`<span id='rnowt'>${t12(Date.now()/1000)}</span>`;
- const rb=radar?(RF.length?(hasF?`<div class='rbar'><button class='rpb' data-da='rpl' aria-label='${rplay?'Pause radar':'Play radar'}'>${rplay?'❚❚':'▶'}</button>${nowT}<input id='rsl' type='range' min='${lo}' max='${RF.length-1}' step='1' value='${ri}' aria-label='Radar time, from now into the forecast'><span>${t12(RF[RF.length-1].time)}</span></div><div class='rnow' id='rtm'>${rlabel()}</div>`
+ const rb=radar?(RF.length?(hasF?`<div class='rbar'><button class='rpb' data-da='rpl' aria-label='${rplay?'Pause radar':'Play radar'}'>${rplay?'❚❚':'▶'}</button>${hasFc()?nowT:`<span>${t12(RF[0].time)}</span>`}<input id='rsl' type='range' min='${lo}' max='${RF.length-1}' step='1' value='${ri}' aria-label='${hasFc()?'Radar time, from now into the forecast':'Radar time, from the past up to now'}'><span>${hasFc()?t12(RF[RF.length-1].time):'Now'}</span></div><div class='rnow' id='rtm'>${rlabel()}</div>`
   :`<div class='rbar'>${nowT}<span style='font-size:14px'>Live radar. No forecast radar is available right now.</span></div>`):`<div class='rbar'><span>${rerr?'Radar could not load':'Loading radar…'}</span></div>`):'';
  return `<div class='mbot'>${rb}<div class='wxs' id='wxs'>${FC&&FK===fcKey()?stripH():`<div class='wxe'>Loading weather…</div>`}</div></div>`}
 function stripH(){const j=FC.j,c=j.current,Dd=j.daily,r=Math.round,dir=['N','NE','E','SE','S','SW','W','NW'][r(c.wind_direction_10m/45)%8];
@@ -558,12 +563,12 @@ function render(){
  favUI();
  document.body.style.overflow=full&&MT()?'hidden':'';
  head();
- $("#view").innerHTML=tab==="alerts"?alerts():tab==="map"?design():tab==="design"?design():tab==="forecast"?forecast():settings();if(tab==="map")setupDesign();if(tab==="design")setupDesign();if(tab==="forecast")loadFc();$("#hero").hidden=$("#stats").hidden=MT();
+ $("#view").innerHTML=tab==="alerts"?alerts():tab==="map"?design():tab==="design"?design():tab==="forecast"?forecast():settings();if(tab==="map"){setupDesign();autoPlay()}if(tab==="design")setupDesign();if(tab==="forecast")loadFc();$("#hero").hidden=$("#stats").hidden=MT();
  document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-selected",b.dataset.t===tab));
 }
 $("#pl").innerHTML=PL.map(p=>`<option value="${p[0]}">`).join("");$("#q").onkeydown=e=>{if(e.key==="Enter")gotoLoc()};$("#go").onclick=gotoLoc;$("#fav").onclick=toggleFav;$("#favs").onclick=e=>{const b=e.target.closest("[data-fv]");if(b)goFav(+b.dataset.fv)};
 
-document.querySelector("nav").onclick=e=>{const b=e.target.closest("button");if(b){tab=b.dataset.t;if(tab!=="design"){tool=null;draft=[];dsel=null}if(tab==="map"&&RF.length&&ri<rnow-1)ri=rnow-1;if(tab==="map"&&!radar){radar=true;getRadar().then(()=>{if(MT())render()})}render()}};
+document.querySelector("nav").onclick=e=>{const b=e.target.closest("button");if(b){tab=b.dataset.t;if(tab!=="design"){tool=null;draft=[];dsel=null}if(tab==="map"&&RF.length&&ri<rlo())ri=rlo();if(tab==="map"&&!radar){radar=true;getRadar().then(()=>{if(MT()){render();autoPlay()}})}render()}};
 $("#view").onclick=e=>{
  const m=e.target.closest("[data-m]");if(m){const i=+m.dataset.m;sel=sel===i?null:i;render();return}
  const f=e.target.closest("[data-f]");if(f){filter=f.dataset.f||null;render();return}
