@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#141c2a">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261114110219">
+<meta name="wgo-version" content="20261114110802">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -306,7 +306,7 @@ function setupDesign(){
   const t=e.target.closest('[data-dt]'),a=e.target.closest('[data-da]'),was=clr;
   if(t){draft=[];clr=false;pop=null;const v=t.dataset.dt;tool=v==='s'?null:v==='c'?{cty:1}:v[0]==='a'?{k:v.slice(2)}:{ic:v.slice(2)};render();return}
   if(a){const v=a.dataset.da;clr=false;
-   if(v==='full'){full=!full;pop=null;setAR(full?innerHeight/innerWidth:.625)}else if(v==='cal')calert();else if(v==='bcy')bycty=!bycty;else if(v==='ccl')selC={};else if(v==='snp')snap=!snap;else if(v==='rad'){radar=!radar;if(radar)getRadar().then(()=>{if(MT())render()});else stopRadar()}else if(v==='rpl'){if(rplay)stopRadar();else if(RF.length)rplay=setInterval(()=>{if(!RF.length||!MT()||!radar){stopRadar();return}ri=(ri+1)%RF.length;showRF()},700)}else if(v==='go')gotoLoc();else if(v==='zi'||v==='zo')zoom(v==='zi'?.5:2);else if(v==='pan'){pan=!pan;draft=[]}else if(v==='fin'&&draft.length>=3)finish();else if(v==='free'){free=!free;draft=[]}else if(v==='rm')rm=!rm;else if(v==='undo')draft.pop();else if(v==='cancel')draft=[];
+   if(v==='full'){full=!full;pop=null;setAR(full?innerHeight/innerWidth:.625)}else if(v==='cal')calert();else if(v==='bcy')bycty=!bycty;else if(v==='ccl')selC={};else if(v==='snp')snap=!snap;else if(v==='rad'){radar=!radar;if(radar)getRadar().then(()=>{if(MT())render()});else stopRadar()}else if(v==='rpl'){if(rplay)stopRadar();else if(RF.length)rplay=setInterval(()=>{if(!RF.length||!MT()||!radar){stopRadar();return}ri=ri+1>=RF.length||ri<rlo()?rlo():ri+1;showRF()},700)}else if(v==='go')gotoLoc();else if(v==='zi'||v==='zo')zoom(v==='zi'?.5:2);else if(v==='pan'){pan=!pan;draft=[]}else if(v==='fin'&&draft.length>=3)finish();else if(v==='free'){free=!free;draft=[]}else if(v==='rm')rm=!rm;else if(v==='undo')draft.pop();else if(v==='cancel')draft=[];
    else if(v==='del'){D=D.filter(x=>x.id!==dsel);dsel=null;save()}
    else if(v==='clr'){if(was){D=[];dsel=null;save()}else clr=true}
    render();return}
@@ -418,12 +418,13 @@ function popH(){if(!pop)return'';const L=pop.ids.map(id=>D.find(x=>x.id===id)).f
 const RZ=9;let RF=[],RH='',ri=0,rplay=null,rtime=0,rerr=false,rnow=0;
 function getRadarIEM(){RSRC='iem';const st=5*6e4,b=Math.floor((Date.now()-10*6e4)/st)*st,p=n=>String(n).padStart(2,'0');RF=[];for(let i=12;i>=0;i-=2){const d=new Date(b-i*st);RF.push({time:d.getTime()/1000,s:''+d.getUTCFullYear()+p(d.getUTCMonth()+1)+p(d.getUTCDate())+p(d.getUTCHours())+p(d.getUTCMinutes())})}rnow=RF.length;ri=RF.length-1;rtime=Date.now();rerr=false}
 function stopRadar(){if(rplay)clearInterval(rplay);rplay=null}
-function rlabel(){const f=RF[ri];if(!f)return'';const t=new Date(f.time*1000).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});return t+(ri>=rnow?' (forecast)':ri===rnow-1?' (latest)':'')}
+function rlabel(){const f=RF[ri];if(!f)return'';if(tab==='map'&&ri===rnow-1)return 'Now';const t=new Date(f.time*1000).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});return t+(ri>=rnow?' (forecast)':ri===rnow-1?' (latest)':'')}
 function showRF(){document.querySelectorAll('[data-rf]').forEach(g=>g.style.display=+g.dataset.rf===ri?'inline':'none');const t=$('#rtm');if(t)t.textContent=rlabel();const sl=$('#rsl');if(sl)sl.value=ri}
 const WC={0:['☀️','Clear'],1:['🌤️','Mostly clear'],2:['⛅','Partly cloudy'],3:['☁️','Cloudy'],45:['🌫️','Fog'],48:['🌫️','Freezing fog'],51:['🌦️','Light drizzle'],53:['🌦️','Drizzle'],55:['🌧️','Heavy drizzle'],56:['🌧️','Freezing drizzle'],57:['🌧️','Freezing drizzle'],61:['🌧️','Light rain'],63:['🌧️','Rain'],65:['🌧️','Heavy rain'],66:['🌧️','Freezing rain'],67:['🌧️','Freezing rain'],71:['🌨️','Light snow'],73:['🌨️','Snow'],75:['❄️','Heavy snow'],77:['🌨️','Snow grains'],80:['🌦️','Showers'],81:['🌧️','Showers'],82:['⛈️','Heavy showers'],85:['🌨️','Snow showers'],86:['❄️','Heavy snow showers'],95:['⛈️','Thunderstorms'],96:['⛈️','Storms with hail'],99:['⛈️','Storms with hail']};
 const wc=(c,day)=>{const w=WC[c]||['☁️','—'];return day===0&&c<=1?['🌙',c?'Mostly clear':'Clear']:w};
 let FC=null,FK='',FCH='';
 const fcNow=()=>FC?new Date(Date.now()+(FC.j.utc_offset_seconds||0)*1000).toISOString().slice(0,13):'';
+setInterval(()=>{const nt=$('#rnowt');if(nt)nt.textContent=t12(Date.now()/1000)},2e4);
 setInterval(()=>{if(tab!=='forecast'||!FC||!$('#fc'))return;if(Date.now()-FC.t>6e5)loadFc();else if(fcNow()!==FCH)drawFc()},3e4);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&tab==='forecast'&&FC)loadFc()});
 function fcLoc(){return loc&&loc.la!=null?loc:{n:'Oswego, IL',la:41.6828,lo:-88.3515}}
@@ -510,8 +511,11 @@ function legendH(){const g=c=>`<span class='lg' style='background:linear-gradien
  rain=ic(D1(6,9,3.2)+D1(15,8,4)),snow=ic(F(11,8,6)),mix=ic(D1(5,9,3)+F(15,8,5)),hail=ic(`<g stroke='#fff' stroke-width='1.8' stroke-linecap='round'><path d='M4 13L8 3M8.5 13L12.5 3'/></g>`+D1(17,9,3.4));
  return RSRC==='lwx'?`<div class='lgd' role='img' aria-label='Radar key: rain green to white, snow light to dark blue, rain and snow mix pink, hail purple'><div>${rain}${g('#7fe07f 0%,#2f9a3a 22%,#0f4a12 38%,#f3d23c 48%,#e0702a 58%,#c0281e 70%,#8b1a1a 82%,#ffffff 92%')}</div><div>${snow}${g('#a9f2ff 0%,#7fd6e6 25%,#3c8e9e 50%,#1e4f5e 72%,#16303f 100%')}</div><div>${mix}${g('#f4b3d2 0%,#e07bb0 35%,#b94080 70%,#8c1a55 100%')}</div><div>${hail}${g('#c9b6f2 0%,#9b7fe0 40%,#6c4cc4 75%,#4b2f96 100%')}</div></div>`
  :`<div class='lgd one' role='img' aria-label='Radar key: rain or snow from light to heavy'><div>${rain}${g('#4ad7e8,#2f8ef0,#1fc23a,#0c7d1a,#f5e132,#f28f1c,#e3241b,#b5125f,#f0f0f0')}</div></div>`}
+const rlo=()=>tab==='map'?Math.max(0,rnow-1):0;
 const t12=s=>{const d=new Date(s*1000),h=d.getHours(),m=d.getMinutes();return (h%12||12)+':'+String(m).padStart(2,'0')+(h<12?'a':'p')};
-function bottomH(){const rb=radar?(RF.length?`<div class='rbar'><button class='rpb' data-da='rpl' aria-label='${rplay?'Pause radar':'Play radar'}'>${rplay?'❚❚':'▶'}</button><span>${t12(RF[0].time)}</span><input id='rsl' type='range' min='0' max='${RF.length-1}' step='1' value='${ri}' aria-label='Radar time'><span>${t12(RF[RF.length-1].time)}</span></div><div class='rnow' id='rtm'>${rlabel()}</div>`:`<div class='rbar'><span>${rerr?'Radar could not load':'Loading radar…'}</span></div>`):'';
+function bottomH(){const lo=rlo(),hasF=RF.length-1>lo;if(RF.length&&ri<lo)ri=lo;const nowT=`<span id='rnowt'>${t12(Date.now()/1000)}</span>`;
+ const rb=radar?(RF.length?(hasF?`<div class='rbar'><button class='rpb' data-da='rpl' aria-label='${rplay?'Pause radar':'Play radar'}'>${rplay?'❚❚':'▶'}</button>${nowT}<input id='rsl' type='range' min='${lo}' max='${RF.length-1}' step='1' value='${ri}' aria-label='Radar time, from now into the forecast'><span>${t12(RF[RF.length-1].time)}</span></div><div class='rnow' id='rtm'>${rlabel()}</div>`
+  :`<div class='rbar'>${nowT}<span style='font-size:14px'>Live radar. No forecast radar is available right now.</span></div>`):`<div class='rbar'><span>${rerr?'Radar could not load':'Loading radar…'}</span></div>`):'';
  return `<div class='mbot'>${rb}<div class='wxs' id='wxs'>${FC&&FK===fcKey()?stripH():`<div class='wxe'>Loading weather…</div>`}</div></div>`}
 function stripH(){const j=FC.j,c=j.current,Dd=j.daily,r=Math.round,dir=['N','NE','E','SE','S','SW','W','NW'][r(c.wind_direction_10m/45)%8];
  const now=`<div class='wxn'><div class='wxt'><span>Now</span><b>${r(c.temperature_2m)}°</b></div><dl><dt>Feels like</dt><dd>${r(c.apparent_temperature)}°</dd><dt>Humidity</dt><dd>${r(c.relative_humidity_2m)}%</dd><dt>Dew pt.</dt><dd>${c.dew_point_2m!=null?r(c.dew_point_2m)+'°':'–'}</dd><dt aria-hidden='true'>💨</dt><dd>${dir} ${r(c.wind_speed_10m)} mph</dd></dl></div>`;
@@ -530,7 +534,7 @@ function render(){
 }
 $("#pl").innerHTML=PL.map(p=>`<option value="${p[0]}">`).join("");$("#q").onkeydown=e=>{if(e.key==="Enter")gotoLoc()};$("#go").onclick=gotoLoc;$("#fav").onclick=toggleFav;$("#favs").onclick=e=>{const b=e.target.closest("[data-fv]");if(b)goFav(+b.dataset.fv)};
 
-document.querySelector("nav").onclick=e=>{const b=e.target.closest("button");if(b){tab=b.dataset.t;if(tab!=="design"){tool=null;draft=[];dsel=null}if(tab==="map"&&!radar){radar=true;getRadar().then(()=>{if(MT())render()})}render()}};
+document.querySelector("nav").onclick=e=>{const b=e.target.closest("button");if(b){tab=b.dataset.t;if(tab!=="design"){tool=null;draft=[];dsel=null}if(tab==="map"&&RF.length&&ri<rnow-1)ri=rnow-1;if(tab==="map"&&!radar){radar=true;getRadar().then(()=>{if(MT())render()})}render()}};
 $("#view").onclick=e=>{
  const m=e.target.closest("[data-m]");if(m){const i=+m.dataset.m;sel=sel===i?null:i;render();return}
  const f=e.target.closest("[data-f]");if(f){filter=f.dataset.f||null;render();return}
