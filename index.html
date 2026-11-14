@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#141c2a">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261114151807">
+<meta name="wgo-version" content="20261114152102">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -544,8 +544,10 @@ let fsY=0;const vpm=document.querySelector('meta[name=viewport]'),VP0=vpm?vpm.co
 function fsPrep(on){if(on){fsY=scrollY;if(vpm)vpm.content=VP0+', maximum-scale=1';scrollTo(0,0)}else{if(vpm)vpm.content=VP0;requestAnimationFrame(()=>scrollTo(0,fsY))}}
 ['gesturestart','gesturechange'].forEach(t=>document.addEventListener(t,noPinch,{passive:false}));
 document.addEventListener('touchmove',e=>{if(full&&e.touches.length>1&&!e.target.closest('#dmap'))e.preventDefault()},{passive:false});
+const vfmt=v=>/^\d{14}$/.test(v||'')?new Date(+v.slice(0,4),+v.slice(4,6)-1,+v.slice(6,8),+v.slice(8,10),+v.slice(10,12)).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):(v||'unknown');
+function updText(){const U=window.UPD||{};return 'This version: '+vfmt(U.mine)+'. '+(U.at?'Last checked at '+new Date(U.at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',second:'2-digit'})+': '+U.state+(U.remote&&U.remote!==U.mine?' (newest: '+vfmt(U.remote)+')':'')+'.':'Not checked yet.')}
 function settings(){
- return `<h2>Alert types you follow</h2>`+GROUPS.map(([g,ks])=>`<h3 class="grh">${g}</h3>`+ks.map(k=>`<button class="sw" role="switch" aria-checked="${follow[k]}" style="--c:${TYPES[k].c}" data-s="${k}"><span>${TYPES[k].n}</span><i>${follow[k]?"On":"Off"}</i></button>`).join("")).join("")+`<p class="note">Warnings mean the hazard is happening or about to. Watches mean conditions allow it. Advisories mean an inconvenience or hazard is likely.</p>`+pushH();
+ return `<h2>Alert types you follow</h2>`+GROUPS.map(([g,ks])=>`<h3 class="grh">${g}</h3>`+ks.map(k=>`<button class="sw" role="switch" aria-checked="${follow[k]}" style="--c:${TYPES[k].c}" data-s="${k}"><span>${TYPES[k].n}</span><i>${follow[k]?"On":"Off"}</i></button>`).join("")).join("")+`<p class="note">Warnings mean the hazard is happening or about to. Watches mean conditions allow it. Advisories mean an inconvenience or hazard is likely.</p>`+pushH()+`<h2>App updates</h2><div class="lp" id="updst">${updText()}</div><div class="act"><button data-up="1">Check for updates now</button></div>`;
 }
 function render(){
  favUI();
@@ -560,6 +562,7 @@ document.querySelector("nav").onclick=e=>{const b=e.target.closest("button");if(
 $("#view").onclick=e=>{
  const m=e.target.closest("[data-m]");if(m){const i=+m.dataset.m;sel=sel===i?null:i;render();return}
  const f=e.target.closest("[data-f]");if(f){filter=f.dataset.f||null;render();return}
+ if(e.target.closest("[data-up]")){window.checkNow&&checkNow();return}
  const pu=e.target.closest("[data-pu]");if(pu){pushAct(pu.dataset.pu);return}
  const s=e.target.closest("[data-s]");if(s){follow[s.dataset.s]=!follow[s.dataset.s];try{localStorage.setItem("sw-follow",JSON.stringify(follow))}catch(x){}qSync();render()}
 };
@@ -576,12 +579,23 @@ if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('messag
  if(was&&v&&was!==v){const t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.innerHTML='<b aria-hidden="true">\u2713</b> App has been updated';document.body.appendChild(t);
   const bye=()=>{t.classList.remove('on');setTimeout(()=>t.remove(),300)};t.onclick=bye;requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('on')));setTimeout(bye,4000)}})();
 (function(){const mine=(document.querySelector('meta[name=wgo-version]')||{}).content;let last=0;
- async function check(){if(Date.now()-last<15e3)return;last=Date.now();try{const t=await (await fetch(location.pathname+'?check='+Date.now(),{cache:'no-store'})).text(),m=t.match(/wgo-version"\s+content="([^"]+)"/);if(m&&m[1]!==mine){if(busy()){last=0;return}location.replace(location.pathname+'?v='+m[1]+(new URLSearchParams(location.search).get('alert')?'&alert='+encodeURIComponent(new URLSearchParams(location.search).get('alert')):''))}}catch(e){}}
+ // UPD is shown in My alerts so it's easy to see what the update check is doing.
+ window.UPD={mine,at:0,remote:'',state:'not checked yet'};
+ const go=v=>location.replace(location.pathname+'?v='+v+(new URLSearchParams(location.search).get('alert')?'&alert='+encodeURIComponent(new URLSearchParams(location.search).get('alert')):''));
+ async function check(force){if(!force&&Date.now()-last<15e3)return;last=Date.now();UPD.at=Date.now();
+  try{const r=await fetch(location.pathname+'?check='+Date.now(),{cache:'no-store'}),t=await r.text(),m=t.match(/wgo-version"\s+content="([^"]+)"/);
+   if(!m){UPD.state='could not read the version ('+r.status+')';return}UPD.remote=m[1];
+   if(m[1]===mine){UPD.state='up to date';return}
+   if(!force&&busy()){UPD.state='new version found, waiting until you finish';last=0;return}
+   UPD.state='updating';go(m[1])}
+  catch(e){UPD.state='could not check ('+(e&&e.message||e)+')'}
+  finally{const el=document.getElementById('updst');if(el)el.textContent=updText()}}
+ window.checkNow=()=>check(true);
  // Don't reload in the middle of drawing, dragging, typing or picking a time.
- let down=false;addEventListener('pointerdown',()=>{down=true},true);addEventListener('pointerup',()=>{down=false},true);addEventListener('pointercancel',()=>{down=false},true);
- const busy=()=>draft.length>0||down||(document.activeElement&&/^(dst|den|dtemp|dexp|q)$/.test(document.activeElement.id)&&!(document.activeElement.id==='q'&&!document.activeElement.value));
+ let downAt=0;addEventListener('pointerdown',()=>{downAt=Date.now()},true);addEventListener('pointerup',()=>{downAt=0},true);addEventListener('pointercancel',()=>{downAt=0},true);
+ const busy=()=>draft.length>0||(downAt&&Date.now()-downAt<5e3)||(document.activeElement&&/^(dst|den|dtemp|dexp)$/.test(document.activeElement.id))||(document.activeElement&&document.activeElement.id==='q'&&!!document.activeElement.value);
  check();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')check()});
- setInterval(()=>{if(document.visibilityState==='visible')check()},2e4);addEventListener('focus',check);addEventListener('pageshow',check)})();
+ setInterval(()=>{if(document.visibilityState==='visible')check()},2e4);addEventListener('focus',()=>check());addEventListener('pageshow',()=>check())})();
 </script>
 </body>
 </html>
