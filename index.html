@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#141c2a">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261114105751">
+<meta name="wgo-version" content="20261114110219">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -134,6 +134,21 @@ nav{overflow-x:auto}nav button{flex:1 0 auto;padding:0 12px}
 .lgd div{display:flex;align-items:center;gap:6px;min-width:0}.lgd b{font-size:15px;font-weight:400;width:16px;text-align:center;line-height:1}
 .lgd .lg{flex:1;height:12px;border-radius:6px;min-width:0}
 .mw:has(.lgd) .mbs{top:62px}.mw:has(.lgd.one) .mbs{top:42px}.mw.fs:has(.lgd) .mbs{top:calc(62px + env(safe-area-inset-top,0px))}
+.mbot{border-top:1px solid var(--line)}
+.rbar{display:flex;align-items:center;gap:10px;background:#e4e6ea;color:#1f3459;padding:8px 12px;font-size:16px}
+.rbar input{flex:1;min-width:0;accent-color:#1f3459;height:28px}
+.rpb{border:0;background:transparent;color:#1f3459;font-size:20px;width:36px;height:36px;padding:0;cursor:pointer}
+.rnow{background:#e4e6ea;color:#5a6b7b;font-size:12px;text-align:center;padding:0 0 6px}
+.wxs{display:flex;background:#2557f0;color:#fff;min-height:96px}
+.wxe{padding:14px;font-size:15px}
+.wxn{display:flex;gap:10px;padding:8px 12px;border-right:2px solid #5b84ff;flex:none}
+.wxt{display:flex;flex-direction:column;font-size:15px}.wxt b{font-size:30px;font-weight:500;margin-top:4px}
+.wxn dl{display:grid;grid-template-columns:auto auto;gap:2px 8px;margin:0;font-size:14px;align-content:center}.wxn dd{margin:0}
+.wxds{display:flex;overflow-x:auto;flex:1}
+.wxd{flex:none;width:76px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8px 4px;border-right:1px solid #5b84ff;font-size:14px}
+.wxd b{font-size:24px;line-height:1}.wxd i{font-style:normal;opacity:.6}
+.mw.fs{display:flex;flex-direction:column}.mw.fs #dmap{flex:1;min-height:0;height:auto}
+.mw.fs .mbot{padding-bottom:env(safe-area-inset-bottom,0px);background:#2557f0}
 .lp{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;margin:0 0 8px;font-size:15px}
 @media (prefers-reduced-motion:no-preference){.alert[open] .body{animation:o .15s ease-out}@keyframes o{from{opacity:0}to{opacity:1}}}
 </style>
@@ -279,9 +294,10 @@ function design(){
  if(Object.keys(selC).length)a.push(`<button data-da='ccl'>Clear counties</button>`);
  if(D.length&&!draft.length)a.push(`<button data-da='clr'>${clr?'Tap again to clear all':'Clear all'}</button>`);
  const MAP=`<div class='mw${full?' fs':''}'>${s}${popH()}${radar&&RF.length?legendH():''}<div class='mbs'><button class='mb' data-da='full' aria-label='${full?'Exit full screen':'Make the map full screen'}'>${full?"<svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M9 3v6H3M21 9h-6V3M15 21v-6h6M3 15h6v6'/></svg>":"<svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M3 9V3h6M15 3h6v6M21 15v6h-6M9 21H3v-6'/></svg>"}</button>${full?`<button class='mb' data-da='zi' aria-label='Zoom in'>+</button><button class='mb' data-da='zo' aria-label='Zoom out'>−</button><button class='mb' data-da='pan' aria-pressed='${pan}' aria-label='Drag to move the map'><svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M12 2v20M2 12h20M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3'/></svg></button>${radar&&RF.length?`<button class='mb' data-da='rpl' aria-label='${rplay?'Pause radar':'Play radar'}'>${rplay?'⏸':'▶'}</button>`:''}`:''}</div></div>`;
- if(tab==='map')return `<div id='dz'>${srch()}<div class='act' style='margin:0 0 8px'>${zc.replace(/<button data-da='snp'>[^<]*<\/button>/,'')}</div>${MAP}</div>`;
+ if(tab==='map')return `<div id='dz'>${srch()}<div class='act' style='margin:0 0 8px'>${zc.replace(/<button data-da='snp'>[^<]*<\/button>/,'').replace(/<button data-da='rpl'>.*$/,'')}</div>${MAP.replace(/<\/div>$/,bottomH()+'</div>')}</div>`;
  return `<div id='dz'>${srch()}<div class='chips wrap'>${pal}</div><div class='chips wrap'>${ics}</div><p class='note' style='margin:0 0 8px'>${hint}</p><div class='act' style='margin:0 0 8px'>${zc}</div>${MAP}${S&&S.kind==='area'?`<div class='lp'><b>${TYPES[S.k].n}</b>${tl(S)}<br>Counties: ${cof(S).join(', ')||'none found'}<br>States: ${sof(S).join(', ')||'none found'}</div>`:''}<div class='act'>${a.join('')}</div></div>`}
 function setupDesign(){
+ if(tab==='map')fillStrip();
  if(full){const r0=$('#dmap').getBoundingClientRect(),a=r0.height/r0.width;if(r0.width&&Math.abs(a-AR)>.004){setAR(a);render();return}}
  const dz=$('#dz'),svg=$('#dmap'),pt=e=>{const r=svg.getBoundingClientRect();return[Math.max(0,Math.min(200,vb.x+(e.clientX-r.left)/r.width*vb.w)),Math.max(0,Math.min(125,vb.y+(e.clientY-r.top)/r.height*vb.w*AR))]};
  let drag=null;
@@ -302,6 +318,7 @@ function setupDesign(){
   if(tool.k&&free)return;if(tool.k){if(draft.length>=3&&Math.hypot(p[0]-draft[0][0],p[1]-draft[0][1])<6*vb.w/200)finish();else draft.push(p)}
   else{const x={id:nid(),kind:'mark',ic:tool.ic,t:dtemp,x:p[0],y:p[1]};D.push(x);dsel=x.id;save()}
   render()};
+ dz.oninput=e=>{if(e.target.id==='rsl'){ri=+e.target.value;showRF()}};
  dz.onkeydown=e=>{if(e.key==='Enter'&&e.target.id==='q')gotoLoc()};
  dz.onchange=e=>{if(e.target.id==='dst'||e.target.id==='den'){const v=new Date(e.target.value).getTime(),st=e.target.id==='dst';if(isNaN(v))return;const S=D.find(x=>x.id===dsel);if(!tool&&S&&S.kind==='area'){if(st)S.t0=v;else S.exp=v;if(!S.t0)S.t0=Date.now();if(S.exp<=S.t0)S.exp=S.t0+36e5;save()}else{if(st)tS=v;else tE=v;const s0=tS||Date.now();if(tE&&tE<=s0)tE=s0+36e5}render();return}
   if(e.target.id==='dexp'){const v=Math.max(1,Math.round(+e.target.value)),S=D.find(x=>x.id===dsel);if(isNaN(v))return;if(!tool&&S&&S.kind==='area'){S.exp=Date.now()+v*6e4;save();render()}else dur=v;return}if(e.target.id!=='dtemp')return;const v=Math.round(+e.target.value),S=D.find(x=>x.id===dsel);if(isNaN(v))return;if(!tool&&S&&S.kind==='mark'){S.t=v;save();render()}else dtemp=v};
@@ -402,7 +419,7 @@ const RZ=9;let RF=[],RH='',ri=0,rplay=null,rtime=0,rerr=false,rnow=0;
 function getRadarIEM(){RSRC='iem';const st=5*6e4,b=Math.floor((Date.now()-10*6e4)/st)*st,p=n=>String(n).padStart(2,'0');RF=[];for(let i=12;i>=0;i-=2){const d=new Date(b-i*st);RF.push({time:d.getTime()/1000,s:''+d.getUTCFullYear()+p(d.getUTCMonth()+1)+p(d.getUTCDate())+p(d.getUTCHours())+p(d.getUTCMinutes())})}rnow=RF.length;ri=RF.length-1;rtime=Date.now();rerr=false}
 function stopRadar(){if(rplay)clearInterval(rplay);rplay=null}
 function rlabel(){const f=RF[ri];if(!f)return'';const t=new Date(f.time*1000).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});return t+(ri>=rnow?' (forecast)':ri===rnow-1?' (latest)':'')}
-function showRF(){document.querySelectorAll('[data-rf]').forEach(g=>g.style.display=+g.dataset.rf===ri?'inline':'none');const t=$('#rtm');if(t)t.textContent=rlabel()}
+function showRF(){document.querySelectorAll('[data-rf]').forEach(g=>g.style.display=+g.dataset.rf===ri?'inline':'none');const t=$('#rtm');if(t)t.textContent=rlabel();const sl=$('#rsl');if(sl)sl.value=ri}
 const WC={0:['☀️','Clear'],1:['🌤️','Mostly clear'],2:['⛅','Partly cloudy'],3:['☁️','Cloudy'],45:['🌫️','Fog'],48:['🌫️','Freezing fog'],51:['🌦️','Light drizzle'],53:['🌦️','Drizzle'],55:['🌧️','Heavy drizzle'],56:['🌧️','Freezing drizzle'],57:['🌧️','Freezing drizzle'],61:['🌧️','Light rain'],63:['🌧️','Rain'],65:['🌧️','Heavy rain'],66:['🌧️','Freezing rain'],67:['🌧️','Freezing rain'],71:['🌨️','Light snow'],73:['🌨️','Snow'],75:['❄️','Heavy snow'],77:['🌨️','Snow grains'],80:['🌦️','Showers'],81:['🌧️','Showers'],82:['⛈️','Heavy showers'],85:['🌨️','Snow showers'],86:['❄️','Heavy snow showers'],95:['⛈️','Thunderstorms'],96:['⛈️','Storms with hail'],99:['⛈️','Storms with hail']};
 const wc=(c,day)=>{const w=WC[c]||['☁️','—'];return day===0&&c<=1?['🌙',c?'Mostly clear':'Clear']:w};
 let FC=null,FK='',FCH='';
@@ -410,10 +427,10 @@ const fcNow=()=>FC?new Date(Date.now()+(FC.j.utc_offset_seconds||0)*1000).toISOS
 setInterval(()=>{if(tab!=='forecast'||!FC||!$('#fc'))return;if(Date.now()-FC.t>6e5)loadFc();else if(fcNow()!==FCH)drawFc()},3e4);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&tab==='forecast'&&FC)loadFc()});
 function fcLoc(){return loc&&loc.la!=null?loc:{n:'Oswego, IL',la:41.6828,lo:-88.3515}}
-async function loadFc(){const L=fcLoc(),key=L.la.toFixed(3)+','+L.lo.toFixed(3);if(FC&&FK===key&&Date.now()-FC.t<6e5){drawFc();return}
- try{const u='https://api.open-meteo.com/v1/forecast?latitude='+L.la+'&longitude='+L.lo+'&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m,relative_humidity_2m,is_day&hourly=temperature_2m,weather_code,precipitation_probability,is_day,wind_speed_10m,wind_direction_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto&forecast_days=7',j=await (await fetch(u)).json();if(!j.hourly||!j.daily||!j.current)throw 0;FC={t:Date.now(),j,n:L.n};FK=key}
- catch(e){const el=$('#fc');if(el)el.innerHTML="<div class='empty'>Couldn’t load the forecast. Check your connection and try again.</div>";return}
- drawFc()}
+const fcKey=()=>{const L=fcLoc();return L.la.toFixed(3)+','+L.lo.toFixed(3)};
+async function getFc(){const L=fcLoc(),key=fcKey();if(FC&&FK===key&&Date.now()-FC.t<6e5)return true;
+ try{const u='https://api.open-meteo.com/v1/forecast?latitude='+L.la+'&longitude='+L.lo+'&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m,relative_humidity_2m,dew_point_2m,is_day&hourly=temperature_2m,weather_code,precipitation_probability,is_day,wind_speed_10m,wind_direction_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto&forecast_days=7',j=await (await fetch(u)).json();if(!j.hourly||!j.daily||!j.current)throw 0;FC={t:Date.now(),j,n:L.n};FK=key;return true}catch(e){return false}}
+async function loadFc(){if(!await getFc()){const el=$('#fc');if(el)el.innerHTML="<div class='empty'>Couldn’t load the forecast. Check your connection and try again.</div>";return}drawFc();fillStrip()}
 function drawFc(){const el=$('#fc');if(!el||!FC)return;const j=FC.j,c=j.current,H=j.hourly,Dd=j.daily,r=Math.round,cw=wc(c.weather_code,c.is_day),dir=['N','NE','E','SE','S','SW','W','NW'][r(c.wind_direction_10m/45)%8];
  const ch=fcNow(),nowD=ch.slice(0,10);FCH=ch;let i0=H.time.findIndex(t=>t.slice(0,13)>=ch);if(i0<0)i0=0;
  const hl=t=>{const h=+t.slice(11,13);return (h%12||12)+(h<12?' AM':' PM')};
@@ -493,6 +510,14 @@ function legendH(){const g=c=>`<span class='lg' style='background:linear-gradien
  rain=ic(D1(6,9,3.2)+D1(15,8,4)),snow=ic(F(11,8,6)),mix=ic(D1(5,9,3)+F(15,8,5)),hail=ic(`<g stroke='#fff' stroke-width='1.8' stroke-linecap='round'><path d='M4 13L8 3M8.5 13L12.5 3'/></g>`+D1(17,9,3.4));
  return RSRC==='lwx'?`<div class='lgd' role='img' aria-label='Radar key: rain green to white, snow light to dark blue, rain and snow mix pink, hail purple'><div>${rain}${g('#7fe07f 0%,#2f9a3a 22%,#0f4a12 38%,#f3d23c 48%,#e0702a 58%,#c0281e 70%,#8b1a1a 82%,#ffffff 92%')}</div><div>${snow}${g('#a9f2ff 0%,#7fd6e6 25%,#3c8e9e 50%,#1e4f5e 72%,#16303f 100%')}</div><div>${mix}${g('#f4b3d2 0%,#e07bb0 35%,#b94080 70%,#8c1a55 100%')}</div><div>${hail}${g('#c9b6f2 0%,#9b7fe0 40%,#6c4cc4 75%,#4b2f96 100%')}</div></div>`
  :`<div class='lgd one' role='img' aria-label='Radar key: rain or snow from light to heavy'><div>${rain}${g('#4ad7e8,#2f8ef0,#1fc23a,#0c7d1a,#f5e132,#f28f1c,#e3241b,#b5125f,#f0f0f0')}</div></div>`}
+const t12=s=>{const d=new Date(s*1000),h=d.getHours(),m=d.getMinutes();return (h%12||12)+':'+String(m).padStart(2,'0')+(h<12?'a':'p')};
+function bottomH(){const rb=radar?(RF.length?`<div class='rbar'><button class='rpb' data-da='rpl' aria-label='${rplay?'Pause radar':'Play radar'}'>${rplay?'❚❚':'▶'}</button><span>${t12(RF[0].time)}</span><input id='rsl' type='range' min='0' max='${RF.length-1}' step='1' value='${ri}' aria-label='Radar time'><span>${t12(RF[RF.length-1].time)}</span></div><div class='rnow' id='rtm'>${rlabel()}</div>`:`<div class='rbar'><span>${rerr?'Radar could not load':'Loading radar…'}</span></div>`):'';
+ return `<div class='mbot'>${rb}<div class='wxs' id='wxs'>${FC&&FK===fcKey()?stripH():`<div class='wxe'>Loading weather…</div>`}</div></div>`}
+function stripH(){const j=FC.j,c=j.current,Dd=j.daily,r=Math.round,dir=['N','NE','E','SE','S','SW','W','NW'][r(c.wind_direction_10m/45)%8];
+ const now=`<div class='wxn'><div class='wxt'><span>Now</span><b>${r(c.temperature_2m)}°</b></div><dl><dt>Feels like</dt><dd>${r(c.apparent_temperature)}°</dd><dt>Humidity</dt><dd>${r(c.relative_humidity_2m)}%</dd><dt>Dew pt.</dt><dd>${c.dew_point_2m!=null?r(c.dew_point_2m)+'°':'–'}</dd><dt aria-hidden='true'>💨</dt><dd>${dir} ${r(c.wind_speed_10m)} mph</dd></dl></div>`;
+ const days=Dd.time.map((t,i)=>{const w=wc(Dd.weather_code[i],1);return `<div class='wxd'><span>${new Date(t+'T12:00').toLocaleDateString('en-US',{weekday:'short'})}</span><b aria-label='${w[1]}'>${w[0]}</b><span>${r(Dd.temperature_2m_max[i])}° <i>|</i> ${r(Dd.temperature_2m_min[i])}°</span></div>`}).join('');
+ return now+`<div class='wxds'>${days}</div>`}
+async function fillStrip(){const key=fcKey(),ok=await getFc(),el=$('#wxs');if(!el||key!==fcKey())return;el.innerHTML=ok?stripH():`<div class='wxe'>Couldn’t load the weather.</div>`}
 function settings(){
  return `<h2>Alert types you follow</h2>`+Object.keys(TYPES).sort((a,b)=>TYPES[b].s-TYPES[a].s).map(k=>`<button class="sw" role="switch" aria-checked="${follow[k]}" style="--c:${TYPES[k].c}" data-s="${k}"><span>${TYPES[k].n}</span><i>${follow[k]?"On":"Off"}</i></button>`).join("")+`<p class="note">Warnings mean the hazard is happening or about to. Watches mean conditions allow it. Advisories mean an inconvenience or hazard is likely.</p>`+pushH();
 }
