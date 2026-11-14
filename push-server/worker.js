@@ -111,6 +111,7 @@ function cleanAlert(a) {
     id: String(a.id).slice(0, 40),
     title: String(a.title || 'Weather alert').slice(0, 80),
     body: String(a.body || '').slice(0, 200),
+    until: String(a.until || '').slice(0, 40),
     start: Number(a.start) || Date.now(),
     end: Number(a.end) || Date.now() + 3600e3,
   };
@@ -182,7 +183,7 @@ async function checkAlerts(env) {
       if (a.start > now || (a.sent && a.end === a.ne)) continue;
       const message = !a.sent
         ? { title: a.title, body: a.body, tag: a.id }
-        : { title: `${a.title} ${a.end > a.ne ? 'extended' : 'shortened'}`, body: a.body, tag: `${a.id}~chg${a.end}` };
+        : { title: `${a.title} ${a.end > a.ne ? 'extended' : 'shortened'}${a.until ? (a.end > a.ne ? ' until ' : ' to end at ') + a.until : ''}`, body: a.body, tag: `${a.id}~chg${a.end}` };
       const status = await sendPush(dev.sub, await vapidKeys(env, db), message);
       if (status === 404 || status === 410) { delete db.devices[id]; changed = true; break; }
       if (status < 300) { a.sent = true; a.ne = a.end; changed = true; }
