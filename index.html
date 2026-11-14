@@ -75,6 +75,17 @@ nav{overflow-x:auto}nav button{flex:1 0 auto;padding:0 12px}
 .brand svg{position:absolute;inset:0;width:100%;height:100%}
 .brand div{position:relative;padding:14px 16px;text-shadow:0 1px 3px rgba(0,0,0,.5)}
 .brand h1{font-size:32px;line-height:1}.brand span{font-size:14px;opacity:.9}
+.pop{position:absolute;z-index:5;width:min(330px,calc(100% - 12px));background:#232323;color:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 8px 24px rgba(0,0,0,.35);font-size:15px}
+.pop .x{position:absolute;top:6px;right:6px;width:36px;height:36px;border:0;border-radius:50%;background:transparent;color:#bbb;font-size:20px;cursor:pointer}
+.pop .t{color:#ddd;font-size:14px;padding-right:30px}
+.pop h3{font:700 24px "Barlow Semi Condensed",Barlow,sans-serif;margin:2px 0 10px;padding-right:30px}
+.pop .ar{display:flex;align-items:center;gap:10px;width:100%;background:#383838;border:0;border-radius:12px;padding:10px 12px;color:#fff;text-align:left;cursor:pointer;margin-top:6px;min-height:52px}
+.pop .ar b{font:700 19px "Barlow Semi Condensed",Barlow,sans-serif;display:block;line-height:1.15}
+.pop .ar small{font-size:12px;letter-spacing:.3px;color:#ddd}
+.pop .ic{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:14px;color:#fff;background:var(--c)}
+.pop .mo{flex:none;border:1.5px solid #fff;border-radius:8px;padding:4px 8px;font-weight:600;font-size:14px;background:transparent;color:#fff;cursor:pointer;min-height:36px}
+.pop ul{margin:6px 0 2px;padding-left:20px;font-size:14px;color:#eee}
+.pip{position:absolute;z-index:6;width:14px;height:14px;background:#232323;transform:translate(-50%,-50%) rotate(45deg);pointer-events:none}
 .lp{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;margin:0 0 8px;font-size:15px}
 @media (prefers-reduced-motion:no-preference){.alert[open] .body{animation:o .15s ease-out}@keyframes o{from{opacity:0}to{opacity:1}}}
 </style>
@@ -181,7 +192,7 @@ const nid=()=>Math.floor(Math.random()*1e9),save=()=>{try{localStorage.setItem('
 const WI=['☀️','⛅','☁️','🌧️','⛈️','🌨️','💨','🌫️'];
 const cen=p=>[p.reduce((s,q)=>s+q[0],0)/p.length,p.reduce((s,q)=>s+q[1],0)/p.length];
 const pts=p=>p.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join(' ');
-function finish(){const x={id:nid(),kind:'area',k:tool.k,pts:draft,exp:Date.now()+dur*6e4};D.push(x);draft=[];dsel=x.id;tool=null;save()}
+function finish(){const x={id:nid(),kind:'area',k:tool.k,pts:draft,t0:Date.now(),exp:Date.now()+dur*6e4};D.push(x);draft=[];dsel=x.id;tool=null;save()}
 function design(){
  const k=vb.w/200,S=D.find(x=>x.id===dsel),tc=tool&&tool.k?TYPES[tool.k].c:'var(--accent)';
  const pal=`<button class='chip' style='--c:var(--accent)' aria-pressed='${!tool}' data-dt='s'>Select and move</button><button class='chip' style='--c:var(--accent)' aria-pressed='${!!tool&&!!tool.cty}' data-dt='c'>Select counties</button>`+Object.keys(TYPES).sort((a,b)=>TYPES[b].s-TYPES[a].s).map(k=>`<button class='chip' style='--c:${TYPES[k].c}' aria-pressed='${!!tool&&tool.k===k}' data-dt='a:${k}'>${TYPES[k].n}</button>`).join('');
@@ -209,20 +220,21 @@ function design(){
  if(tool&&tool.k&&Object.keys(selC).length)a.push(`<button class='pri' data-da='cal'>Alert selected counties</button>`);
  if(Object.keys(selC).length)a.push(`<button data-da='ccl'>Clear counties</button>`);
  if(D.length&&!draft.length)a.push(`<button data-da='clr'>${clr?'Tap again to clear all':'Clear all'}</button>`);
- return `<div id='dz'>${srch()}<div class='chips wrap'>${pal}</div><div class='chips wrap'>${ics}</div><p class='note' style='margin:0 0 8px'>${hint}</p><div class='act' style='margin:0 0 8px'>${zc}</div>${s}${S&&S.kind==='area'?`<div class='lp'><b>${TYPES[S.k].n}</b>${tl(S)}<br>Counties: ${cof(S).join(', ')||'none found'}<br>States: ${sof(S).join(', ')||'none found'}</div>`:''}<div class='act'>${a.join('')}</div></div>`}
+ return `<div id='dz'>${srch()}<div class='chips wrap'>${pal}</div><div class='chips wrap'>${ics}</div><p class='note' style='margin:0 0 8px'>${hint}</p><div class='act' style='margin:0 0 8px'>${zc}</div><div style='position:relative'>${s}${popH()}</div>${S&&S.kind==='area'?`<div class='lp'><b>${TYPES[S.k].n}</b>${tl(S)}<br>Counties: ${cof(S).join(', ')||'none found'}<br>States: ${sof(S).join(', ')||'none found'}</div>`:''}<div class='act'>${a.join('')}</div></div>`}
 function setupDesign(){
  const dz=$('#dz'),svg=$('#dmap'),pt=e=>{const r=svg.getBoundingClientRect();return[Math.max(0,Math.min(200,vb.x+(e.clientX-r.left)/r.width*vb.w)),Math.max(0,Math.min(125,vb.y+(e.clientY-r.top)/r.height*vb.w*.625))]};
  let drag=null;
  dz.onclick=e=>{
+  const pb=e.target.closest('[data-pp]');if(pb){const v=pb.dataset.pp;if(v==='x')pop=null;else if(v==='mo')pop.more=!pop.more;else pop.open=pop.open===+v?null:+v;render();return}
   const t=e.target.closest('[data-dt]'),a=e.target.closest('[data-da]'),was=clr;
-  if(t){draft=[];clr=false;const v=t.dataset.dt;tool=v==='s'?null:v==='c'?{cty:1}:v[0]==='a'?{k:v.slice(2)}:{ic:v.slice(2)};render();return}
+  if(t){draft=[];clr=false;pop=null;const v=t.dataset.dt;tool=v==='s'?null:v==='c'?{cty:1}:v[0]==='a'?{k:v.slice(2)}:{ic:v.slice(2)};render();return}
   if(a){const v=a.dataset.da;clr=false;
    if(v==='cal')calert();else if(v==='bcy')bycty=!bycty;else if(v==='ccl')selC={};else if(v==='snp')snap=!snap;else if(v==='rad')radar=!radar;else if(v==='go')gotoLoc();else if(v==='zi'||v==='zo')zoom(v==='zi'?.5:2);else if(v==='pan'){pan=!pan;draft=[]}else if(v==='fin'&&draft.length>=3)finish();else if(v==='free'){free=!free;draft=[]}else if(v==='rm')rm=!rm;else if(v==='undo')draft.pop();else if(v==='cancel')draft=[];
    else if(v==='del'){D=D.filter(x=>x.id!==dsel);dsel=null;save()}
    else if(v==='clr'){if(was){D=[];dsel=null;save()}else clr=true}
    render();return}
   if(!e.target.closest('#dmap')||pan)return;
-  if(!tool){if(Date.now()-lastUp<400)return;if(!e.target.closest('[data-id]')){dsel=null;render()}return}
+  if(!tool){if(!lastMv)openPop(e,svg);if(Date.now()-lastUp<400){render();return}if(!e.target.closest('[data-id]')){dsel=null;render()}return}
   const p=tool.k?snapTo(pt(e),svg):pt(e);
   if(tool.cty){const c=cAt(p);if(c){if(selC[c.id])delete selC[c.id];else selC[c.id]=1}render();return}
   if(tool.k&&bycty){const c=cAt(p);if(c){addC(c);save()}render();return}
@@ -233,24 +245,24 @@ function setupDesign(){
  dz.onchange=e=>{if(e.target.id==='dexp'){const v=Math.max(1,Math.round(+e.target.value)),S=D.find(x=>x.id===dsel);if(isNaN(v))return;if(!tool&&S&&S.kind==='area'){S.exp=Date.now()+v*6e4;save();render()}else dur=v;return}if(e.target.id!=='dtemp')return;const v=Math.round(+e.target.value),S=D.find(x=>x.id===dsel);if(isNaN(v))return;if(!tool&&S&&S.kind==='mark'){S.t=v;save();render()}else dtemp=v};
  svg.onpointerdown=e=>{const el=e.target.closest('[data-id]');if(tool||!el)return;drag={id:+el.dataset.id,el,p:pt(e),dx:0,dy:0,m:false};svg.setPointerCapture(e.pointerId)};
  svg.onpointermove=e=>{if(!drag)return;const p=pt(e);drag.dx=p[0]-drag.p[0];drag.dy=p[1]-drag.p[1];if(Math.hypot(drag.dx,drag.dy)>1.5)drag.m=true;if(drag.m)drag.el.setAttribute('transform',`translate(${drag.dx} ${drag.dy})`)};
- svg.onpointerup=()=>{if(!drag)return;const d=drag,x=D.find(q=>q.id===d.id);drag=null;lastUp=Date.now();if(d.m&&x){if(x.kind==='mark'){x.x+=d.dx;x.y+=d.dy}else x.pts=x.pts.map(q=>[q[0]+d.dx,q[1]+d.dy]);save()}dsel=d.id;render()};
+ svg.onpointerup=()=>{if(!drag)return;const d=drag,x=D.find(q=>q.id===d.id);drag=null;lastUp=Date.now();lastMv=d.m;if(d.m)pop=null;if(d.m&&x){if(x.kind==='mark'){x.x+=d.dx;x.y+=d.dy}else x.pts=x.pts.map(q=>[q[0]+d.dx,q[1]+d.dy]);save()}dsel=d.id;render()};
  let fd=false,fh=null;const od=svg.onpointerdown,om=svg.onpointermove,ou=svg.onpointerup;
  svg.onpointerdown=e=>{
   if(pan){panD={x:e.clientX,y:e.clientY,vx:vb.x,vy:vb.y};svg.setPointerCapture(e.pointerId);return}
   if(tool&&tool.k&&free&&!bycty){draft=[pt(e)];fh=document.createElementNS('http://www.w3.org/2000/svg','polyline');fh.setAttribute('style','fill:none;stroke:'+TYPES[tool.k].c+';stroke-width:1.5px');svg.appendChild(fh);svg.setPointerCapture(e.pointerId);fd=true;return}
   const v=!tool&&e.target.closest('[data-v],[data-e]'),S=D.find(x=>x.id===dsel);
   if(v&&S){if(v.dataset.e!==undefined){const i=+v.dataset.e;S.pts.splice(i+1,0,pt(e));drag={S,vi:i+1,m:true}}else drag={S,vi:+v.dataset.v,m:false};svg.setPointerCapture(e.pointerId);return}
-  od(e)};
+  lastMv=false;od(e)};
  svg.onpointermove=e=>{
   if(panD){const r=svg.getBoundingClientRect(),q=vb.w/r.width;vb.x=Math.max(0,Math.min(200-vb.w,panD.vx-(e.clientX-panD.x)*q));vb.y=Math.max(0,Math.min(125-vb.w*.625,panD.vy-(e.clientY-panD.y)*q));svg.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.w*.625);return}
   if(fd){const p=snapTo(pt(e),svg),l=draft[draft.length-1];if(Math.hypot(p[0]-l[0],p[1]-l[1])>2.5*vb.w/200){draft.push(p);fh.setAttribute('points',pts(draft))}return}
   if(drag&&drag.vi!==undefined){drag.S.pts[drag.vi]=snapTo(pt(e),svg);drag.m=true;svg.querySelector(`[data-id='${drag.S.id}'] polygon`).setAttribute('points',pts(drag.S.pts));return}
   om(e)};
  svg.onpointerup=e=>{
-  if(panD){panD=null;lastUp=Date.now();render();return}
+  if(panD){panD=null;lastUp=Date.now();lastMv=true;render();return}
   if(fd){fd=false;lastUp=Date.now();if(draft.length>=3)finish();else draft=[];render();return}
-  if(drag&&drag.vi!==undefined){const d=drag;drag=null;lastUp=Date.now();if(rm&&!d.m&&d.S.pts.length>3)d.S.pts.splice(d.vi,1);save();render();return}
-  ou(e)};
+  if(drag&&drag.vi!==undefined){const d=drag;drag=null;lastUp=Date.now();lastMv=true;pop=null;if(rm&&!d.m&&d.S.pts.length>3)d.S.pts.splice(d.vi,1);save();render();return}
+  if(drag&&!drag.m&&drag.vi===undefined)openPop(e,svg);ou(e)};
  svg.onpointercancel=()=>{drag=null;panD=null;fd=false;draft=[];render()}}
 function zoom(f){const nw=Math.max(8,Math.min(200,vb.w*f)),cx=vb.x+vb.w/2,cy=vb.y+vb.w*.3125;vb.w=nw;vb.x=Math.max(0,Math.min(200-nw,cx-nw/2));vb.y=Math.max(0,Math.min(125-nw*.625,cy-nw*.3125))}
 function base(){
@@ -285,13 +297,24 @@ async function gotoLoc(){const q=($('#q')||{value:''}).value.trim().toLowerCase(
  if(!p&&q&&!m){try{const r=await fetch('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(q.split(',')[0].trim())+'&count=5&language=en&format=json&countryCode=US'),j=await r.json(),h=j.results||[],st=(q.split(',')[1]||'').trim(),f=h.find(a=>st&&(a.admin1||'').toLowerCase().startsWith(st))||h[0];if(f){const z=proj(f.latitude,f.longitude);if(z)p={n:f.name+(f.admin1?', '+f.admin1:''),x:z[0],y:z[1]}}}catch(e){}}
  if(!p){loc=null;msg=PLC.length?'I could not find that place. Pick one from the suggestions, or type latitude, longitude.':'The map is still loading. Try again in a moment.';render();return}
  loc=p;msg='';vb.w=30;vb.x=Math.max(0,Math.min(170,p.x-15));vb.y=Math.max(0,Math.min(106,p.y-9.4));render()}
-function addC(c){c.g.forEach(pl=>{const r=pl[0],n=Math.ceil(r.length/150);D.push({id:nid(),kind:'area',k:tool.k,pts:r.filter((_,i)=>i%n===0),cn:[c.n],st:[c.s],exp:Date.now()+dur*6e4})})}
+function addC(c){c.g.forEach(pl=>{const r=pl[0],n=Math.ceil(r.length/150);D.push({id:nid(),kind:'area',k:tool.k,pts:r.filter((_,i)=>i%n===0),cn:[c.n],st:[c.s],t0:Date.now(),exp:Date.now()+dur*6e4})})}
 function cof(x){if(x.cn)return x.cn;if(!CTY.length)return[];const key=x.pts.reduce((s,q)=>s+q[0]*3+q[1],0).toFixed(2);if(cc[x.id]&&cc[x.id].k===key)return cc[x.id].v;const xs=x.pts.map(q=>q[0]),ys=x.pts.map(q=>q[1]),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys),v=[];CTY.forEach(c=>{const b=c.b;if(b[2]<x0||b[0]>x1||b[3]<y0||b[1]>y1)return;if(dist({x:c.cx,y:c.cy},x.pts)===0||c.g.some(pl=>x.pts.some(q=>dist({x:q[0],y:q[1]},pl[0])===0)))v.push(c)});const names=v.map(c=>c.n).sort(),ss=[...new Set(v.map(c=>c.s).filter(Boolean))].sort();cc[x.id]={k:key,v:names,s:ss};return names}
 const sof=x=>x.st||(cof(x),cc[x.id]?cc[x.id].s:[]),cl=x=>{const n=cof(x);return n.length?n.slice(0,3).join(', ')+(n.length>3?' +'+(n.length-3):'')+(n.length>1?' Cos.':' Co.')+(sof(x).length?' · '+sof(x).join(', '):''):''};
 function head(){const al=active(),top=al[0],c=loc&&CTY.length?cAt([loc.x,loc.y]):null;
  $('#hero').style.setProperty('--c',top?top.T.c:'var(--accent)');
  $('#hero').innerHTML=top?`<div class='lvl'>${al.length} active alert${al.length>1?'s':''}${loc?' for '+loc.n:''}. Most serious:</div><h1>${top.T.n}</h1><div>${top.area}. Expires in ${top.m>9000?'no set time':fmt(top.m)}.</div>`:loc?`<div class='lvl'>${loc.n}${c?' · '+c.n+' County, '+c.s:''}</div><h1>All clear</h1><div>No active alerts for this place.</div>`:`<div class='lvl'>${msg?'Place not found':'No location set'}</div><h1>${msg?'Try another name':'Type your town'}</h1><div>${msg||'Type a city or town above and tap Go to see its alerts.'}</div>`;
  $('#stats').innerHTML=''}
+let pop=null,lastMv=false;
+const LV=['','Low','Possible','Elevated','High','Extreme'];
+function ft(ms){const p=new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit',weekday:'short',timeZoneName:'short'}).formatToParts(new Date(ms)),g=t=>(p.find(x=>x.type===t)||{}).value||'',m=g('minute');return (g('hour')+(m==='00'?'':':'+m)+g('dayPeriod')+' '+g('timeZoneName')+' '+g('weekday')).toUpperCase()}
+function openPop(e,svg){const r=svg.getBoundingClientRect(),p=[vb.x+(e.clientX-r.left)/r.width*vb.w,vb.y+(e.clientY-r.top)/r.height*vb.w*.625],c=CTY.length?cAt(p):null,now=Date.now();
+ const L=D.filter(x=>x.kind==='area'&&!(x.exp&&x.exp<now)&&(dist({x:p[0],y:p[1]},x.pts)===0||(c&&cof(x).includes(c.n)&&sof(x).includes(c.s)))).sort((a,b)=>TYPES[b.k].s-TYPES[a.k].s);
+ pop=L.length?{x:p[0],y:p[1],ids:L.map(x=>x.id),cn:c?c.n+' County':(cl(L[0])||'this area'),more:false,open:null}:null}
+function popH(){if(!pop)return'';const L=pop.ids.map(id=>D.find(x=>x.id===id)).filter(x=>x&&!exd(x));if(!L.length){pop=null;return''}
+ const X=(pop.x-vb.x)/vb.w*100,Y=(pop.y-vb.y)/(vb.w*.625)*100;if(X<0||X>100||Y<0||Y>100)return'';
+ const top=TYPES[L[0].k],below=Y<50,show=pop.more?L:[L[0]];
+ const row=(x,i)=>{const T=TYPES[x.k],when=(x.t0?ft(x.t0)+' – ':'UNTIL ')+(x.exp?ft(x.exp):'NO END TIME');return `<button class='ar' data-pp='${i}' style='--c:${T.c}'><span class='ic'>!</span><span style='flex:1;min-width:0'><b>${T.n}</b><small>${when}</small></span>${i===0&&L.length>1&&!pop.more?`<span class='mo' data-pp='mo'>+${L.length-1} more</span>`:''}<span aria-hidden='true' style='color:#999;font-size:20px'>›</span></button>${pop.open===i?`<ul>${T.tip.map(t=>`<li>${t}</li>`).join('')}</ul>`:''}`};
+ return `<div class='pip' style='left:${X}%;top:calc(${Y}% ${below?'+':'-'} 12px)'></div><div class='pop' role='dialog' aria-label='Alerts here' style='left:clamp(6px,calc(${X}% - 165px),calc(100% - min(330px,calc(100% - 12px)) - 6px));${below?`top:calc(${Y}% + 12px)`:`bottom:calc(${100-Y}% + 12px)`}'><button class='x' data-pp='x' aria-label='Close'>×</button><div class='t'>Threat indicated in ${pop.cn}</div><h3>Severe Risk: ${LV[top.s]}</h3>${show.map(row).join('')}${pop.more&&L.length>1?`<button class='ar' data-pp='mo' style='justify-content:center;min-height:40px'>Show less</button>`:''}</div>`}
 function settings(){
  return `<h2>Alert types you follow</h2>`+Object.keys(TYPES).sort((a,b)=>TYPES[b].s-TYPES[a].s).map(k=>`<button class="sw" role="switch" aria-checked="${follow[k]}" style="--c:${TYPES[k].c}" data-s="${k}"><span>${TYPES[k].n}</span><i>${follow[k]?"On":"Off"}</i></button>`).join("")+`<p class="note">Warnings mean the hazard is happening or about to. Watches mean conditions allow it. Advisories mean an inconvenience or hazard is likely.</p>`;
 }
