@@ -8,6 +8,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
+<meta name="wgo-version" content="20261113215054">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -368,6 +369,9 @@ $("#view").onclick=e=>{
 };
 $("#theme").onclick=()=>{const r=document.documentElement,d=getComputedStyle(r).colorScheme==="dark";r.dataset.theme=d?"light":"dark"};
 render();loadUS();
+(function(){const mine=(document.querySelector('meta[name=wgo-version]')||{}).content;let last=0;
+ async function check(){if(Date.now()-last<6e4)return;last=Date.now();try{const t=await (await fetch(location.pathname+'?check='+Date.now(),{cache:'no-store'})).text(),m=t.match(/wgo-version"\s+content="([^"]+)"/);if(m&&m[1]!==mine)location.replace(location.pathname+'?v='+m[1])}catch(e){}}
+ check();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')check()})})();
 </script>
 </body>
 </html>
