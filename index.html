@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#141c2a">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261114160843">
+<meta name="wgo-version" content="20261114161258">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -381,7 +381,9 @@ function snapTo(p,svg){if(!snap)return p;const ids=Object.keys(selC);if(!ids.len
 function cfill(){let s='';Object.keys(selC).forEach(id=>{const c=CTY.find(q=>q.id===id);if(c)c.g.forEach(pl=>s+=`<polygon points='${pts(pl[0])}' style='fill:var(--accent);fill-opacity:.18;stroke:var(--accent);stroke-width:2px;vector-effect:non-scaling-stroke;pointer-events:none'/>`)});return s}
 function calert(){Object.keys(selC).forEach(id=>{const c=CTY.find(q=>q.id===id);if(c)addC(c)});selC={};tool=null;save()}
 function placesL(k){const inv=(x,y)=>x>vb.x&&x<vb.x+vb.w&&y>vb.y&&y<vb.y+vb.w*AR,f=`font-size:5px;stroke-width:1.4px`;let s=`<g style='pointer-events:none'>`;
- if(CAN){const c=proj(58,-100,true);if(c)s+=`<text class='lbl' style='font-size:9px;stroke-width:1.6px;letter-spacing:2px;fill:var(--mute)' transform='translate(${c[0]} ${c[1]}) scale(${Math.min(k,1.6)})'>CANADA</text>`}
+ // Country names only show when zoomed out; they hide once you zoom in.
+ if(vb.w>=120){const cn=(la,lo,t,ca)=>{const c=proj(la,lo,ca);if(c)s+=`<text class='lbl' style='font-size:9px;stroke:none;letter-spacing:2px;fill:var(--mute);opacity:.45' transform='translate(${c[0]} ${c[1]}) scale(${Math.min(k,1.6)})'>${t}</text>`};
+  if(US)cn(39.3,-98.6,'UNITED STATES');if(CAN)cn(58,-100,'CANADA',true)}
  if(vb.w<=45)CTY.forEach(c=>{if(inv(c.cx,c.cy))s+=`<text class='lbl' style='font-size:3px;stroke-width:1px;font-style:italic;fill:var(--mute)' transform='translate(${c.cx} ${c.cy}) scale(${k})'>${c.n} Co.</text>`});
  const bx=[],hit=(a)=>bx.some(b=>a[0]<b[2]&&a[2]>b[0]&&a[1]<b[3]&&a[3]>b[1]),box=(x,y,n)=>{const w=n.length*2.3*k/2+.5*k;return[x-w,y-8*k,x+w,y+2*k]};
  if(loc)bx.push(box(loc.x,loc.y-3*k,loc.n));
