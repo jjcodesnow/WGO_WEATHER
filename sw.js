@@ -18,7 +18,7 @@ self.addEventListener('push', (e) => {
 // Tapping a notification opens the app on that alert's area of the map.
 self.addEventListener('notificationclick', (e) => {
   e.notification.close();
-  const id = e.notification.tag && e.notification.tag !== 'test' ? e.notification.tag : '';
+  const id = e.notification.tag && e.notification.tag !== 'test' ? e.notification.tag.split('~')[0] : '';
   e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
     for (const c of list) {
       if ('focus' in c) {

@@ -7,7 +7,8 @@
 //
 // The app sends its drawn alerts here. Every minute this Worker checks
 // for alerts that have started and sends a push notification to the
-// phone that drew them. Keys for signing pushes are made on first use
+// phone that drew them, and again if an alert that already started
+// has its end time pushed later. Keys for signing pushes are made on first use
 // and kept in KV, so there are no secrets to set up.
 
 const CORS = {
@@ -137,7 +138,13 @@ async function handle(req, env) {
       .slice(0, MAX_ALERTS)
       .map(cleanAlert)
       .filter((a) => a.end > now)
-      .map((a) => ({ ...a, sent: !!(old[a.id] && old[a.id].sent && old[a.id].start === a.start) }));
+      .map((a) => {
+        // An alert that already went out keeps its "sent" mark. If its end time
+        // moved later, flag it so the phone gets an "extended" notification.
+        const o = old[a.id];
+        const same = !!(o && o.sent && o.start === a.start);
+        return { ...a, sent: same, ext: same && (!!o.ext || a.end > o.end) };
+      });
     db.devices[id] = { sub: { endpoint: sub.endpoint, keys: sub.keys }, alerts, seen: now };
     await store(env, db);
     return json({ ok: true, alerts: alerts.length });
@@ -171,10 +178,13 @@ async function checkAlerts(env) {
     dev.alerts = dev.alerts.filter((a) => a.end > now);
     if (dev.alerts.length !== before) changed = true;
     for (const a of dev.alerts) {
-      if (a.sent || a.start > now) continue;
-      const status = await sendPush(dev.sub, await vapidKeys(env, db), { title: a.title, body: a.body, tag: a.id });
+      if (a.start > now || (a.sent && !a.ext)) continue;
+      const message = a.sent
+        ? { title: `${a.title} extended`, body: a.body, tag: `${a.id}~ext${a.end}` }
+        : { title: a.title, body: a.body, tag: a.id };
+      const status = await sendPush(dev.sub, await vapidKeys(env, db), message);
       if (status === 404 || status === 410) { delete db.devices[id]; changed = true; break; }
-      if (status < 300) { a.sent = true; changed = true; }
+      if (status < 300) { a.sent = true; a.ext = false; changed = true; }
     }
   }
   if (changed) await store(env, db);
