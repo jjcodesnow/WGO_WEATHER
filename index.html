@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#141c2a">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261114154044">
+<meta name="wgo-version" content="20261114154752">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -133,7 +133,8 @@ nav{overflow-x:auto}nav button{flex:1 0 auto;padding:0 12px}
 .mw.fs .lgd{border-radius:0;padding-top:calc(7px + env(safe-area-inset-top,0px))}
 .lgd div{display:flex;align-items:center;gap:6px;min-width:0}.lgd b{font-size:15px;font-weight:400;width:16px;text-align:center;line-height:1}
 .lgd .lg{flex:1;height:12px;border-radius:6px;min-width:0}
-.mw:has(.lgd) .mbs{top:62px}.mw:has(.lgd.one) .mbs{top:42px}.mw.fs:has(.lgd) .mbs{top:calc(62px + env(safe-area-inset-top,0px))}
+.lgd .lgn{grid-column:1/-1;font-size:11px;color:#c9d6ea;margin-top:-1px}
+.mw:has(.lgd) .mbs{top:76px}.mw:has(.lgd.one) .mbs{top:42px}.mw.fs:has(.lgd) .mbs{top:calc(62px + env(safe-area-inset-top,0px))}
 .mbot{border-top:1px solid var(--line)}
 .rbar{display:flex;align-items:center;gap:10px;background:#e4e6ea;color:#1f3459;padding:8px 12px;font-size:16px}
 .rbar input{flex:1;min-width:0;accent-color:#1f3459;height:28px}
@@ -291,7 +292,7 @@ function design(){
  if(S&&S.kind==='area'&&!tool){const c=TYPES[S.k].c;S.pts.forEach((q,i)=>{const n=S.pts[(i+1)%S.pts.length],mx=(q[0]+n[0])/2,my=(q[1]+n[1])/2;s+=`<g data-e='${i}'><circle cx='${mx}' cy='${my}' r='${7*k}' style='fill:transparent'/><circle cx='${mx}' cy='${my}' r='${1*k}' style='fill:${c};opacity:.55;pointer-events:none'/></g>`});S.pts.forEach((q,i)=>{s+=`<g data-v='${i}'><circle cx='${q[0]}' cy='${q[1]}' r='${7*k}' style='fill:transparent'/><circle cx='${q[0]}' cy='${q[1]}' r='${1.6*k}' style='fill:${rm?'#d62828':'#fff'};stroke:${c};stroke-width:${.6*k}px;pointer-events:none'/></g>`})}
  if(draft.length)s+=`<g style='pointer-events:none'><polyline points='${pts(draft)}' style='fill:none;stroke:${tc};stroke-width:1.5px;stroke-dasharray:3 2'/>`+draft.map((q,i)=>`<circle cx='${q[0]}' cy='${q[1]}' r='${(i?2.2:3.5)*k}' style='fill:${tc};stroke:#fff;stroke-width:1px'/>`).join('')+`</g>`;
  s+='</svg>';
- const a=[],zc=`<button data-da='zo'>Zoom out</button><button data-da='zi'>Zoom in</button><button data-da='pan'>${pan?'Pan: on':'Pan: off'}</button><button data-da='snp'>${snap?'Snap: on':'Snap: off'}</button><button data-da='rad'>${radar?'Radar: on':'Radar: off'}</button>${radar&&RF.length?`<button data-da='rpl'>${rplay?'⏸ Pause':'▶ Play'}</button><span id='rtm' class='note' style='margin:0'>${rlabel()}</span>`:''}`;
+ const a=[],zc=`<button data-da='zo'>Zoom out</button><button data-da='zi'>Zoom in</button><button data-da='pan'>${pan?'Pan: on':'Pan: off'}</button><button data-da='snp'>${snap?'Snap: on':'Snap: off'}</button><button data-da='rad'>${radar?'Radar: on':'Radar: off'}</button>${radar?`<button data-da='sat'>${sat?'Ocean rain: on':'Ocean rain: off'}</button>`:''}${radar&&RF.length?`<button data-da='rpl'>${rplay?'⏸ Pause':'▶ Play'}</button><span id='rtm' class='note' style='margin:0'>${rlabel()}</span>`:''}`;
  if(tool&&tool.k)a.push(`<button data-da='bcy'>${bycty?'By county: on':'By county: off'}</button>`);
  if(tool&&tool.k)a.push(`<button data-da='free'>${free?'Freehand: on':'Freehand: off'}</button>`);
  if(S&&S.kind==='area'&&!tool)a.push(`<button data-da='rm'>${rm?'Done removing':'Remove corner'}</button>`);
@@ -316,7 +317,7 @@ function setupDesign(){
   const t=e.target.closest('[data-dt]'),a=e.target.closest('[data-da]'),was=clr;
   if(t){draft=[];clr=false;pop=null;const v=t.dataset.dt;tool=v==='s'?null:v==='c'?{cty:1}:v[0]==='a'?{k:v.slice(2)}:{ic:v.slice(2)};render();return}
   if(a){const v=a.dataset.da;clr=false;
-   if(v==='full'){full=!full;pop=null;fsPrep(full);setAR(full?innerHeight/innerWidth:.625)}else if(v==='cal')calert();else if(v==='bcy')bycty=!bycty;else if(v==='ccl')selC={};else if(v==='snp')snap=!snap;else if(v==='rad'){radar=!radar;if(radar)getRadar().then(()=>{if(MT())render()});else stopRadar()}else if(v==='rpl'){if(rplay)stopRadar();else if(RF.length)rplay=setInterval(()=>{if(!RF.length||!MT()||!radar){stopRadar();return}ri=ri+1>=RF.length||ri<rlo()?rlo():ri+1;showRF()},700)}else if(v==='go')gotoLoc();else if(v==='zi'||v==='zo')zoom(v==='zi'?.5:2);else if(v==='pan'){pan=!pan;draft=[]}else if(v==='fin'&&draft.length>=3)finish();else if(v==='free'){free=!free;draft=[]}else if(v==='rm')rm=!rm;else if(v==='undo')draft.pop();else if(v==='cancel')draft=[];
+   if(v==='full'){full=!full;pop=null;fsPrep(full);setAR(full?innerHeight/innerWidth:.625)}else if(v==='cal')calert();else if(v==='bcy')bycty=!bycty;else if(v==='ccl')selC={};else if(v==='snp')snap=!snap;else if(v==='sat')sat=!sat;else if(v==='rad'){radar=!radar;if(radar)getRadar().then(()=>{if(MT())render()});else stopRadar()}else if(v==='rpl'){if(rplay)stopRadar();else if(RF.length)rplay=setInterval(()=>{if(!RF.length||!MT()||!radar){stopRadar();return}ri=ri+1>=RF.length||ri<rlo()?rlo():ri+1;showRF()},700)}else if(v==='go')gotoLoc();else if(v==='zi'||v==='zo')zoom(v==='zi'?.5:2);else if(v==='pan'){pan=!pan;draft=[]}else if(v==='fin'&&draft.length>=3)finish();else if(v==='free'){free=!free;draft=[]}else if(v==='rm')rm=!rm;else if(v==='undo')draft.pop();else if(v==='cancel')draft=[];
    else if(v==='del'){D=D.filter(x=>x.id!==dsel);dsel=null;save()}
    else if(v==='clr'){if(was){D=[];dsel=null;save()}else clr=true}
    render();return}
@@ -392,8 +393,11 @@ function radarL(){if(!radar)return'';if(!RF.length)return `<text class='lbl' sty
  const tx=(lo,z)=>Math.floor((lo+180)/360*2**z),ty=(la,z)=>{const r=la*Math.PI/180;return Math.floor((1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*2**z)},tl=(x,z)=>x/2**z*360-180,tt=(y,z)=>Math.atan(Math.sinh(Math.PI*(1-2*y/2**z)))*180/Math.PI;
  let z=Math.max(4,Math.min(RZ,Math.round(Math.log2(200/vb.w))+5)),x0,x1,y0,y1;
  for(;;){x0=tx(lo0,z);x1=tx(lo1,z);y0=ty(la1,z);y1=ty(la0,z);if((x1-x0+1)*(y1-y0+1)<=30||z<=4)break;z--}
- const T=[];for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++){const p0=pr(tl(x,z),tt(y,z)),p1=pr(tl(x+1,z),tt(y,z)),p2=pr(tl(x,z),tt(y+1,z));T.push({x,y,m:[p1[0]-p0[0],p1[1]-p0[1],p2[0]-p0[0],p2[1]-p0[1],p0[0],p0[1]].map(v=>v.toFixed(3)).join(' ')})}
- return `<g style='pointer-events:none;opacity:${RSRC==='lwx'?.85:.7}'>`+RF.map((f,i)=>`<g data-rf='${i}' style='display:${i===ri?'inline':'none'}'>`+T.map(t=>`<image href='${rurl(f,z,t.x,t.y)}' onerror='radarBad()' width='1.004' height='1.004' preserveAspectRatio='none' transform='matrix(${t.m})'/>`).join('')+'</g>').join('')+'</g>'}
+ const tiles=zz=>{const L=[],a0=tx(lo0,zz),a1=tx(lo1,zz),b0=ty(la1,zz),b1=ty(la0,zz);for(let x=a0;x<=a1;x++)for(let y=b0;y<=b1;y++){const p0=pr(tl(x,zz),tt(y,zz)),p1=pr(tl(x+1,zz),tt(y,zz)),p2=pr(tl(x,zz),tt(y+1,zz));L.push({x,y,m:[p1[0]-p0[0],p1[1]-p0[1],p2[0]-p0[0],p2[1]-p0[1],p0[0],p0[1]].map(v=>v.toFixed(3)).join(' ')})}return L},T=tiles(z);
+ // NASA satellite rain (IMERG) fills in the ocean, where radar can't reach.
+ // It is about 6 to 7 hours old, so it is hidden over the US, where radar is live.
+ let S='';if(sat&&US){const zs=Math.min(6,z),st=satTime();S=`<defs><mask id='ocm' maskUnits='userSpaceOnUse' x='-100' y='-100' width='400' height='325'><rect x='-100' y='-100' width='400' height='325' fill='#fff'/><g transform='scale(.205128)'><path d='${US.nation}' fill='#000'/></g></mask></defs><g mask='url(#ocm)' style='pointer-events:none;opacity:.75'>`+tiles(zs).map(t=>`<image href='https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/IMERG_Precipitation_Rate_30min/default/${st}/GoogleMapsCompatible_Level6/${zs}/${t.y}/${t.x}.png' width='1.004' height='1.004' preserveAspectRatio='none' transform='matrix(${t.m})'/>`).join('')+'</g>'}
+ return S+`<g style='pointer-events:none;opacity:${RSRC==='lwx'?.85:.7}'>`+RF.map((f,i)=>`<g data-rf='${i}' style='display:${i===ri?'inline':'none'}'>`+T.map(t=>`<image href='${rurl(f,z,t.x,t.y)}' onerror='radarBad()' width='1.004' height='1.004' preserveAspectRatio='none' transform='matrix(${t.m})'/>`).join('')+'</g>').join('')+'</g>'}
 function lp(){if(!loc)return msg?`<p class='note' style='margin:0 0 8px'>${msg}</p>`:'';const c=CTY.length?cAt([loc.x,loc.y]):null,hit=D.filter(x=>x.kind==='area'&&(dist({x:loc.x,y:loc.y},x.pts)===0||(c&&cof(x).includes(c.n)&&sof(x).includes(c.s)))),on=hit.filter(x=>!exd(x));return `<div class='lp'><b>${loc.n}</b>${c?' · '+c.n+' County':''}<br>${on.length?on.map(x=>`<span class='tag' style='--c:${TYPES[x.k].c}'>${TYPES[x.k].n.split(' ').pop().toUpperCase()}</span>${TYPES[x.k].n}${tl(x)}${cl(x)?' · '+cl(x):''}`).join('<br>'):'No active alerts here.'}${hit.length>on.length?'<br><small>Expired alerts are not counted.</small>':''}</div>`}
 function srch(){return `${lp()}`}
 async function gotoLoc(){const q=($('#q')||{value:''}).value.trim().toLowerCase(),m=q.match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/);let p=null;
@@ -507,7 +511,8 @@ function focusAlert(id){const x=D.find(q=>String(q.id)===String(id)&&q.kind==='a
  const w=Math.max(8,Math.min(200,Math.max(x1-x0,(y1-y0)/AR)*1.8));vb.w=w;vb.x=Math.max(0,Math.min(200-w,cx-w/2));vb.y=clY(cy-w*AR/2,w);
  pop={x:cx,y:cy,ids:[x.id],cn:c?c.n+' County':(cl(x)||'this area'),more:false,open:null};render();
  const m=$('#dmap');if(m)m.scrollIntoView({block:'center'})}
-let RSRC='',lwxBad=0;const LWX='https://api.librewxr.net';
+let RSRC='',lwxBad=0,sat=true;const satTime=()=>new Date(Math.floor((Date.now()-7*36e5)/18e5)*18e5).toISOString().slice(0,19)+'Z';
+const LWX='https://api.librewxr.net';
 async function getRadar(){if(RF.length&&Date.now()-rtime<3e5)return;
  if(lwxBad<3){try{const j=await (await fetch(LWX+'/public/weather-maps.json',{cache:'no-store'})).json(),past=(j.radar&&j.radar.past)||[],nc=(j.radar&&j.radar.nowcast)||[];if(!past.length)throw 0;
   RSRC='lwx';RH=/^https:\/\//.test(j.host||'')?j.host:LWX;RF=past.concat(nc);rnow=past.length;ri=past.length-1;rtime=Date.now();rerr=false;return}catch(e){}}
@@ -519,8 +524,8 @@ function legendH(){const g=c=>`<span class='lg' style='background:linear-gradien
  F=(x,y,r)=>`<g stroke='#fff' stroke-width='1.6' stroke-linecap='round'><path d='M${x} ${y-r}V${y+r}M${x-r*.87} ${y-r/2}L${x+r*.87} ${y+r/2}M${x-r*.87} ${y+r/2}L${x+r*.87} ${y-r/2}'/></g>`,
  ic=b=>`<svg width='22' height='16' viewBox='0 0 22 16' aria-hidden='true'>${b}</svg>`,
  rain=ic(D1(6,9,3.2)+D1(15,8,4)),snow=ic(F(11,8,6)),mix=ic(D1(5,9,3)+F(15,8,5)),hail=ic(`<g stroke='#fff' stroke-width='1.8' stroke-linecap='round'><path d='M4 13L8 3M8.5 13L12.5 3'/></g>`+D1(17,9,3.4));
- return RSRC==='lwx'?`<div class='lgd' role='img' aria-label='Radar key: rain green to white, snow light to dark blue, rain and snow mix pink, hail purple'><div>${rain}${g('#7fe07f 0%,#2f9a3a 22%,#0f4a12 38%,#f3d23c 48%,#e0702a 58%,#c0281e 70%,#8b1a1a 82%,#ffffff 92%')}</div><div>${snow}${g('#a9f2ff 0%,#7fd6e6 25%,#3c8e9e 50%,#1e4f5e 72%,#16303f 100%')}</div><div>${mix}${g('#f4b3d2 0%,#e07bb0 35%,#b94080 70%,#8c1a55 100%')}</div><div>${hail}${g('#c9b6f2 0%,#9b7fe0 40%,#6c4cc4 75%,#4b2f96 100%')}</div></div>`
- :`<div class='lgd one' role='img' aria-label='Radar key: rain or snow from light to heavy'><div>${rain}${g('#4ad7e8,#2f8ef0,#1fc23a,#0c7d1a,#f5e132,#f28f1c,#e3241b,#b5125f,#f0f0f0')}</div></div>`}
+ return RSRC==='lwx'?`<div class='lgd' role='img' aria-label='Radar key: rain green to white, snow light to dark blue, rain and snow mix pink, hail purple'><div>${rain}${g('#7fe07f 0%,#2f9a3a 22%,#0f4a12 38%,#f3d23c 48%,#e0702a 58%,#c0281e 70%,#8b1a1a 82%,#ffffff 92%')}</div><div>${snow}${g('#a9f2ff 0%,#7fd6e6 25%,#3c8e9e 50%,#1e4f5e 72%,#16303f 100%')}</div><div>${mix}${g('#f4b3d2 0%,#e07bb0 35%,#b94080 70%,#8c1a55 100%')}</div><div>${hail}${g('#c9b6f2 0%,#9b7fe0 40%,#6c4cc4 75%,#4b2f96 100%')}</div>${sat?`<small class='lgn'>Ocean rain: NASA satellite estimate, about 7 hours old</small>`:''}</div>`
+ :`<div class='lgd one' role='img' aria-label='Radar key: rain or snow from light to heavy'><div>${rain}${g('#4ad7e8,#2f8ef0,#1fc23a,#0c7d1a,#f5e132,#f28f1c,#e3241b,#b5125f,#f0f0f0')}</div>${sat?`<small class='lgn'>Ocean rain: NASA satellite estimate, about 7 hours old</small>`:''}</div>`}
 const rlo=()=>tab==='map'?Math.max(0,rnow-1):0;
 const t12=s=>{const d=new Date(s*1000),h=d.getHours(),m=d.getMinutes();return (h%12||12)+':'+String(m).padStart(2,'0')+(h<12?'a':'p')};
 function bottomH(){const lo=rlo(),hasF=RF.length-1>lo;if(RF.length&&ri<lo)ri=lo;const nowT=`<span id='rnowt'>${t12(Date.now()/1000)}</span>`;
