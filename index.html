@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#141c2a">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261114101050">
+<meta name="wgo-version" content="20261114104445">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -128,6 +128,10 @@ nav{overflow-x:auto}nav button{flex:1 0 auto;padding:0 12px}
 .act .tms input{width:100%;color:var(--ink)}
 #fav{font-size:22px;line-height:1}
 #favs{margin:-4px 0 10px}
+.lgd{position:absolute;top:8px;left:8px;z-index:3;background:rgba(20,28,42,.88);color:#fff;border-radius:10px;padding:6px 10px;display:flex;flex-direction:column;gap:4px;pointer-events:none;width:min(200px,calc(100% - 76px))}
+.mw.fs .lgd{top:calc(8px + env(safe-area-inset-top,0px));left:calc(8px + env(safe-area-inset-left,0px))}
+.lgd div{display:flex;align-items:center;gap:6px}.lgd b{font-size:14px;width:18px;text-align:center}
+.lgd .lg{flex:1;height:9px;border-radius:5px}.lgd small{font-size:11px;color:#c9d6ea;text-align:right}
 .lp{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;margin:0 0 8px;font-size:15px}
 @media (prefers-reduced-motion:no-preference){.alert[open] .body{animation:o .15s ease-out}@keyframes o{from{opacity:0}to{opacity:1}}}
 </style>
@@ -152,7 +156,7 @@ nav{overflow-x:auto}nav button{flex:1 0 auto;padding:0 12px}
     <button role="tab" aria-selected="false" data-t="settings">My alerts</button>
   </nav>
   <div id="view"></div>
-  <p class="note">Alerts are the ones you draw, not official warnings. Radar: NWS NEXRAD via Iowa Environmental Mesonet. Forecast by Open-Meteo.</p>
+  <p class="note">Alerts are the ones you draw, not official warnings. Radar by LibreWXR (CC BY 4.0), with NWS NEXRAD via Iowa Environmental Mesonet as a backup. Forecast by Open-Meteo.</p>
 </main>
 <script>
 const TYPES={
@@ -271,7 +275,7 @@ function design(){
  if(tool&&tool.k&&Object.keys(selC).length)a.push(`<button class='pri' data-da='cal'>Alert selected counties</button>`);
  if(Object.keys(selC).length)a.push(`<button data-da='ccl'>Clear counties</button>`);
  if(D.length&&!draft.length)a.push(`<button data-da='clr'>${clr?'Tap again to clear all':'Clear all'}</button>`);
- return `<div id='dz'>${srch()}<div class='chips wrap'>${pal}</div><div class='chips wrap'>${ics}</div><p class='note' style='margin:0 0 8px'>${hint}</p><div class='act' style='margin:0 0 8px'>${zc}</div><div class='mw${full?' fs':''}'>${s}${popH()}<div class='mbs'><button class='mb' data-da='full' aria-label='${full?'Exit full screen':'Make the map full screen'}'>${full?"<svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M9 3v6H3M21 9h-6V3M15 21v-6h6M3 15h6v6'/></svg>":"<svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M3 9V3h6M15 3h6v6M21 15v6h-6M9 21H3v-6'/></svg>"}</button>${full?`<button class='mb' data-da='zi' aria-label='Zoom in'>+</button><button class='mb' data-da='zo' aria-label='Zoom out'>−</button><button class='mb' data-da='pan' aria-pressed='${pan}' aria-label='Drag to move the map'><svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M12 2v20M2 12h20M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3'/></svg></button>${radar&&RF.length?`<button class='mb' data-da='rpl' aria-label='${rplay?'Pause radar':'Play radar'}'>${rplay?'⏸':'▶'}</button>`:''}`:''}</div></div>${S&&S.kind==='area'?`<div class='lp'><b>${TYPES[S.k].n}</b>${tl(S)}<br>Counties: ${cof(S).join(', ')||'none found'}<br>States: ${sof(S).join(', ')||'none found'}</div>`:''}<div class='act'>${a.join('')}</div></div>`}
+ return `<div id='dz'>${srch()}<div class='chips wrap'>${pal}</div><div class='chips wrap'>${ics}</div><p class='note' style='margin:0 0 8px'>${hint}</p><div class='act' style='margin:0 0 8px'>${zc}</div><div class='mw${full?' fs':''}'>${s}${popH()}${radar&&RF.length?legendH():''}<div class='mbs'><button class='mb' data-da='full' aria-label='${full?'Exit full screen':'Make the map full screen'}'>${full?"<svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M9 3v6H3M21 9h-6V3M15 21v-6h6M3 15h6v6'/></svg>":"<svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M3 9V3h6M15 3h6v6M21 15v6h-6M9 21H3v-6'/></svg>"}</button>${full?`<button class='mb' data-da='zi' aria-label='Zoom in'>+</button><button class='mb' data-da='zo' aria-label='Zoom out'>−</button><button class='mb' data-da='pan' aria-pressed='${pan}' aria-label='Drag to move the map'><svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M12 2v20M2 12h20M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3'/></svg></button>${radar&&RF.length?`<button class='mb' data-da='rpl' aria-label='${rplay?'Pause radar':'Play radar'}'>${rplay?'⏸':'▶'}</button>`:''}`:''}</div></div>${S&&S.kind==='area'?`<div class='lp'><b>${TYPES[S.k].n}</b>${tl(S)}<br>Counties: ${cof(S).join(', ')||'none found'}<br>States: ${sof(S).join(', ')||'none found'}</div>`:''}<div class='act'>${a.join('')}</div></div>`}
 function setupDesign(){
  if(full){const r0=$('#dmap').getBoundingClientRect(),a=r0.height/r0.width;if(r0.width&&Math.abs(a-AR)>.004){setAR(a);render();return}}
  const dz=$('#dz'),svg=$('#dmap'),pt=e=>{const r=svg.getBoundingClientRect();return[Math.max(0,Math.min(200,vb.x+(e.clientX-r.left)/r.width*vb.w)),Math.max(0,Math.min(125,vb.y+(e.clientY-r.top)/r.height*vb.w*AR))]};
@@ -357,7 +361,7 @@ function radarL(){if(!radar)return'';if(!RF.length)return `<text class='lbl' sty
  let z=Math.max(4,Math.min(RZ,Math.round(Math.log2(200/vb.w))+5)),x0,x1,y0,y1;
  for(;;){x0=tx(lo0,z);x1=tx(lo1,z);y0=ty(la1,z);y1=ty(la0,z);if((x1-x0+1)*(y1-y0+1)<=30||z<=4)break;z--}
  const T=[];for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++){const p0=pr(tl(x,z),tt(y,z)),p1=pr(tl(x+1,z),tt(y,z)),p2=pr(tl(x,z),tt(y+1,z));T.push({x,y,m:[p1[0]-p0[0],p1[1]-p0[1],p2[0]-p0[0],p2[1]-p0[1],p0[0],p0[1]].map(v=>v.toFixed(3)).join(' ')})}
- return `<g style='pointer-events:none;opacity:.7'>`+RF.map((f,i)=>`<g data-rf='${i}' style='display:${i===ri?'inline':'none'}'>`+T.map(t=>`<image href='https://mesonet.agron.iastate.edu/c/tile.py/1.0.0/ridge::USCOMP-N0Q-${f.s}/${z}/${t.x}/${t.y}.png' width='1.004' height='1.004' preserveAspectRatio='none' transform='matrix(${t.m})'/>`).join('')+'</g>').join('')+'</g>'}
+ return `<g style='pointer-events:none;opacity:${RSRC==='lwx'?.85:.7}'>`+RF.map((f,i)=>`<g data-rf='${i}' style='display:${i===ri?'inline':'none'}'>`+T.map(t=>`<image href='${rurl(f,z,t.x,t.y)}' onerror='radarBad()' width='1.004' height='1.004' preserveAspectRatio='none' transform='matrix(${t.m})'/>`).join('')+'</g>').join('')+'</g>'}
 function lp(){if(!loc)return msg?`<p class='note' style='margin:0 0 8px'>${msg}</p>`:'';const c=CTY.length?cAt([loc.x,loc.y]):null,hit=D.filter(x=>x.kind==='area'&&(dist({x:loc.x,y:loc.y},x.pts)===0||(c&&cof(x).includes(c.n)&&sof(x).includes(c.s)))),on=hit.filter(x=>!exd(x));return `<div class='lp'><b>${loc.n}</b>${c?' · '+c.n+' County':''}<br>${on.length?on.map(x=>`<span class='tag' style='--c:${TYPES[x.k].c}'>${TYPES[x.k].n.split(' ').pop().toUpperCase()}</span>${TYPES[x.k].n}${tl(x)}${cl(x)?' · '+cl(x):''}`).join('<br>'):'No active alerts here.'}${hit.length>on.length?'<br><small>Expired alerts are not counted.</small>':''}</div>`}
 function srch(){return `${lp()}`}
 async function gotoLoc(){const q=($('#q')||{value:''}).value.trim().toLowerCase(),m=q.match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/);let p=null;
@@ -389,7 +393,7 @@ function popH(){if(!pop)return'';const L=pop.ids.map(id=>D.find(x=>x.id===id)).f
  const row=(x,i)=>{const T=TYPES[x.k],when=(x.t0?ft(x.t0)+' – ':'UNTIL ')+(x.exp?ft(x.exp):'NO END TIME');return `<button class='ar' data-pp='${i}' style='--c:${T.c}'><span class='ic'>!</span><span style='flex:1;min-width:0'><b>${T.n}</b><small>${when}</small></span>${i===0&&L.length>1&&!pop.more?`<span class='mo' data-pp='mo'>+${L.length-1} more</span>`:''}<span aria-hidden='true' style='color:#999;font-size:20px'>›</span></button>${pop.open===i?`<ul>${T.tip.map(t=>`<li>${t}</li>`).join('')}</ul>${ctyH(x.id,1)}`:''}`};
  return `<div class='pip' style='left:${X}%;top:calc(${Y}% ${below?'+':'-'} 12px)'></div><div class='pop' role='dialog' aria-label='Alerts here' style='left:clamp(6px,calc(${X}% - 165px),calc(100% - min(330px,calc(100% - 12px)) - 6px));${below?`top:calc(${Y}% + 12px)`:`bottom:calc(${100-Y}% + 12px)`}'><button class='x' data-pp='x' aria-label='Close'>×</button><div class='t'>Threat indicated in ${pop.cn}</div><h3>Severe Risk: ${LV[top.s]}</h3>${show.map(row).join('')}${pop.more&&L.length>1?`<button class='ar' data-pp='mo' style='justify-content:center;min-height:40px'>Show less</button>`:''}</div>`}
 const RZ=9;let RF=[],RH='',ri=0,rplay=null,rtime=0,rerr=false,rnow=0;
-async function getRadar(){if(RF.length&&Date.now()-rtime<3e5)return;const st=5*6e4,b=Math.floor((Date.now()-10*6e4)/st)*st,p=n=>String(n).padStart(2,'0');RF=[];for(let i=12;i>=0;i-=2){const d=new Date(b-i*st);RF.push({time:d.getTime()/1000,s:''+d.getUTCFullYear()+p(d.getUTCMonth()+1)+p(d.getUTCDate())+p(d.getUTCHours())+p(d.getUTCMinutes())})}rnow=RF.length;ri=RF.length-1;rtime=Date.now();rerr=false}
+function getRadarIEM(){RSRC='iem';const st=5*6e4,b=Math.floor((Date.now()-10*6e4)/st)*st,p=n=>String(n).padStart(2,'0');RF=[];for(let i=12;i>=0;i-=2){const d=new Date(b-i*st);RF.push({time:d.getTime()/1000,s:''+d.getUTCFullYear()+p(d.getUTCMonth()+1)+p(d.getUTCDate())+p(d.getUTCHours())+p(d.getUTCMinutes())})}rnow=RF.length;ri=RF.length-1;rtime=Date.now();rerr=false}
 function stopRadar(){if(rplay)clearInterval(rplay);rplay=null}
 function rlabel(){const f=RF[ri];if(!f)return'';const t=new Date(f.time*1000).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});return t+(ri>=rnow?' (forecast)':ri===rnow-1?' (latest)':'')}
 function showRF(){document.querySelectorAll('[data-rf]').forEach(g=>g.style.display=+g.dataset.rf===ri?'inline':'none');const t=$('#rtm');if(t)t.textContent=rlabel()}
@@ -469,6 +473,16 @@ function focusAlert(id){const x=D.find(q=>String(q.id)===String(id)&&q.kind==='a
  const w=Math.max(8,Math.min(200,Math.max(x1-x0,(y1-y0)/AR)*1.8));vb.w=w;vb.x=Math.max(0,Math.min(200-w,cx-w/2));vb.y=clY(cy-w*AR/2,w);
  pop={x:cx,y:cy,ids:[x.id],cn:c?c.n+' County':(cl(x)||'this area'),more:false,open:null};render();
  const m=$('#dmap');if(m)m.scrollIntoView({block:'center'})}
+let RSRC='',lwxBad=0;const LWX='https://api.librewxr.net';
+async function getRadar(){if(RF.length&&Date.now()-rtime<3e5)return;
+ if(lwxBad<3){try{const j=await (await fetch(LWX+'/public/weather-maps.json',{cache:'no-store'})).json(),past=(j.radar&&j.radar.past)||[],nc=(j.radar&&j.radar.nowcast)||[];if(!past.length)throw 0;
+  RSRC='lwx';RH=/^https:\/\//.test(j.host||'')?j.host:LWX;RF=past.concat(nc);rnow=past.length;ri=past.length-1;rtime=Date.now();rerr=false;return}catch(e){}}
+ getRadarIEM()}
+function rurl(f,z,x,y){return RSRC==='lwx'?`${RH}${f.path}/256/${z}/${x}/${y}/4/1_1.png`:`https://mesonet.agron.iastate.edu/c/tile.py/1.0.0/ridge::USCOMP-N0Q-${f.s}/${z}/${x}/${y}.png`}
+function radarBad(){if(RSRC!=='lwx'||++lwxBad<3)return;stopRadar();RF=[];rtime=0;getRadarIEM();if(tab==='design')render()}
+function legendH(){const g=(c)=>`<span class='lg' style='background:linear-gradient(90deg,${c})'></span>`;
+ return RSRC==='lwx'?`<div class='lgd' aria-label='Radar key: rain from light green to red, snow from light to dark blue'><div><b aria-hidden='true'>💧</b>${g('#9be564,#2e9d34,#0e5f22,#f2e23a,#f29d25,#d7301f,#9e1a5e')}</div><div><b aria-hidden='true'>❄️</b>${g('#d6f1ff,#8fd3f2,#4aa3e0,#2457b8,#1a2f6e')}</div><small>Light → Heavy</small></div>`
+ :`<div class='lgd' aria-label='Radar key: rain or snow from light to heavy'><div><b aria-hidden='true'>💧</b>${g('#4ad7e8,#2f8ef0,#1fc23a,#0c7d1a,#f5e132,#f28f1c,#e3241b,#b5125f,#f0f0f0')}</div><small>Rain or snow · Light → Heavy</small></div>`}
 function settings(){
  return `<h2>Alert types you follow</h2>`+Object.keys(TYPES).sort((a,b)=>TYPES[b].s-TYPES[a].s).map(k=>`<button class="sw" role="switch" aria-checked="${follow[k]}" style="--c:${TYPES[k].c}" data-s="${k}"><span>${TYPES[k].n}</span><i>${follow[k]?"On":"Off"}</i></button>`).join("")+`<p class="note">Warnings mean the hazard is happening or about to. Watches mean conditions allow it. Advisories mean an inconvenience or hazard is likely.</p>`+pushH();
 }
