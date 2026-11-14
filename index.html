@@ -263,7 +263,13 @@ function setupDesign(){
   if(fd){fd=false;lastUp=Date.now();if(draft.length>=3)finish();else draft=[];render();return}
   if(drag&&drag.vi!==undefined){const d=drag;drag=null;lastUp=Date.now();lastMv=true;pop=null;if(rm&&!d.m&&d.S.pts.length>3)d.S.pts.splice(d.vi,1);save();render();return}
   if(drag&&!drag.m&&drag.vi===undefined)openPop(e,svg);ou(e)};
- svg.onpointercancel=()=>{drag=null;panD=null;fd=false;draft=[];render()}}
+ svg.onpointercancel=()=>{if(pin)return;drag=null;panD=null;fd=false;draft=[];render()};
+ let pin=null;const tm=t=>({x:(t[0].clientX+t[1].clientX)/2,y:(t[0].clientY+t[1].clientY)/2,d:Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY)});
+ ['pointerdown','pointermove','pointerup'].forEach(t=>svg.addEventListener(t,e=>{if(pin)e.stopImmediatePropagation()},true));
+ svg.addEventListener('gesturestart',e=>e.preventDefault());
+ svg.addEventListener('touchstart',e=>{if(e.touches.length!==2)return;e.preventDefault();const m=tm(e.touches),r=svg.getBoundingClientRect();pin={d:m.d,w:vb.w,ax:vb.x+(m.x-r.left)/r.width*vb.w,ay:vb.y+(m.y-r.top)/r.height*vb.w*.625};if(drag&&drag.el)drag.el.removeAttribute('transform');drag=null;panD=null;if(fd){fd=false;draft=[];if(fh)fh.remove()}},{passive:false});
+ svg.addEventListener('touchmove',e=>{if(!pin||e.touches.length<2)return;e.preventDefault();const m=tm(e.touches),r=svg.getBoundingClientRect(),nw=Math.max(8,Math.min(200,pin.w*pin.d/Math.max(1,m.d))),fx=(m.x-r.left)/r.width,fy=(m.y-r.top)/r.height;vb.w=nw;vb.x=Math.max(0,Math.min(200-nw,pin.ax-fx*nw));vb.y=Math.max(0,Math.min(125-nw*.625,pin.ay-fy*nw*.625));svg.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.w*.625)},{passive:false});
+ svg.addEventListener('touchend',e=>{if(pin&&e.touches.length<2){pin=null;lastUp=Date.now();lastMv=true;setTimeout(render,0)}})}
 function zoom(f){const nw=Math.max(8,Math.min(200,vb.w*f)),cx=vb.x+vb.w/2,cy=vb.y+vb.w*.3125;vb.w=nw;vb.x=Math.max(0,Math.min(200-nw,cx-nw/2));vb.y=Math.max(0,Math.min(125-nw*.625,cy-nw*.3125))}
 function base(){
  if(US)return `<rect width='200' height='125' style='fill:var(--bg)'/><g transform='scale(.205128)'><path d='${US.nation}' style='fill:var(--surface)'/><path d='${US.counties}' style='fill:none;stroke:var(--mute);stroke-width:.8px;opacity:.6;vector-effect:non-scaling-stroke'/><path d='${US.states}' style='fill:none;stroke:var(--ink);stroke-width:2px;vector-effect:non-scaling-stroke'/><path d='${US.nation}' style='fill:none;stroke:var(--ink);stroke-width:3.5px;vector-effect:non-scaling-stroke'/></g>`;
