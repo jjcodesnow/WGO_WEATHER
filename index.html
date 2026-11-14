@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261114084530">
+<meta name="wgo-version" content="20261114084744">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -119,6 +119,9 @@ nav{overflow-x:auto}nav button{flex:1 0 auto;padding:0 12px}
 .cty .cs span{display:block;font-size:13px;font-weight:600;color:var(--mute)}
 .cty.dk{border-color:#555;color:#eee;font-size:14px;margin:4px 0 6px;padding-left:4px}
 .cty.dk .cs span{color:#bbb}
+.tms{display:flex;flex-wrap:wrap;gap:8px;width:100%}
+.tms label{display:flex;flex-direction:column;font-size:13px;color:var(--mute);gap:2px;flex:1;min-width:150px}
+.act .tms input{width:100%;color:var(--ink)}
 .lp{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;margin:0 0 8px;font-size:15px}
 @media (prefers-reduced-motion:no-preference){.alert[open] .body{animation:o .15s ease-out}@keyframes o{from{opacity:0}to{opacity:1}}}
 </style>
@@ -183,7 +186,7 @@ let you={x:100,y:100},sel=null;
 const R={fzww:55,fzw:50,sps:40,tw:11,sw:20,fw:24,fww:55,sww:60,tww:65,wsw:45,wwa:50,wsww:60,wi:55};
 function geo(k,i){const ang=i*2.4+k.length,d=i*30+14,cx=100+Math.cos(ang)*d*.9,cy=100+Math.sin(ang)*d*.9,r=R[k],p=[];for(let j=0;j<10;j++){const t=j/10*6.283,rr=r*(.78+.22*Math.sin(j*2.3+i+k.length));p.push([cx+Math.cos(t)*rr*1.3,cy+Math.sin(t)*rr*.8])}return p}
 function dist(p,poly){let ins=false,min=1e9;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const[a,b]=poly[i],[c,d]=poly[j];if((b>p.y)!==(d>p.y)&&p.x<(c-a)*(p.y-b)/(d-b)+a)ins=!ins;const dx=c-a,dy=d-b,t=Math.max(0,Math.min(1,((p.x-a)*dx+(p.y-b)*dy)/(dx*dx+dy*dy||1))),ex=a+t*dx-p.x,ey=b+t*dy-p.y;min=Math.min(min,Math.hypot(ex,ey))}return ins?0:min}
-function active(){const now=Date.now(),c0=loc&&CTY.length?cAt([loc.x,loc.y]):null;return D.filter(x=>x.kind==='area'&&follow[x.k]&&!(x.exp&&x.exp<now)&&(!loc||dist({x:loc.x,y:loc.y},x.pts)===0||(c0&&cof(x).includes(c0.n)&&sof(x).includes(c0.s)))).map(x=>({k:x.k,area:cl(x)||'Drawn area',txt:x.cn?'County alert':'Alert area',m:x.exp?Math.max(1,Math.round((x.exp-now)/6e4)):9999,T:TYPES[x.k],poly:x.pts,d:loc?dist({x:loc.x,y:loc.y},x.pts):null,i:x.id})).sort((a,b)=>b.T.s-a.T.s)}
+function active(){const now=Date.now(),c0=loc&&CTY.length?cAt([loc.x,loc.y]):null;return D.filter(x=>x.kind==='area'&&follow[x.k]&&!(x.exp&&x.exp<now)&&(!loc||dist({x:loc.x,y:loc.y},x.pts)===0||(c0&&cof(x).includes(c0.n)&&sof(x).includes(c0.s)))).map(x=>({k:x.k,area:cl(x)||'Drawn area',txt:x.cn?'County alert':'Alert area',m:x.exp?Math.max(1,Math.round((x.exp-now)/6e4)):9999,T:TYPES[x.k],poly:x.pts,d:loc?dist({x:loc.x,y:loc.y},x.pts):null,i:x.id,s0:x.t0,e:x.exp})).sort((a,b)=>b.T.s-a.T.s)}
 function head0(){
  const c=C(),al=active(),top=al[0];
  $("#hero").style.setProperty("--c",top?top.T.c:"var(--accent)");
@@ -197,7 +200,7 @@ function alerts(){
  let h="";
  if(kinds.length>1)h+=`<div class="chips">`+`<button class="chip" style="--c:var(--accent)" aria-pressed="${!filter}" data-f="">All</button>`+kinds.map(k=>`<button class="chip" style="--c:${TYPES[k].c}" aria-pressed="${filter===k}" data-f="${k}">${TYPES[k].n}</button>`).join("")+`</div>`;
  if(!list.length)return h+`<div class="empty">No alerts for this place. Open “My alerts” to change which types you see.</div>`;
- return h+list.map((a,i)=>`<details class="alert" style="--c:${a.T.c}" ${i===0?"open":""}><summary><span class="tag ${a.k==="tww"?"dk":""}">${a.T.n.split(" ").pop().toUpperCase()}</span><h3 style="display:inline">${a.T.n}</h3><div class="sub">${a.area} · ${a.d===null?"no location set":a.d?Math.round(a.d*15)+" mi away":"you’re inside this area"} · expires in ${fmt(a.m)}</div></summary><div class="body"><p style="margin:0">${a.txt}.</p><b>What to do</b><ul>${a.T.tip.map(t=>`<li>${t}</li>`).join("")}</ul>${ctyH(a.i)}</div></details>`).join("");
+ return h+list.map((a,i)=>`<details class="alert" style="--c:${a.T.c}" ${i===0?"open":""}><summary><span class="tag ${a.k==="tww"?"dk":""}">${a.T.n.split(" ").pop().toUpperCase()}</span><h3 style="display:inline">${a.T.n}</h3><div class="sub">${a.area} · ${a.d===null?"no location set":a.d?Math.round(a.d*15)+" mi away":"you’re inside this area"} · ${a.e?(a.s0?ft(a.s0)+' \u2013 ':'until ')+ft(a.e):'no end time'}</div></summary><div class="body"><p style="margin:0">${a.txt}.</p><b>What to do</b><ul>${a.T.tip.map(t=>`<li>${t}</li>`).join("")}</ul>${ctyH(a.i)}</div></details>`).join("");
 }
 function forecast(){return `<div id='fc'><div class='empty'>Loading the forecast…</div></div>`}
 function mlist(){return active().sort((x,y)=>x.d-y.d).map(a=>`<button class="sw" style="--c:${a.T.c};${sel===a.i?"box-shadow:0 0 0 2px "+a.T.c:""}" data-m="${a.i}"><span><b>${a.T.n}</b><br><small>${a.area}${sel===a.i?". "+a.txt:""}</small></span><i>${a.d?Math.round(a.d)+" mi":"Inside"}</i></button>`).join("")||`<div class="empty">No alerts to map. Open “My alerts” to turn types back on.</div>`}
@@ -221,7 +224,7 @@ const nid=()=>Math.floor(Math.random()*1e9),save=()=>{try{localStorage.setItem('
 const WI=['☀️','⛅','☁️','🌧️','⛈️','🌨️','💨','🌫️'];
 const cen=p=>[p.reduce((s,q)=>s+q[0],0)/p.length,p.reduce((s,q)=>s+q[1],0)/p.length];
 const pts=p=>p.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join(' ');
-function finish(){const x={id:nid(),kind:'area',k:tool.k,pts:draft,t0:Date.now(),exp:Date.now()+dur*6e4};D.push(x);draft=[];dsel=x.id;tool=null;save()}
+function finish(){const x={id:nid(),kind:'area',k:tool.k,pts:draft,t0:tS||Date.now(),exp:tE||(tS||Date.now())+dur*6e4};D.push(x);draft=[];dsel=x.id;tool=null;save()}
 function design(){
  const k=vb.w/200,S=D.find(x=>x.id===dsel),tc=tool&&tool.k?TYPES[tool.k].c:'var(--accent)';
  const pal=`<button class='chip' style='--c:var(--accent)' aria-pressed='${!tool}' data-dt='s'>Select and move</button><button class='chip' style='--c:var(--accent)' aria-pressed='${!!tool&&!!tool.cty}' data-dt='c'>Select counties</button>`+Object.keys(TYPES).sort((a,b)=>TYPES[b].s-TYPES[a].s).map(k=>`<button class='chip' style='--c:${TYPES[k].c}' aria-pressed='${!!tool&&tool.k===k}' data-dt='a:${k}'>${TYPES[k].n}</button>`).join('');
@@ -245,7 +248,7 @@ function design(){
  if(draft.length)a.push(`<button data-da='undo'>Undo corner</button><button data-da='cancel'>Cancel</button>`);
  if(S&&!draft.length)a.push(`<button data-da='del'>Delete ${S.kind==='mark'?'icon':'area'}</button>`);
  if((tool&&tool.ic)||(!tool&&S&&S.kind==='mark'))a.push(`<label>Temp <input id='dtemp' type='number' value='${tool?dtemp:S.t}' aria-label='Temperature in degrees'> °</label>`);
- if((tool&&tool.k)||(!tool&&S&&S.kind==='area'))a.push(`<label>Expires in <input id='dexp' type='number' value='${tool?dur:S.exp?Math.max(0,Math.round((S.exp-Date.now())/6e4)):''}' aria-label='Minutes until the alert expires'> min</label>`);
+ if((tool&&tool.k)||(!tool&&S&&S.kind==='area')){const s0=tool?(tS||Date.now()):(S.t0||Date.now()),e0=tool?(tE||s0+dur*6e4):(S.exp||s0+dur*6e4);a.push(`<div class='tms'><label>Starts <input id='dst' type='datetime-local' value='${li(s0)}'></label><label>Ends <input id='den' type='datetime-local' value='${li(e0)}'></label></div>`)}
  if(tool&&tool.k&&Object.keys(selC).length)a.push(`<button class='pri' data-da='cal'>Alert selected counties</button>`);
  if(Object.keys(selC).length)a.push(`<button data-da='ccl'>Clear counties</button>`);
  if(D.length&&!draft.length)a.push(`<button data-da='clr'>${clr?'Tap again to clear all':'Clear all'}</button>`);
@@ -272,7 +275,8 @@ function setupDesign(){
   else{const x={id:nid(),kind:'mark',ic:tool.ic,t:dtemp,x:p[0],y:p[1]};D.push(x);dsel=x.id;save()}
   render()};
  dz.onkeydown=e=>{if(e.key==='Enter'&&e.target.id==='q')gotoLoc()};
- dz.onchange=e=>{if(e.target.id==='dexp'){const v=Math.max(1,Math.round(+e.target.value)),S=D.find(x=>x.id===dsel);if(isNaN(v))return;if(!tool&&S&&S.kind==='area'){S.exp=Date.now()+v*6e4;save();render()}else dur=v;return}if(e.target.id!=='dtemp')return;const v=Math.round(+e.target.value),S=D.find(x=>x.id===dsel);if(isNaN(v))return;if(!tool&&S&&S.kind==='mark'){S.t=v;save();render()}else dtemp=v};
+ dz.onchange=e=>{if(e.target.id==='dst'||e.target.id==='den'){const v=new Date(e.target.value).getTime(),st=e.target.id==='dst';if(isNaN(v))return;const S=D.find(x=>x.id===dsel);if(!tool&&S&&S.kind==='area'){if(st)S.t0=v;else S.exp=v;if(!S.t0)S.t0=Date.now();if(S.exp<=S.t0)S.exp=S.t0+36e5;save()}else{if(st)tS=v;else tE=v;const s0=tS||Date.now();if(tE&&tE<=s0)tE=s0+36e5}render();return}
+  if(e.target.id==='dexp'){const v=Math.max(1,Math.round(+e.target.value)),S=D.find(x=>x.id===dsel);if(isNaN(v))return;if(!tool&&S&&S.kind==='area'){S.exp=Date.now()+v*6e4;save();render()}else dur=v;return}if(e.target.id!=='dtemp')return;const v=Math.round(+e.target.value),S=D.find(x=>x.id===dsel);if(isNaN(v))return;if(!tool&&S&&S.kind==='mark'){S.t=v;save();render()}else dtemp=v};
  svg.onpointerdown=e=>{const el=e.target.closest('[data-id]');if(tool||!el)return;drag={id:+el.dataset.id,el,p:pt(e),dx:0,dy:0,m:false};svg.setPointerCapture(e.pointerId)};
  svg.onpointermove=e=>{if(!drag)return;const p=pt(e);drag.dx=p[0]-drag.p[0];drag.dy=p[1]-drag.p[1];if(Math.hypot(drag.dx,drag.dy)>1.5)drag.m=true;if(drag.m)drag.el.setAttribute('transform',`translate(${drag.dx} ${drag.dy})`)};
  svg.onpointerup=()=>{if(!drag)return;const d=drag,x=D.find(q=>q.id===d.id);drag=null;lastUp=Date.now();lastMv=d.m;if(d.m)pop=null;if(d.m&&x){if(x.kind==='mark'){x.x+=d.dx;x.y+=d.dy}else x.pts=x.pts.map(q=>[q[0]+d.dx,q[1]+d.dy]);save()}dsel=d.id;render()};
@@ -343,13 +347,14 @@ async function gotoLoc(){const q=($('#q')||{value:''}).value.trim().toLowerCase(
  if(!p&&q&&!m){try{const r=await fetch('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(q.split(',')[0].trim())+'&count=5&language=en&format=json&countryCode=US'),j=await r.json(),h=j.results||[],st=(q.split(',')[1]||'').trim(),f=h.find(a=>st&&(a.admin1||'').toLowerCase().startsWith(st))||h[0];if(f){const z=proj(f.latitude,f.longitude);if(z)p={n:f.name+(f.admin1?', '+f.admin1:''),x:z[0],y:z[1],la:f.latitude,lo:f.longitude}}}catch(e){}}
  if(!p){loc=null;msg=PLC.length?'I could not find that place. Pick one from the suggestions, or type latitude, longitude.':'The map is still loading. Try again in a moment.';render();return}
  loc=p;msg='';vb.w=30;vb.x=Math.max(0,Math.min(170,p.x-15));vb.y=clY(p.y-15*AR,30);render()}
-function addC(c){c.g.forEach(pl=>{const r=pl[0],n=Math.ceil(r.length/150);D.push({id:nid(),kind:'area',k:tool.k,pts:r.filter((_,i)=>i%n===0),cn:[c.n],st:[c.s],t0:Date.now(),exp:Date.now()+dur*6e4})})}
+function addC(c){c.g.forEach(pl=>{const r=pl[0],n=Math.ceil(r.length/150);D.push({id:nid(),kind:'area',k:tool.k,pts:r.filter((_,i)=>i%n===0),cn:[c.n],st:[c.s],t0:tS||Date.now(),exp:tE||(tS||Date.now())+dur*6e4})})}
 function cof(x){if(x.cn)return x.cn;if(!CTY.length)return[];const key=x.pts.reduce((s,q)=>s+q[0]*3+q[1],0).toFixed(2);if(cc[x.id]&&cc[x.id].k===key)return cc[x.id].v;const xs=x.pts.map(q=>q[0]),ys=x.pts.map(q=>q[1]),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys),v=[];CTY.forEach(c=>{const b=c.b;if(b[2]<x0||b[0]>x1||b[3]<y0||b[1]>y1)return;if(dist({x:c.cx,y:c.cy},x.pts)===0||c.g.some(pl=>x.pts.some(q=>dist({x:q[0],y:q[1]},pl[0])===0)))v.push(c)});const names=v.map(c=>c.n).sort(),ss=[...new Set(v.map(c=>c.s).filter(Boolean))].sort();cc[x.id]={k:key,v:names,s:ss,p:v.map(c=>[c.n,c.s])};return names}
 const sof=x=>x.st?[...new Set(x.st)]:(cof(x),cc[x.id]?cc[x.id].s:[]),cl=x=>{const n=cof(x);return n.length?n.slice(0,3).join(', ')+(n.length>3?' +'+(n.length-3):'')+(n.length>1?' Cos.':' Co.')+(sof(x).length?' · '+sof(x).join(', '):''):''};
 function head(){const al=active(),top=al[0],c=loc&&CTY.length?cAt([loc.x,loc.y]):null;
  $('#hero').style.setProperty('--c',top?top.T.c:'var(--accent)');
  $('#hero').innerHTML=top?`<div class='lvl'>${al.length} active alert${al.length>1?'s':''}${loc?' for '+loc.n:''}. Most serious:</div><h1>${top.T.n}</h1><div>${top.area}. Expires in ${top.m>9000?'no set time':fmt(top.m)}.</div>`:loc?`<div class='lvl'>${loc.n}${c?' · '+c.n+' County, '+c.s:''}</div><h1>All clear</h1><div>No active alerts for this place.</div>`:`<div class='lvl'>${msg?'Place not found':'No location set'}</div><h1>${msg?'Try another name':'Type your town'}</h1><div>${msg||'Type a city or town above and tap Go to see its alerts.'}</div>`;
  $('#stats').innerHTML=''}
+let tS=null,tE=null;const li=ms=>{const d=new Date(ms);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16)};
 let pop=null,lastMv=false,AR=.625,full=false;
 const clY=(y,w)=>{const h=w*AR;return h>=125?(125-h)/2:Math.max(0,Math.min(125-h,y))};
 function setAR(a){const c=vb.y+vb.w*AR/2;AR=a;vb.y=clY(c-vb.w*AR/2,vb.w)}
