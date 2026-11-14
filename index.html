@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#141c2a">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261114155710">
+<meta name="wgo-version" content="20261114160330">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -134,7 +134,7 @@ nav{overflow-x:auto}nav button{flex:1 0 auto;padding:0 12px}
 .lgd div{display:flex;align-items:center;gap:6px;min-width:0}.lgd b{font-size:15px;font-weight:400;width:16px;text-align:center;line-height:1}
 .lgd .lg{flex:1;height:12px;border-radius:6px;min-width:0}
 .lgd .lgn{grid-column:1/-1;font-size:11px;color:#c9d6ea;margin-top:-1px}
-.mw:has(.lgd) .mbs{top:76px}.mw:has(.lgd.one) .mbs{top:42px}.mw.fs:has(.lgd) .mbs{top:calc(62px + env(safe-area-inset-top,0px))}
+.mw:has(.lgd) .mbs{top:76px}.mw:has(.lgd.one) .mbs{top:58px}.mw.fs:has(.lgd) .mbs{top:calc(62px + env(safe-area-inset-top,0px))}
 .mbot{border-top:1px solid var(--line)}
 .rbar{display:flex;align-items:center;gap:10px;background:#e4e6ea;color:#1f3459;padding:8px 12px;font-size:16px}
 .rbar input{flex:1;min-width:0;accent-color:#1f3459;height:28px}
@@ -292,7 +292,7 @@ function design(){
  if(S&&S.kind==='area'&&!tool){const c=TYPES[S.k].c;S.pts.forEach((q,i)=>{const n=S.pts[(i+1)%S.pts.length],mx=(q[0]+n[0])/2,my=(q[1]+n[1])/2;s+=`<g data-e='${i}'><circle cx='${mx}' cy='${my}' r='${7*k}' style='fill:transparent'/><circle cx='${mx}' cy='${my}' r='${1*k}' style='fill:${c};opacity:.55;pointer-events:none'/></g>`});S.pts.forEach((q,i)=>{s+=`<g data-v='${i}'><circle cx='${q[0]}' cy='${q[1]}' r='${7*k}' style='fill:transparent'/><circle cx='${q[0]}' cy='${q[1]}' r='${1.6*k}' style='fill:${rm?'#d62828':'#fff'};stroke:${c};stroke-width:${.6*k}px;pointer-events:none'/></g>`})}
  if(draft.length)s+=`<g style='pointer-events:none'><polyline points='${pts(draft)}' style='fill:none;stroke:${tc};stroke-width:1.5px;stroke-dasharray:3 2'/>`+draft.map((q,i)=>`<circle cx='${q[0]}' cy='${q[1]}' r='${(i?2.2:3.5)*k}' style='fill:${tc};stroke:#fff;stroke-width:1px'/>`).join('')+`</g>`;
  s+='</svg>';
- const a=[],zc=`<button data-da='zo'>Zoom out</button><button data-da='zi'>Zoom in</button><button data-da='pan'>${pan?'Pan: on':'Pan: off'}</button><button data-da='snp'>${snap?'Snap: on':'Snap: off'}</button><button data-da='rad'>${radar?'Radar: on':'Radar: off'}</button>${radar?`<button data-da='sat'>${oceanMode()==='rain'?'Ocean rain: on':'Ocean rain: off'}</button>`:''}${radar&&RF.length?`<button data-da='rpl'>${rplay?'⏸ Pause':'▶ Play'}</button><span id='rtm' class='note' style='margin:0'>${rlabel()}</span>`:''}`;
+ const a=[],zc=`<button data-da='zo'>Zoom out</button><button data-da='zi'>Zoom in</button><button data-da='pan'>${pan?'Pan: on':'Pan: off'}</button><button data-da='snp'>${snap?'Snap: on':'Snap: off'}</button><button data-da='rad'>${radar?'Radar: on':'Radar: off'}</button>${radar?`<button data-da='sat'>${oceanMode()==='rain'?'Ocean rain: on':'Ocean rain: off'}</button><button data-da='myr'>${myr?'My rain: on':'My rain: off'}</button>`:''}${radar&&RF.length?`<button data-da='rpl'>${rplay?'⏸ Pause':'▶ Play'}</button><span id='rtm' class='note' style='margin:0'>${rlabel()}</span>`:''}`;
  if(tool&&tool.k)a.push(`<button data-da='bcy'>${bycty?'By county: on':'By county: off'}</button>`);
  if(tool&&tool.k)a.push(`<button data-da='free'>${free?'Freehand: on':'Freehand: off'}</button>`);
  if(S&&S.kind==='area'&&!tool)a.push(`<button data-da='rm'>${rm?'Done removing':'Remove corner'}</button>`);
@@ -317,7 +317,7 @@ function setupDesign(){
   const t=e.target.closest('[data-dt]'),a=e.target.closest('[data-da]'),was=clr;
   if(t){draft=[];clr=false;pop=null;const v=t.dataset.dt;tool=v==='s'?null:v==='c'?{cty:1}:v[0]==='a'?{k:v.slice(2)}:{ic:v.slice(2)};render();return}
   if(a){const v=a.dataset.da;clr=false;
-   if(v==='full'){full=!full;pop=null;fsPrep(full);setAR(full?innerHeight/innerWidth:.625)}else if(v==='cal')calert();else if(v==='bcy')bycty=!bycty;else if(v==='ccl')selC={};else if(v==='snp')snap=!snap;else if(v==='sat'){ocean=oceanMode()==='rain'?'off':'rain'}else if(v==='rad'){radar=!radar;if(radar)getRadar().then(()=>{if(MT())render()});else stopRadar()}else if(v==='rpl'){if(rplay){stopRadar();userPaused=true}else{userPaused=false;playRadar()}}else if(v==='go')gotoLoc();else if(v==='zi'||v==='zo')zoom(v==='zi'?.5:2);else if(v==='pan'){pan=!pan;draft=[]}else if(v==='fin'&&draft.length>=3)finish();else if(v==='free'){free=!free;draft=[]}else if(v==='rm')rm=!rm;else if(v==='undo')draft.pop();else if(v==='cancel')draft=[];
+   if(v==='full'){full=!full;pop=null;fsPrep(full);setAR(full?innerHeight/innerWidth:.625)}else if(v==='cal')calert();else if(v==='bcy')bycty=!bycty;else if(v==='ccl')selC={};else if(v==='snp')snap=!snap;else if(v==='myr')myr=!myr;else if(v==='sat'){ocean=oceanMode()==='rain'?'off':'rain'}else if(v==='rad'){radar=!radar;if(radar)getRadar().then(()=>{if(MT())render()});else stopRadar()}else if(v==='rpl'){if(rplay){stopRadar();userPaused=true}else{userPaused=false;playRadar()}}else if(v==='go')gotoLoc();else if(v==='zi'||v==='zo')zoom(v==='zi'?.5:2);else if(v==='pan'){pan=!pan;draft=[]}else if(v==='fin'&&draft.length>=3)finish();else if(v==='free'){free=!free;draft=[]}else if(v==='rm')rm=!rm;else if(v==='undo')draft.pop();else if(v==='cancel')draft=[];
    else if(v==='del'){D=D.filter(x=>x.id!==dsel);dsel=null;save()}
    else if(v==='clr'){if(was){D=[];dsel=null;save()}else clr=true}
    render();return}
@@ -400,7 +400,7 @@ function radarL(){if(!radar)return'';if(!RF.length)return `<text class='lbl' sty
   S=`<defs><mask id='ocm' maskUnits='userSpaceOnUse' x='-200' y='-200' width='600' height='500'><rect x='-200' y='-200' width='600' height='500' fill='#fff'/><g transform='scale(.205128)'><path d='${US.nation}' fill='#000'/></g></mask></defs><g mask='url(#ocm)' style='pointer-events:none;opacity:${om==='live'?.6:.75}'>`+
   (om==='live'?SF.map((f,i)=>`<g data-of='${i}' style='display:${i===cur?'inline':'none'}'>`+img(t=>`${RH}${f.path}/256/${zs}/${t.x}/${t.y}/0/0_0.png`)+'</g>').join('')
    :IMT().map((st,i)=>`<g data-of='${i}' style='display:${i===cur?'inline':'none'}'>`+img(t=>`https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/IMERG_Precipitation_Rate_30min/default/${st}/GoogleMapsCompatible_Level6/${zs}/${t.y}/${t.x}.png`)+'</g>').join(''))+'</g>'}
- return S+`<g style='pointer-events:none;opacity:${RSRC==='lwx'?.85:.7}'>`+RF.map((f,i)=>`<g data-rf='${i}' style='display:${i===ri?'inline':'none'}'>`+T.map(t=>`<image href='${rurl(f,z,t.x,t.y)}' onerror='radarBad()' width='1.004' height='1.004' preserveAspectRatio='none' transform='matrix(${t.m})'/>`).join('')+'</g>').join('')+'</g>'}
+ return S+myRainL()+`<g style='pointer-events:none;opacity:${RSRC==='lwx'?.85:.7}'>`+RF.map((f,i)=>`<g data-rf='${i}' style='display:${i===ri?'inline':'none'}'>`+T.map(t=>`<image href='${rurl(f,z,t.x,t.y)}' onerror='radarBad()' width='1.004' height='1.004' preserveAspectRatio='none' transform='matrix(${t.m})'/>`).join('')+'</g>').join('')+'</g>'}
 function lp(){if(!loc)return msg?`<p class='note' style='margin:0 0 8px'>${msg}</p>`:'';const c=CTY.length?cAt([loc.x,loc.y]):null,hit=D.filter(x=>x.kind==='area'&&(dist({x:loc.x,y:loc.y},x.pts)===0||(c&&cof(x).includes(c.n)&&sof(x).includes(c.s)))),on=hit.filter(x=>!exd(x));return `<div class='lp'><b>${loc.n}</b>${c?' · '+c.n+' County':''}<br>${on.length?on.map(x=>`<span class='tag' style='--c:${TYPES[x.k].c}'>${TYPES[x.k].n.split(' ').pop().toUpperCase()}</span>${TYPES[x.k].n}${tl(x)}${cl(x)?' · '+cl(x):''}`).join('<br>'):'No active alerts here.'}${hit.length>on.length?'<br><small>Expired alerts are not counted.</small>':''}</div>`}
 function srch(){return `${lp()}`}
 async function gotoLoc(){const q=($('#q')||{value:''}).value.trim().toLowerCase(),m=q.match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/);let p=null;
@@ -437,7 +437,7 @@ const RZ=9;let RF=[],RH='',ri=0,rplay=null,rtime=0,rerr=false,rnow=0;
 function getRadarIEM(){RSRC='iem';const st=5*6e4,b=Math.floor((Date.now()-10*6e4)/st)*st,p=n=>String(n).padStart(2,'0');RF=[];for(let i=12;i>=0;i-=2){const d=new Date(b-i*st);RF.push({time:d.getTime()/1000,s:''+d.getUTCFullYear()+p(d.getUTCMonth()+1)+p(d.getUTCDate())+p(d.getUTCHours())+p(d.getUTCMinutes())})}rnow=RF.length;ri=RF.length-1;rtime=Date.now();rerr=false}
 function stopRadar(){if(rplay)clearInterval(rplay);rplay=null}
 function rlabel(){const f=RF[ri];if(!f)return'';if(tab==='map'&&ri===rnow-1)return 'Now';const t=new Date(f.time*1000).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});return t+(ri>=rnow?' (forecast)':ri===rnow-1?' (latest)':'')}
-function showRF(){document.querySelectorAll('[data-rf]').forEach(g=>g.style.display=+g.dataset.rf===ri?'inline':'none');const oi=oceanIdx();document.querySelectorAll('[data-of]').forEach(g=>g.style.display=+g.dataset.of===oi?'inline':'none');const t=$('#rtm');if(t)t.textContent=rlabel();const sl=$('#rsl');if(sl)sl.value=ri}
+function showRF(){const mr=document.querySelector('[data-myr]');if(mr)mr.setAttribute('transform','translate('+myrDx()+' 0)');document.querySelectorAll('[data-rf]').forEach(g=>g.style.display=+g.dataset.rf===ri?'inline':'none');const oi=oceanIdx();document.querySelectorAll('[data-of]').forEach(g=>g.style.display=+g.dataset.of===oi?'inline':'none');const t=$('#rtm');if(t)t.textContent=rlabel();const sl=$('#rsl');if(sl)sl.value=ri}
 const WC={0:['☀️','Clear'],1:['🌤️','Mostly clear'],2:['⛅','Partly cloudy'],3:['☁️','Cloudy'],45:['🌫️','Fog'],48:['🌫️','Freezing fog'],51:['🌦️','Light drizzle'],53:['🌦️','Drizzle'],55:['🌧️','Heavy drizzle'],56:['🌧️','Freezing drizzle'],57:['🌧️','Freezing drizzle'],61:['🌧️','Light rain'],63:['🌧️','Rain'],65:['🌧️','Heavy rain'],66:['🌧️','Freezing rain'],67:['🌧️','Freezing rain'],71:['🌨️','Light snow'],73:['🌨️','Snow'],75:['❄️','Heavy snow'],77:['🌨️','Snow grains'],80:['🌦️','Showers'],81:['🌧️','Showers'],82:['⛈️','Heavy showers'],85:['🌨️','Snow showers'],86:['❄️','Heavy snow showers'],95:['⛈️','Thunderstorms'],96:['⛈️','Storms with hail'],99:['⛈️','Storms with hail']};
 const wc=(c,day)=>{const w=WC[c]||['☁️','—'];return day===0&&c<=1?['🌙',c?'Mostly clear':'Clear']:w};
 let FC=null,FK='',FCH='';
@@ -521,7 +521,7 @@ const oceanMode=()=>ocean==='off'?'off':'rain';
 const IMT=()=>{const b=Math.floor((Date.now()-7*36e5)/18e5)*18e5;return [3,2,1,0].map(i=>new Date(b-i*18e5).toISOString().slice(0,19)+'Z')};
 function oceanIdx(){const om=oceanMode(),f=RF[ri];if(om==='live'){if(!SF.length)return -1;if(!f)return SF.length-1;let k=0;SF.forEach((x,i)=>{if(Math.abs(x.time-f.time)<Math.abs(SF[k].time-f.time))k=i});return k}
  const n=4;return RF.length>1?Math.round(ri/(RF.length-1)*(n-1)):n-1}
-const oceanNote=()=>{const om=oceanMode();return om==='live'?'Ocean: live satellite clouds':om==='rain'?'Ocean rain: NASA satellite estimate, 7 to 9 hours old':''};
+const oceanNote=()=>{const om=oceanMode();return om==='live'?'Ocean: live satellite clouds':om==='rain'?'Ocean: NASA rain, 7\u20139 hr old':''};
 
 const LWX='https://api.librewxr.net';
 async function getRadar(){if(RF.length&&Date.now()-rtime<3e5)return;
@@ -535,8 +535,8 @@ function legendH(){const g=c=>`<span class='lg' style='background:linear-gradien
  F=(x,y,r)=>`<g stroke='#fff' stroke-width='1.6' stroke-linecap='round'><path d='M${x} ${y-r}V${y+r}M${x-r*.87} ${y-r/2}L${x+r*.87} ${y+r/2}M${x-r*.87} ${y+r/2}L${x+r*.87} ${y-r/2}'/></g>`,
  ic=b=>`<svg width='22' height='16' viewBox='0 0 22 16' aria-hidden='true'>${b}</svg>`,
  rain=ic(D1(6,9,3.2)+D1(15,8,4)),snow=ic(F(11,8,6)),mix=ic(D1(5,9,3)+F(15,8,5)),hail=ic(`<g stroke='#fff' stroke-width='1.8' stroke-linecap='round'><path d='M4 13L8 3M8.5 13L12.5 3'/></g>`+D1(17,9,3.4));
- return RSRC==='lwx'?`<div class='lgd' role='img' aria-label='Radar key: rain green to white, snow light to dark blue, rain and snow mix pink, hail purple'><div>${rain}${g('#7fe07f 0%,#2f9a3a 22%,#0f4a12 38%,#f3d23c 48%,#e0702a 58%,#c0281e 70%,#8b1a1a 82%,#ffffff 92%')}</div><div>${snow}${g('#a9f2ff 0%,#7fd6e6 25%,#3c8e9e 50%,#1e4f5e 72%,#16303f 100%')}</div><div>${mix}${g('#f4b3d2 0%,#e07bb0 35%,#b94080 70%,#8c1a55 100%')}</div><div>${hail}${g('#c9b6f2 0%,#9b7fe0 40%,#6c4cc4 75%,#4b2f96 100%')}</div>${oceanNote()?`<small class='lgn'>${oceanNote()}</small>`:''}</div>`
- :`<div class='lgd one' role='img' aria-label='Radar key: rain or snow from light to heavy'><div>${rain}${g('#4ad7e8,#2f8ef0,#1fc23a,#0c7d1a,#f5e132,#f28f1c,#e3241b,#b5125f,#f0f0f0')}</div>${oceanNote()?`<small class='lgn'>${oceanNote()}</small>`:''}</div>`}
+ return RSRC==='lwx'?`<div class='lgd' role='img' aria-label='Radar key: rain green to white, snow light to dark blue, rain and snow mix pink, hail purple'><div>${rain}${g('#7fe07f 0%,#2f9a3a 22%,#0f4a12 38%,#f3d23c 48%,#e0702a 58%,#c0281e 70%,#8b1a1a 82%,#ffffff 92%')}</div><div>${snow}${g('#a9f2ff 0%,#7fd6e6 25%,#3c8e9e 50%,#1e4f5e 72%,#16303f 100%')}</div><div>${mix}${g('#f4b3d2 0%,#e07bb0 35%,#b94080 70%,#8c1a55 100%')}</div><div>${hail}${g('#c9b6f2 0%,#9b7fe0 40%,#6c4cc4 75%,#4b2f96 100%')}</div>${oceanNote()||myr?`<small class='lgn'>${[oceanNote(),myr?'Your rain picture':''].filter(Boolean).join(' \u00b7 ')}</small>`:''}</div>`
+ :`<div class='lgd one' role='img' aria-label='Radar key: rain or snow from light to heavy'><div>${rain}${g('#4ad7e8,#2f8ef0,#1fc23a,#0c7d1a,#f5e132,#f28f1c,#e3241b,#b5125f,#f0f0f0')}</div>${oceanNote()||myr?`<small class='lgn'>${[oceanNote(),myr?'Your rain picture':''].filter(Boolean).join(' \u00b7 ')}</small>`:''}</div>`}
 // On the Map tab the slider runs from now into the forecast. If there is no
 // forecast radar, it plays the past radar up to now instead, so the rain still moves.
 const hasFc=()=>RF.length-1>rnow-1,rlo=()=>tab==='map'&&hasFc()?Math.max(0,rnow-1):0;
@@ -567,6 +567,17 @@ function fsPrep(on){if(on){fsY=scrollY;if(vpm)vpm.content=VP0+', maximum-scale=1
 document.addEventListener('touchmove',e=>{if(full&&e.touches.length>1&&!e.target.closest('#dmap'))e.preventDefault()},{passive:false});
 const vfmt=v=>/^\d{14}$/.test(v||'')?new Date(+v.slice(0,4),+v.slice(4,6)-1,+v.slice(6,8),+v.slice(8,10),+v.slice(10,12)).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}):(v||'unknown');
 function updText(){const U=window.UPD||{};return 'This version: '+vfmt(U.mine)+'. '+(U.at?'Last checked at '+new Date(U.at).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',second:'2-digit'})+': '+U.state+(U.remote&&U.remote!==U.mine?' (newest: '+vfmt(U.remote)+')':'')+'.':'Not checked yet.')}
+// Your rain picture: rain and snow pulled from your screenshot (myrain.png),
+// placed by matching San Francisco, Los Angeles and Houston in it. It is a
+// still picture, so it just drifts east while the radar plays.
+const MYR={w:1161,h:716,ax:19.694,bx:2926.27,cy:-1121.48,dy:1104.63};let myr=true;
+const myrDx=()=>RF.length?Math.max(0,ri-rlo())*.6:0;
+function myRainL(){if(!myr)return'';const AP=d3.geoAlbers().scale(1300).translate([487.5,305]),
+ P=(px,py)=>{const q=AP([(px-MYR.bx)/MYR.ax,(2*Math.atan(Math.exp((py-MYR.dy)/MYR.cy))-Math.PI/2)*180/Math.PI]);return[q[0]*K,q[1]*K]},NX=24,NY=15,cw=MYR.w/NX,ch=MYR.h/NY;
+ let o=`<g data-myr style='pointer-events:none;opacity:.85' transform='translate(${myrDx()} 0)'>`;
+ for(let i=0;i<NX;i++)for(let j=0;j<NY;j++){const p0=P(i*cw,j*ch),p1=P((i+1)*cw,j*ch),p2=P(i*cw,(j+1)*ch);
+  o+=`<g transform='matrix(${[p1[0]-p0[0],p1[1]-p0[1],p2[0]-p0[0],p2[1]-p0[1],p0[0],p0[1]].map(v=>v.toFixed(3)).join(' ')})'><svg width='1.01' height='1.01' viewBox='${(i*cw).toFixed(2)} ${(j*ch).toFixed(2)} ${cw.toFixed(2)} ${ch.toFixed(2)}' preserveAspectRatio='none'><image href='myrain.png' width='${MYR.w}' height='${MYR.h}'/></svg></g>`}
+ return o+'</g>'}
 function settings(){
  return `<h2>Alert types you follow</h2>`+GROUPS.map(([g,ks])=>`<h3 class="grh">${g}</h3>`+ks.map(k=>`<button class="sw" role="switch" aria-checked="${follow[k]}" style="--c:${TYPES[k].c}" data-s="${k}"><span>${TYPES[k].n}</span><i>${follow[k]?"On":"Off"}</i></button>`).join("")).join("")+`<p class="note">Warnings mean the hazard is happening or about to. Watches mean conditions allow it. Advisories mean an inconvenience or hazard is likely.</p>`+pushH()+`<h2>App updates</h2><div class="lp" id="updst">${updText()}</div><div class="act"><button data-up="1">Check for updates now</button></div>`;
 }
