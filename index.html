@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#141c2a">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261114145321">
+<meta name="wgo-version" content="20261114150059">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -281,7 +281,7 @@ function design(){
  let s=`<svg id='dmap' style='${pan||full||tool&&tool.k&&free?'touch-action:none':''}' viewBox='${vb.x} ${vb.y} ${vb.w} ${vb.w*AR}' role='img' aria-label='Design canvas. 1 grid square is 25 miles.'>`;
  s+=base()+cfill()+radarL();
  s+=``;
- D.forEach(x=>{const on=x.id===dsel;
+ D.forEach(x=>{if(x.kind==='area'&&exd(x))return;const on=x.id===dsel;
   if(x.kind==='area'){const c=TYPES[x.k].c,m=cen(x.pts);s+=`<g data-id='${x.id}'><polygon points='${pts(x.pts)}' style='fill:${c};fill-opacity:${exd(x)?.06:on?.5:.3};stroke:${c};stroke-width:${on?3:2}px;vector-effect:non-scaling-stroke${on?';stroke-dasharray:6 3':''}'/></g>`}
   else s+=`<g data-id='${x.id}'><circle cx='${x.x}' cy='${x.y}' r='${10*k}' style='fill:${on?'var(--surface)':'transparent'};stroke:${on?'var(--accent)':'none'};stroke-width:1.5px'/><text font-size='11' text-anchor='middle' dominant-baseline='central' transform='translate(${x.x} ${x.y}) scale(${k})'>${x.ic}</text><text class='lbl' style='font-size:5.5px;stroke-width:1.4px' transform='translate(${x.x} ${x.y+12*k}) scale(${k})'>${x.t}°</text></g>`});
  s+=placesL(k);
@@ -530,7 +530,10 @@ function stripH(){const j=FC.j,c=j.current,Dd=j.daily,r=Math.round,dir=['N','NE'
  return now+`<div class='wxds'>${days}</div>`}
 async function fillStrip(){const key=fcKey(),ok=await getFc(),el=$('#wxs');if(!el||key!==fcKey())return;el.innerHTML=ok?stripH():`<div class='wxe'>Couldn’t load the weather.</div>`}
 function purge(){const n=D.length;D=D.filter(x=>!(x.kind==='area'&&exd(x)));if(D.length===n)return false;if(dsel&&!D.find(q=>q.id===dsel))dsel=null;save();return true}
-setInterval(()=>{if(purge()&&!(document.activeElement&&/^(dst|den|dtemp)$/.test(document.activeElement.id)))render()},3e4);
+const purgeTick=()=>{if(purge()&&!(document.activeElement&&/^(dst|den|dtemp)$/.test(document.activeElement.id)))render()};
+setInterval(purgeTick,1e4);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')purgeTick()});
+addEventListener('pageshow',purgeTick);
 function settings(){
  return `<h2>Alert types you follow</h2>`+GROUPS.map(([g,ks])=>`<h3 class="grh">${g}</h3>`+ks.map(k=>`<button class="sw" role="switch" aria-checked="${follow[k]}" style="--c:${TYPES[k].c}" data-s="${k}"><span>${TYPES[k].n}</span><i>${follow[k]?"On":"Off"}</i></button>`).join("")).join("")+`<p class="note">Warnings mean the hazard is happening or about to. Watches mean conditions allow it. Advisories mean an inconvenience or hazard is likely.</p>`+pushH();
 }
