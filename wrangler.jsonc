@@ -2,7 +2,7 @@
 // The storage (KV) is created automatically on the first deploy.
 {
   "name": "wgo-alerts",
-  "main": "worker.js",
+  "main": "push-server/worker.js",
   "compatibility_date": "2025-11-01",
   "kv_namespaces": [{ "binding": "DB" }],
   "triggers": { "crons": ["* * * * *"] }
