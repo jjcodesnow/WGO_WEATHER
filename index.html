@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261113231629">
+<meta name="wgo-version" content="20261113231916">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -167,7 +167,7 @@ const CITIES={
   a:[["wsww","Cook County","Heavy snow possible Saturday. 6 to 10 inches",1500],["wi","Lake County, IL","Northwest winds 25 to 35 mph, gusts to 50",300]]}
 };
 const ICONS=["☀️","⛅","☁️","🌧️","⛈️","🌨️"];
-let city="okc",tab="design",filter=null,follow={};
+let city="okc",tab="alerts",filter=null,follow={};
 Object.keys(TYPES).forEach(k=>follow[k]=true);
 try{const s=localStorage.getItem("sw-follow");if(s)follow=Object.assign(follow,JSON.parse(s))}catch(e){}
 const $=s=>document.querySelector(s),C=()=>CITIES[city];
