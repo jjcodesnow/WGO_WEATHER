@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>WGO Weather</title>
+<title>WGO 9 Weather</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -74,7 +74,10 @@ nav{overflow-x:auto}nav button{flex:1 0 auto;padding:0 12px}
 .brand{position:relative;overflow:hidden;border-radius:14px;margin-bottom:12px;min-height:130px;color:#fff;background:#141c2a}
 .brand svg{position:absolute;inset:0;width:100%;height:100%}
 .brand div{position:relative;padding:14px 16px;text-shadow:0 1px 3px rgba(0,0,0,.5)}
-.brand h1{font-size:32px;line-height:1}.brand span{font-size:14px;opacity:.9}
+.brand .tg{display:block;font:600 13px "Barlow Semi Condensed",Barlow,sans-serif;letter-spacing:2.5px;text-transform:uppercase;color:#f5c86a}
+.brand h1{font:700 44px/1 "Barlow Semi Condensed",Barlow,sans-serif;letter-spacing:1px;display:flex;align-items:center;gap:8px;margin:2px 0 4px}
+.brand h1 i{font-style:normal;display:inline-grid;place-items:center;width:42px;height:42px;border-radius:50%;background:#f5b324;color:#141c2a;font-size:32px}
+.brand .wx{display:inline-block;font:600 15px "Barlow Semi Condensed",Barlow,sans-serif;letter-spacing:6px;text-transform:uppercase;border-top:2px solid #f5b324;padding-top:2px}
 .pop{position:absolute;z-index:5;width:min(330px,calc(100% - 12px));background:#232323;color:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 8px 24px rgba(0,0,0,.35);font-size:15px}
 .pop .x{position:absolute;top:6px;right:6px;width:36px;height:36px;border:0;border-radius:50%;background:transparent;color:#bbb;font-size:20px;cursor:pointer}
 .pop .t{color:#ddd;font-size:14px;padding-right:30px}
@@ -94,7 +97,7 @@ nav{overflow-x:auto}nav button{flex:1 0 auto;padding:0 12px}
 </head>
 <body>
 <main>
-  <header class="brand"><svg viewBox='0 0 400 120' preserveAspectRatio='xMidYMax slice' aria-hidden='true'><defs><linearGradient id='sk' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#141c2a'/><stop offset='1' stop-color='#3b6aa5'/></linearGradient><pattern id='wn' width='8' height='10' patternUnits='userSpaceOnUse'><rect x='2' y='3' width='3' height='4' fill='#f5c86a' opacity='.85'/></pattern></defs><rect width='400' height='120' fill='url(#sk)'/><path fill='#0c1320' d='M0 120V80H40V64H74V76H110V50L123 30L136 50V72H176V82H212V74H222L227 44L232 74H242V68H286V80H318V60H356V76H400V120Z'/><path fill='url(#wn)' d='M0 120V80H40V64H74V76H110V50L123 30L136 50V72H176V82H212V74H222L227 44L232 74H242V68H286V80H318V60H356V76H400V120Z'/><circle cx='123' cy='60' r='7' fill='#f1e7c8'/><path d='M123 60V55M123 60H127' stroke='#0c1320' stroke-width='1.2'/><rect y='112' width='400' height='8' fill='#1d3b63'/></svg><div><h1>WGO Weather</h1><span>Downtown Oswego</span></div></header>
+  <header class="brand"><svg viewBox='0 0 400 120' preserveAspectRatio='xMidYMax slice' aria-hidden='true'><defs><linearGradient id='sk' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#141c2a'/><stop offset='1' stop-color='#3b6aa5'/></linearGradient><pattern id='wn' width='8' height='10' patternUnits='userSpaceOnUse'><rect x='2' y='3' width='3' height='4' fill='#f5c86a' opacity='.85'/></pattern></defs><rect width='400' height='120' fill='url(#sk)'/><path fill='#0c1320' d='M0 120V80H40V64H74V76H110V50L123 30L136 50V72H176V82H212V74H222L227 44L232 74H242V68H286V80H318V60H356V76H400V120Z'/><path fill='url(#wn)' d='M0 120V80H40V64H74V76H110V50L123 30L136 50V72H176V82H212V74H222L227 44L232 74H242V68H286V80H318V60H356V76H400V120Z'/><circle cx='123' cy='60' r='7' fill='#f1e7c8'/><path d='M123 60V55M123 60H127' stroke='#0c1320' stroke-width='1.2'/><rect y='112' width='400' height='8' fill='#1d3b63'/></svg><div><span class='tg'>Oswego's Very Own</span><h1>WGO <i>9</i></h1><span class='wx'>Weather</span></div></header>
   <div class="top">
     <label for="q" style="position:absolute;left:-9999px">Location</label>
     <input id="q" list="pl" placeholder="Type your city or town" autocomplete="off" aria-label="City or town" style="flex:1;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);min-height:44px"><button class="icon" id="go" aria-label="Find this place" style="padding:0 14px">Go</button><datalist id="pl"></datalist>
