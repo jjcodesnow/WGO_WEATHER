@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#141c2a">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261114155519">
+<meta name="wgo-version" content="20261114155710">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -292,7 +292,7 @@ function design(){
  if(S&&S.kind==='area'&&!tool){const c=TYPES[S.k].c;S.pts.forEach((q,i)=>{const n=S.pts[(i+1)%S.pts.length],mx=(q[0]+n[0])/2,my=(q[1]+n[1])/2;s+=`<g data-e='${i}'><circle cx='${mx}' cy='${my}' r='${7*k}' style='fill:transparent'/><circle cx='${mx}' cy='${my}' r='${1*k}' style='fill:${c};opacity:.55;pointer-events:none'/></g>`});S.pts.forEach((q,i)=>{s+=`<g data-v='${i}'><circle cx='${q[0]}' cy='${q[1]}' r='${7*k}' style='fill:transparent'/><circle cx='${q[0]}' cy='${q[1]}' r='${1.6*k}' style='fill:${rm?'#d62828':'#fff'};stroke:${c};stroke-width:${.6*k}px;pointer-events:none'/></g>`})}
  if(draft.length)s+=`<g style='pointer-events:none'><polyline points='${pts(draft)}' style='fill:none;stroke:${tc};stroke-width:1.5px;stroke-dasharray:3 2'/>`+draft.map((q,i)=>`<circle cx='${q[0]}' cy='${q[1]}' r='${(i?2.2:3.5)*k}' style='fill:${tc};stroke:#fff;stroke-width:1px'/>`).join('')+`</g>`;
  s+='</svg>';
- const a=[],zc=`<button data-da='zo'>Zoom out</button><button data-da='zi'>Zoom in</button><button data-da='pan'>${pan?'Pan: on':'Pan: off'}</button><button data-da='snp'>${snap?'Snap: on':'Snap: off'}</button><button data-da='rad'>${radar?'Radar: on':'Radar: off'}</button>${radar?`<button data-da='sat'>${{live:'Ocean: live clouds',rain:'Ocean: rain (7 hr old)',off:'Ocean: off'}[oceanMode()]}</button>`:''}${radar&&RF.length?`<button data-da='rpl'>${rplay?'⏸ Pause':'▶ Play'}</button><span id='rtm' class='note' style='margin:0'>${rlabel()}</span>`:''}`;
+ const a=[],zc=`<button data-da='zo'>Zoom out</button><button data-da='zi'>Zoom in</button><button data-da='pan'>${pan?'Pan: on':'Pan: off'}</button><button data-da='snp'>${snap?'Snap: on':'Snap: off'}</button><button data-da='rad'>${radar?'Radar: on':'Radar: off'}</button>${radar?`<button data-da='sat'>${oceanMode()==='rain'?'Ocean rain: on':'Ocean rain: off'}</button>`:''}${radar&&RF.length?`<button data-da='rpl'>${rplay?'⏸ Pause':'▶ Play'}</button><span id='rtm' class='note' style='margin:0'>${rlabel()}</span>`:''}`;
  if(tool&&tool.k)a.push(`<button data-da='bcy'>${bycty?'By county: on':'By county: off'}</button>`);
  if(tool&&tool.k)a.push(`<button data-da='free'>${free?'Freehand: on':'Freehand: off'}</button>`);
  if(S&&S.kind==='area'&&!tool)a.push(`<button data-da='rm'>${rm?'Done removing':'Remove corner'}</button>`);
@@ -317,7 +317,7 @@ function setupDesign(){
   const t=e.target.closest('[data-dt]'),a=e.target.closest('[data-da]'),was=clr;
   if(t){draft=[];clr=false;pop=null;const v=t.dataset.dt;tool=v==='s'?null:v==='c'?{cty:1}:v[0]==='a'?{k:v.slice(2)}:{ic:v.slice(2)};render();return}
   if(a){const v=a.dataset.da;clr=false;
-   if(v==='full'){full=!full;pop=null;fsPrep(full);setAR(full?innerHeight/innerWidth:.625)}else if(v==='cal')calert();else if(v==='bcy')bycty=!bycty;else if(v==='ccl')selC={};else if(v==='snp')snap=!snap;else if(v==='sat'){const om=oceanMode();ocean=om==='live'?'rain':om==='rain'?'off':(SF.length?'live':'rain')}else if(v==='rad'){radar=!radar;if(radar)getRadar().then(()=>{if(MT())render()});else stopRadar()}else if(v==='rpl'){if(rplay){stopRadar();userPaused=true}else{userPaused=false;playRadar()}}else if(v==='go')gotoLoc();else if(v==='zi'||v==='zo')zoom(v==='zi'?.5:2);else if(v==='pan'){pan=!pan;draft=[]}else if(v==='fin'&&draft.length>=3)finish();else if(v==='free'){free=!free;draft=[]}else if(v==='rm')rm=!rm;else if(v==='undo')draft.pop();else if(v==='cancel')draft=[];
+   if(v==='full'){full=!full;pop=null;fsPrep(full);setAR(full?innerHeight/innerWidth:.625)}else if(v==='cal')calert();else if(v==='bcy')bycty=!bycty;else if(v==='ccl')selC={};else if(v==='snp')snap=!snap;else if(v==='sat'){ocean=oceanMode()==='rain'?'off':'rain'}else if(v==='rad'){radar=!radar;if(radar)getRadar().then(()=>{if(MT())render()});else stopRadar()}else if(v==='rpl'){if(rplay){stopRadar();userPaused=true}else{userPaused=false;playRadar()}}else if(v==='go')gotoLoc();else if(v==='zi'||v==='zo')zoom(v==='zi'?.5:2);else if(v==='pan'){pan=!pan;draft=[]}else if(v==='fin'&&draft.length>=3)finish();else if(v==='free'){free=!free;draft=[]}else if(v==='rm')rm=!rm;else if(v==='undo')draft.pop();else if(v==='cancel')draft=[];
    else if(v==='del'){D=D.filter(x=>x.id!==dsel);dsel=null;save()}
    else if(v==='clr'){if(was){D=[];dsel=null;save()}else clr=true}
    render();return}
@@ -516,9 +516,8 @@ function focusAlert(id){const x=D.find(q=>String(q.id)===String(id)&&q.kind==='a
  pop={x:cx,y:cy,ids:[x.id],cn:c?c.n+' County':(cl(x)||'this area'),more:false,open:null};render();
  const m=$('#dmap');if(m)m.scrollIntoView({block:'center'})}
 let RSRC='',lwxBad=0,ocean='auto',SF=[];
-// Ocean layer: 'live' = LibreWXR's satellite cloud pictures (about as recent as the radar),
-// 'rain' = NASA's IMERG rain estimate (7 to 9 hours old), or 'off'. Both play along with the radar.
-const oceanMode=()=>ocean==='auto'?(SF.length?'live':'rain'):ocean;
+// Ocean layer: NASA's IMERG rain estimate (7 to 9 hours old), played along with the radar, or 'off'.
+const oceanMode=()=>ocean==='off'?'off':'rain';
 const IMT=()=>{const b=Math.floor((Date.now()-7*36e5)/18e5)*18e5;return [3,2,1,0].map(i=>new Date(b-i*18e5).toISOString().slice(0,19)+'Z')};
 function oceanIdx(){const om=oceanMode(),f=RF[ri];if(om==='live'){if(!SF.length)return -1;if(!f)return SF.length-1;let k=0;SF.forEach((x,i)=>{if(Math.abs(x.time-f.time)<Math.abs(SF[k].time-f.time))k=i});return k}
  const n=4;return RF.length>1?Math.round(ri/(RF.length-1)*(n-1)):n-1}
@@ -527,7 +526,7 @@ const oceanNote=()=>{const om=oceanMode();return om==='live'?'Ocean: live satell
 const LWX='https://api.librewxr.net';
 async function getRadar(){if(RF.length&&Date.now()-rtime<3e5)return;
  if(lwxBad<3){try{const j=await (await fetch(LWX+'/public/weather-maps.json',{cache:'no-store'})).json(),past=(j.radar&&j.radar.past)||[],nc=(j.radar&&j.radar.nowcast)||[];if(!past.length)throw 0;
-  RSRC='lwx';RH=/^https:\/\//.test(j.host||'')?j.host:LWX;SF=((j.satellite&&j.satellite.infrared)||[]).slice(-8);RF=past.concat(nc);rnow=past.length;ri=past.length-1;rtime=Date.now();rerr=false;return}catch(e){}}
+  RSRC='lwx';RH=/^https:\/\//.test(j.host||'')?j.host:LWX;RF=past.concat(nc);rnow=past.length;ri=past.length-1;rtime=Date.now();rerr=false;return}catch(e){}}
  getRadarIEM()}
 function rurl(f,z,x,y){return RSRC==='lwx'?`${RH}${f.path}/256/${z}/${x}/${y}/4/1_1.png`:`https://mesonet.agron.iastate.edu/c/tile.py/1.0.0/ridge::USCOMP-N0Q-${f.s}/${z}/${x}/${y}.png`}
 function radarBad(){if(RSRC!=='lwx'||++lwxBad<3)return;stopRadar();RF=[];rtime=0;getRadarIEM();if(MT())render()}
