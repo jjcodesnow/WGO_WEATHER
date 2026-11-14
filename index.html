@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261113225223">
+<meta name="wgo-version" content="20261113225518">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -147,6 +147,7 @@ const TYPES={
  wsw:{n:"Winter Storm Warning",s:4,c:"var(--wsw)",d:0,tip:["Avoid travel. Roads may become impassable","Keep a blanket, food and water in your car","Prepare for power outages","Never run a generator indoors"]},
  wwa:{n:"Winter Weather Advisory",s:1,c:"var(--wwa)",d:0,tip:["Slick roads likely. Slow down and leave extra distance","Dress in layers","Allow extra time for your commute"]},
  wsww:{n:"Winter Storm Watch",s:2,c:"#3b82c4",d:0,tip:["Heavy snow or ice is possible in the next 12 to 48 hours","Fill your gas tank and stock food and water","Charge devices and check on neighbors"]},
+ sps:{n:"Special Weather Statement",s:1,c:"#c98a2b",d:0,tip:["Stay aware of changing weather in your area","Strong winds, small hail or heavy downpours are possible","Be ready to act if a warning is issued"]},
  wi:{n:"Wind Advisory",s:1,c:"#a9825a",d:0,tip:["Secure trash cans, patio furniture and loose items","Take extra care driving a high-profile vehicle","Watch for downed branches and power lines"]}
 };
 const CITIES={
@@ -169,7 +170,7 @@ try{const s=localStorage.getItem("sw-follow");if(s)follow=Object.assign(follow,J
 const $=s=>document.querySelector(s),C=()=>CITIES[city];
 const fmt=m=>m<60?m+" min":(Math.round(m/6)/10)+" hr";
 let you={x:100,y:100},sel=null;
-const R={tw:11,sw:20,fw:24,fww:55,sww:60,tww:65,wsw:45,wwa:50,wsww:60,wi:55};
+const R={sps:40,tw:11,sw:20,fw:24,fww:55,sww:60,tww:65,wsw:45,wwa:50,wsww:60,wi:55};
 function geo(k,i){const ang=i*2.4+k.length,d=i*30+14,cx=100+Math.cos(ang)*d*.9,cy=100+Math.sin(ang)*d*.9,r=R[k],p=[];for(let j=0;j<10;j++){const t=j/10*6.283,rr=r*(.78+.22*Math.sin(j*2.3+i+k.length));p.push([cx+Math.cos(t)*rr*1.3,cy+Math.sin(t)*rr*.8])}return p}
 function dist(p,poly){let ins=false,min=1e9;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const[a,b]=poly[i],[c,d]=poly[j];if((b>p.y)!==(d>p.y)&&p.x<(c-a)*(p.y-b)/(d-b)+a)ins=!ins;const dx=c-a,dy=d-b,t=Math.max(0,Math.min(1,((p.x-a)*dx+(p.y-b)*dy)/(dx*dx+dy*dy||1))),ex=a+t*dx-p.x,ey=b+t*dy-p.y;min=Math.min(min,Math.hypot(ex,ey))}return ins?0:min}
 function active(){const now=Date.now(),c0=loc&&CTY.length?cAt([loc.x,loc.y]):null;return D.filter(x=>x.kind==='area'&&follow[x.k]&&!(x.exp&&x.exp<now)&&(!loc||dist({x:loc.x,y:loc.y},x.pts)===0||(c0&&cof(x).includes(c0.n)&&sof(x).includes(c0.s)))).map(x=>({k:x.k,area:cl(x)||'Drawn area',txt:x.cn?'County alert':'Alert area',m:x.exp?Math.max(1,Math.round((x.exp-now)/6e4)):9999,T:TYPES[x.k],poly:x.pts,d:loc?dist({x:loc.x,y:loc.y},x.pts):null,i:x.id})).sort((a,b)=>b.T.s-a.T.s)}
