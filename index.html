@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#141c2a">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261114141236">
+<meta name="wgo-version" content="20261114141348">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -522,6 +522,8 @@ function stripH(){const j=FC.j,c=j.current,Dd=j.daily,r=Math.round,dir=['N','NE'
  const days=Dd.time.map((t,i)=>{const w=wc(Dd.weather_code[i],1);return `<div class='wxd'><span>${new Date(t+'T12:00').toLocaleDateString('en-US',{weekday:'short'})}</span><b aria-label='${w[1]}'>${w[0]}</b><span>${r(Dd.temperature_2m_max[i])}° <i>|</i> ${r(Dd.temperature_2m_min[i])}°</span></div>`}).join('');
  return now+`<div class='wxds'>${days}</div>`}
 async function fillStrip(){const key=fcKey(),ok=await getFc(),el=$('#wxs');if(!el||key!==fcKey())return;el.innerHTML=ok?stripH():`<div class='wxe'>Couldn’t load the weather.</div>`}
+function purge(){const n=D.length;D=D.filter(x=>!(x.kind==='area'&&exd(x)));if(D.length===n)return false;if(dsel&&!D.find(q=>q.id===dsel))dsel=null;save();return true}
+setInterval(()=>{if(purge()&&!(document.activeElement&&/^(dst|den|dtemp)$/.test(document.activeElement.id)))render()},3e4);
 function settings(){
  return `<h2>Alert types you follow</h2>`+Object.keys(TYPES).sort((a,b)=>TYPES[b].s-TYPES[a].s).map(k=>`<button class="sw" role="switch" aria-checked="${follow[k]}" style="--c:${TYPES[k].c}" data-s="${k}"><span>${TYPES[k].n}</span><i>${follow[k]?"On":"Off"}</i></button>`).join("")+`<p class="note">Warnings mean the hazard is happening or about to. Watches mean conditions allow it. Advisories mean an inconvenience or hazard is likely.</p>`+pushH();
 }
@@ -542,7 +544,7 @@ $("#view").onclick=e=>{
  const s=e.target.closest("[data-s]");if(s){follow[s.dataset.s]=!follow[s.dataset.s];try{localStorage.setItem("sw-follow",JSON.stringify(follow))}catch(x){}qSync();render()}
 };
 $("#theme").onclick=()=>{const r=document.documentElement,d=getComputedStyle(r).colorScheme==="dark";r.dataset.theme=d?"light":"dark"};
-render();loadUS().then(()=>{qSync();const a=new URLSearchParams(location.search).get('alert');if(a){history.replaceState(null,'',location.pathname);focusAlert(a)}});
+purge();render();loadUS().then(()=>{qSync();const a=new URLSearchParams(location.search).get('alert');if(a){history.replaceState(null,'',location.pathname);focusAlert(a)}});
 if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('message',e=>{if(e.data&&e.data.alert)focusAlert(e.data.alert)});
 (function(){const el=document.createElement('div');el.className='ptr';el.setAttribute('aria-hidden','true');el.innerHTML='<b>↓</b><span>Pull to refresh</span>';document.body.appendChild(el);
  const on=navigator.standalone||matchMedia('(display-mode: standalone)').matches||/[?&]ptr=1/.test(location.search);if(!on)return;
