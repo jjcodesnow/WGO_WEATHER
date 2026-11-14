@@ -116,7 +116,7 @@ nav{overflow-x:auto}nav button{flex:1 0 auto;padding:0 12px}
     <button role="tab" aria-selected="false" data-t="settings">My alerts</button>
   </nav>
   <div id="view"></div>
-  <p class="note">Alerts are the ones you draw, not official warnings. Radar by RainViewer. Forecast by Open-Meteo.</p>
+  <p class="note">Alerts are the ones you draw, not official warnings. Radar: NWS NEXRAD via Iowa Environmental Mesonet. Forecast by Open-Meteo.</p>
 </main>
 <script>
 const TYPES={
@@ -293,10 +293,10 @@ function radarL(){if(!radar)return'';if(!RF.length)return `<text class='lbl' sty
  for(let i=0;i<=6;i++)for(let j=0;j<=6;j++){const q=AP.invert([(vb.x+vb.w*i/6)/K,(vb.y+h*j/6)/K]);if(!q)continue;lo0=Math.min(lo0,q[0]);lo1=Math.max(lo1,q[0]);la0=Math.min(la0,q[1]);la1=Math.max(la1,q[1])}
  lo0=Math.max(lo0,-130);lo1=Math.min(lo1,-60);la0=Math.max(la0,20);la1=Math.min(la1,53);if(lo0>=lo1||la0>=la1)return'';
  const tx=(lo,z)=>Math.floor((lo+180)/360*2**z),ty=(la,z)=>{const r=la*Math.PI/180;return Math.floor((1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*2**z)},tl=(x,z)=>x/2**z*360-180,tt=(y,z)=>Math.atan(Math.sinh(Math.PI*(1-2*y/2**z)))*180/Math.PI;
- let z=RZ,x0,x1,y0,y1;
- for(;;){x0=tx(lo0,z);x1=tx(lo1,z);y0=ty(la1,z);y1=ty(la0,z);if((x1-x0+1)*(y1-y0+1)<=60||z<=4)break;z--}
+ let z=Math.max(4,Math.min(RZ,Math.round(Math.log2(200/vb.w))+5)),x0,x1,y0,y1;
+ for(;;){x0=tx(lo0,z);x1=tx(lo1,z);y0=ty(la1,z);y1=ty(la0,z);if((x1-x0+1)*(y1-y0+1)<=30||z<=4)break;z--}
  const T=[];for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++){const p0=pr(tl(x,z),tt(y,z)),p1=pr(tl(x+1,z),tt(y,z)),p2=pr(tl(x,z),tt(y+1,z));T.push({x,y,m:[p1[0]-p0[0],p1[1]-p0[1],p2[0]-p0[0],p2[1]-p0[1],p0[0],p0[1]].map(v=>v.toFixed(3)).join(' ')})}
- return `<g style='pointer-events:none;opacity:.7'>`+RF.map((f,i)=>`<g data-rf='${i}' style='display:${i===ri?'inline':'none'}'>`+T.map(t=>`<image href='${RH}${f.path}/256/${z}/${t.x}/${t.y}/2/1_1.png' width='1.004' height='1.004' preserveAspectRatio='none' transform='matrix(${t.m})'/>`).join('')+'</g>').join('')+'</g>'}
+ return `<g style='pointer-events:none;opacity:.7'>`+RF.map((f,i)=>`<g data-rf='${i}' style='display:${i===ri?'inline':'none'}'>`+T.map(t=>`<image href='https://mesonet.agron.iastate.edu/c/tile.py/1.0.0/ridge::USCOMP-N0Q-${f.s}/${z}/${t.x}/${t.y}.png' width='1.004' height='1.004' preserveAspectRatio='none' transform='matrix(${t.m})'/>`).join('')+'</g>').join('')+'</g>'}
 function lp(){if(!loc)return msg?`<p class='note' style='margin:0 0 8px'>${msg}</p>`:'';const c=CTY.length?cAt([loc.x,loc.y]):null,hit=D.filter(x=>x.kind==='area'&&(dist({x:loc.x,y:loc.y},x.pts)===0||(c&&cof(x).includes(c.n)&&sof(x).includes(c.s)))),on=hit.filter(x=>!exd(x));return `<div class='lp'><b>${loc.n}</b>${c?' · '+c.n+' County':''}<br>${on.length?on.map(x=>`<span class='tag' style='--c:${TYPES[x.k].c}'>${TYPES[x.k].n.split(' ').pop().toUpperCase()}</span>${TYPES[x.k].n}${tl(x)}${cl(x)?' · '+cl(x):''}`).join('<br>'):'No active alerts here.'}${hit.length>on.length?'<br><small>Expired alerts are not counted.</small>':''}</div>`}
 function srch(){return `${lp()}`}
 async function gotoLoc(){const q=($('#q')||{value:''}).value.trim().toLowerCase(),m=q.match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/);let p=null;
@@ -323,8 +323,8 @@ function popH(){if(!pop)return'';const L=pop.ids.map(id=>D.find(x=>x.id===id)).f
  const top=TYPES[L[0].k],below=Y<50,show=pop.more?L:[L[0]];
  const row=(x,i)=>{const T=TYPES[x.k],when=(x.t0?ft(x.t0)+' – ':'UNTIL ')+(x.exp?ft(x.exp):'NO END TIME');return `<button class='ar' data-pp='${i}' style='--c:${T.c}'><span class='ic'>!</span><span style='flex:1;min-width:0'><b>${T.n}</b><small>${when}</small></span>${i===0&&L.length>1&&!pop.more?`<span class='mo' data-pp='mo'>+${L.length-1} more</span>`:''}<span aria-hidden='true' style='color:#999;font-size:20px'>›</span></button>${pop.open===i?`<ul>${T.tip.map(t=>`<li>${t}</li>`).join('')}</ul>`:''}`};
  return `<div class='pip' style='left:${X}%;top:calc(${Y}% ${below?'+':'-'} 12px)'></div><div class='pop' role='dialog' aria-label='Alerts here' style='left:clamp(6px,calc(${X}% - 165px),calc(100% - min(330px,calc(100% - 12px)) - 6px));${below?`top:calc(${Y}% + 12px)`:`bottom:calc(${100-Y}% + 12px)`}'><button class='x' data-pp='x' aria-label='Close'>×</button><div class='t'>Threat indicated in ${pop.cn}</div><h3>Severe Risk: ${LV[top.s]}</h3>${show.map(row).join('')}${pop.more&&L.length>1?`<button class='ar' data-pp='mo' style='justify-content:center;min-height:40px'>Show less</button>`:''}</div>`}
-const RZ=5;let RF=[],RH='',ri=0,rplay=null,rtime=0,rerr=false,rnow=0;
-async function getRadar(){if(RF.length&&Date.now()-rtime<3e5)return;try{const j=await (await fetch('https://api.rainviewer.com/public/weather-maps.json')).json(),past=(j.radar&&j.radar.past)||[],nc=(j.radar&&j.radar.nowcast)||[];RH=j.host;RF=past.concat(nc);rnow=past.length;ri=Math.max(0,past.length-1);rtime=Date.now();rerr=!RF.length}catch(e){rerr=true}}
+const RZ=9;let RF=[],RH='',ri=0,rplay=null,rtime=0,rerr=false,rnow=0;
+async function getRadar(){if(RF.length&&Date.now()-rtime<3e5)return;const st=5*6e4,b=Math.floor((Date.now()-10*6e4)/st)*st,p=n=>String(n).padStart(2,'0');RF=[];for(let i=12;i>=0;i-=2){const d=new Date(b-i*st);RF.push({time:d.getTime()/1000,s:''+d.getUTCFullYear()+p(d.getUTCMonth()+1)+p(d.getUTCDate())+p(d.getUTCHours())+p(d.getUTCMinutes())})}rnow=RF.length;ri=RF.length-1;rtime=Date.now();rerr=false}
 function stopRadar(){if(rplay)clearInterval(rplay);rplay=null}
 function rlabel(){const f=RF[ri];if(!f)return'';const t=new Date(f.time*1000).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});return t+(ri>=rnow?' (forecast)':ri===rnow-1?' (latest)':'')}
 function showRF(){document.querySelectorAll('[data-rf]').forEach(g=>g.style.display=+g.dataset.rf===ri?'inline':'none');const t=$('#rtm');if(t)t.textContent=rlabel()}
