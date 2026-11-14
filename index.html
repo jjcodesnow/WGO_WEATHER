@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261114083855">
+<meta name="wgo-version" content="20261114084530">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -114,6 +114,11 @@ nav{overflow-x:auto}nav button{flex:1 0 auto;padding:0 12px}
 .ptr{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 6px);z-index:60;transform:translate(-50%,-60px);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:20px;padding:8px 14px;font-size:14px;box-shadow:0 2px 10px rgba(0,0,0,.2);display:flex;gap:8px;align-items:center;pointer-events:none;opacity:0}
 .ptr b{display:inline-block;font-size:16px;transition:transform .15s}
 .ptr.go b{transform:rotate(180deg)}
+.cty{margin-top:10px;padding-top:8px;border-top:1px solid var(--line);font-size:15px}
+.cty .cs{margin-top:4px;line-height:1.4}
+.cty .cs span{display:block;font-size:13px;font-weight:600;color:var(--mute)}
+.cty.dk{border-color:#555;color:#eee;font-size:14px;margin:4px 0 6px;padding-left:4px}
+.cty.dk .cs span{color:#bbb}
 .lp{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;margin:0 0 8px;font-size:15px}
 @media (prefers-reduced-motion:no-preference){.alert[open] .body{animation:o .15s ease-out}@keyframes o{from{opacity:0}to{opacity:1}}}
 </style>
@@ -192,7 +197,7 @@ function alerts(){
  let h="";
  if(kinds.length>1)h+=`<div class="chips">`+`<button class="chip" style="--c:var(--accent)" aria-pressed="${!filter}" data-f="">All</button>`+kinds.map(k=>`<button class="chip" style="--c:${TYPES[k].c}" aria-pressed="${filter===k}" data-f="${k}">${TYPES[k].n}</button>`).join("")+`</div>`;
  if(!list.length)return h+`<div class="empty">No alerts for this place. Open “My alerts” to change which types you see.</div>`;
- return h+list.map((a,i)=>`<details class="alert" style="--c:${a.T.c}" ${i===0?"open":""}><summary><span class="tag ${a.k==="tww"?"dk":""}">${a.T.n.split(" ").pop().toUpperCase()}</span><h3 style="display:inline">${a.T.n}</h3><div class="sub">${a.area} · ${a.d===null?"no location set":a.d?Math.round(a.d*15)+" mi away":"you’re inside this area"} · expires in ${fmt(a.m)}</div></summary><div class="body"><p style="margin:0">${a.txt}.</p><b>What to do</b><ul>${a.T.tip.map(t=>`<li>${t}</li>`).join("")}</ul></div></details>`).join("");
+ return h+list.map((a,i)=>`<details class="alert" style="--c:${a.T.c}" ${i===0?"open":""}><summary><span class="tag ${a.k==="tww"?"dk":""}">${a.T.n.split(" ").pop().toUpperCase()}</span><h3 style="display:inline">${a.T.n}</h3><div class="sub">${a.area} · ${a.d===null?"no location set":a.d?Math.round(a.d*15)+" mi away":"you’re inside this area"} · expires in ${fmt(a.m)}</div></summary><div class="body"><p style="margin:0">${a.txt}.</p><b>What to do</b><ul>${a.T.tip.map(t=>`<li>${t}</li>`).join("")}</ul>${ctyH(a.i)}</div></details>`).join("");
 }
 function forecast(){return `<div id='fc'><div class='empty'>Loading the forecast…</div></div>`}
 function mlist(){return active().sort((x,y)=>x.d-y.d).map(a=>`<button class="sw" style="--c:${a.T.c};${sel===a.i?"box-shadow:0 0 0 2px "+a.T.c:""}" data-m="${a.i}"><span><b>${a.T.n}</b><br><small>${a.area}${sel===a.i?". "+a.txt:""}</small></span><i>${a.d?Math.round(a.d)+" mi":"Inside"}</i></button>`).join("")||`<div class="empty">No alerts to map. Open “My alerts” to turn types back on.</div>`}
@@ -339,8 +344,8 @@ async function gotoLoc(){const q=($('#q')||{value:''}).value.trim().toLowerCase(
  if(!p){loc=null;msg=PLC.length?'I could not find that place. Pick one from the suggestions, or type latitude, longitude.':'The map is still loading. Try again in a moment.';render();return}
  loc=p;msg='';vb.w=30;vb.x=Math.max(0,Math.min(170,p.x-15));vb.y=clY(p.y-15*AR,30);render()}
 function addC(c){c.g.forEach(pl=>{const r=pl[0],n=Math.ceil(r.length/150);D.push({id:nid(),kind:'area',k:tool.k,pts:r.filter((_,i)=>i%n===0),cn:[c.n],st:[c.s],t0:Date.now(),exp:Date.now()+dur*6e4})})}
-function cof(x){if(x.cn)return x.cn;if(!CTY.length)return[];const key=x.pts.reduce((s,q)=>s+q[0]*3+q[1],0).toFixed(2);if(cc[x.id]&&cc[x.id].k===key)return cc[x.id].v;const xs=x.pts.map(q=>q[0]),ys=x.pts.map(q=>q[1]),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys),v=[];CTY.forEach(c=>{const b=c.b;if(b[2]<x0||b[0]>x1||b[3]<y0||b[1]>y1)return;if(dist({x:c.cx,y:c.cy},x.pts)===0||c.g.some(pl=>x.pts.some(q=>dist({x:q[0],y:q[1]},pl[0])===0)))v.push(c)});const names=v.map(c=>c.n).sort(),ss=[...new Set(v.map(c=>c.s).filter(Boolean))].sort();cc[x.id]={k:key,v:names,s:ss};return names}
-const sof=x=>x.st||(cof(x),cc[x.id]?cc[x.id].s:[]),cl=x=>{const n=cof(x);return n.length?n.slice(0,3).join(', ')+(n.length>3?' +'+(n.length-3):'')+(n.length>1?' Cos.':' Co.')+(sof(x).length?' · '+sof(x).join(', '):''):''};
+function cof(x){if(x.cn)return x.cn;if(!CTY.length)return[];const key=x.pts.reduce((s,q)=>s+q[0]*3+q[1],0).toFixed(2);if(cc[x.id]&&cc[x.id].k===key)return cc[x.id].v;const xs=x.pts.map(q=>q[0]),ys=x.pts.map(q=>q[1]),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys),v=[];CTY.forEach(c=>{const b=c.b;if(b[2]<x0||b[0]>x1||b[3]<y0||b[1]>y1)return;if(dist({x:c.cx,y:c.cy},x.pts)===0||c.g.some(pl=>x.pts.some(q=>dist({x:q[0],y:q[1]},pl[0])===0)))v.push(c)});const names=v.map(c=>c.n).sort(),ss=[...new Set(v.map(c=>c.s).filter(Boolean))].sort();cc[x.id]={k:key,v:names,s:ss,p:v.map(c=>[c.n,c.s])};return names}
+const sof=x=>x.st?[...new Set(x.st)]:(cof(x),cc[x.id]?cc[x.id].s:[]),cl=x=>{const n=cof(x);return n.length?n.slice(0,3).join(', ')+(n.length>3?' +'+(n.length-3):'')+(n.length>1?' Cos.':' Co.')+(sof(x).length?' · '+sof(x).join(', '):''):''};
 function head(){const al=active(),top=al[0],c=loc&&CTY.length?cAt([loc.x,loc.y]):null;
  $('#hero').style.setProperty('--c',top?top.T.c:'var(--accent)');
  $('#hero').innerHTML=top?`<div class='lvl'>${al.length} active alert${al.length>1?'s':''}${loc?' for '+loc.n:''}. Most serious:</div><h1>${top.T.n}</h1><div>${top.area}. Expires in ${top.m>9000?'no set time':fmt(top.m)}.</div>`:loc?`<div class='lvl'>${loc.n}${c?' · '+c.n+' County, '+c.s:''}</div><h1>All clear</h1><div>No active alerts for this place.</div>`:`<div class='lvl'>${msg?'Place not found':'No location set'}</div><h1>${msg?'Try another name':'Type your town'}</h1><div>${msg||'Type a city or town above and tap Go to see its alerts.'}</div>`;
@@ -357,7 +362,7 @@ function openPop(e,svg){const r=svg.getBoundingClientRect(),p=[vb.x+(e.clientX-r
 function popH(){if(!pop)return'';const L=pop.ids.map(id=>D.find(x=>x.id===id)).filter(x=>x&&!exd(x));if(!L.length){pop=null;return''}
  const X=(pop.x-vb.x)/vb.w*100,Y=(pop.y-vb.y)/(vb.w*AR)*100;if(X<0||X>100||Y<0||Y>100)return'';
  const top=TYPES[L[0].k],below=Y<50,show=pop.more?L:[L[0]];
- const row=(x,i)=>{const T=TYPES[x.k],when=(x.t0?ft(x.t0)+' – ':'UNTIL ')+(x.exp?ft(x.exp):'NO END TIME');return `<button class='ar' data-pp='${i}' style='--c:${T.c}'><span class='ic'>!</span><span style='flex:1;min-width:0'><b>${T.n}</b><small>${when}</small></span>${i===0&&L.length>1&&!pop.more?`<span class='mo' data-pp='mo'>+${L.length-1} more</span>`:''}<span aria-hidden='true' style='color:#999;font-size:20px'>›</span></button>${pop.open===i?`<ul>${T.tip.map(t=>`<li>${t}</li>`).join('')}</ul>`:''}`};
+ const row=(x,i)=>{const T=TYPES[x.k],when=(x.t0?ft(x.t0)+' – ':'UNTIL ')+(x.exp?ft(x.exp):'NO END TIME');return `<button class='ar' data-pp='${i}' style='--c:${T.c}'><span class='ic'>!</span><span style='flex:1;min-width:0'><b>${T.n}</b><small>${when}</small></span>${i===0&&L.length>1&&!pop.more?`<span class='mo' data-pp='mo'>+${L.length-1} more</span>`:''}<span aria-hidden='true' style='color:#999;font-size:20px'>›</span></button>${pop.open===i?`<ul>${T.tip.map(t=>`<li>${t}</li>`).join('')}</ul>${ctyH(x.id,1)}`:''}`};
  return `<div class='pip' style='left:${X}%;top:calc(${Y}% ${below?'+':'-'} 12px)'></div><div class='pop' role='dialog' aria-label='Alerts here' style='left:clamp(6px,calc(${X}% - 165px),calc(100% - min(330px,calc(100% - 12px)) - 6px));${below?`top:calc(${Y}% + 12px)`:`bottom:calc(${100-Y}% + 12px)`}'><button class='x' data-pp='x' aria-label='Close'>×</button><div class='t'>Threat indicated in ${pop.cn}</div><h3>Severe Risk: ${LV[top.s]}</h3>${show.map(row).join('')}${pop.more&&L.length>1?`<button class='ar' data-pp='mo' style='justify-content:center;min-height:40px'>Show less</button>`:''}</div>`}
 const RZ=9;let RF=[],RH='',ri=0,rplay=null,rtime=0,rerr=false,rnow=0;
 async function getRadar(){if(RF.length&&Date.now()-rtime<3e5)return;const st=5*6e4,b=Math.floor((Date.now()-10*6e4)/st)*st,p=n=>String(n).padStart(2,'0');RF=[];for(let i=12;i>=0;i-=2){const d=new Date(b-i*st);RF.push({time:d.getTime()/1000,s:''+d.getUTCFullYear()+p(d.getUTCMonth()+1)+p(d.getUTCDate())+p(d.getUTCHours())+p(d.getUTCMinutes())})}rnow=RF.length;ri=RF.length-1;rtime=Date.now();rerr=false}
@@ -384,6 +389,9 @@ function drawFc(){const el=$('#fc');if(!el||!FC)return;const j=FC.j,c=j.current,
  const lo=Math.min(...Dd.temperature_2m_min),hi=Math.max(...Dd.temperature_2m_max),sp=Math.max(1,hi-lo);
  o+=`</div><h2>7 days</h2>`;Dd.time.forEach((t,i)=>{const w=wc(Dd.weather_code[i],1),a=Dd.temperature_2m_min[i],b=Dd.temperature_2m_max[i],pp=Dd.precipitation_probability_max[i];o+=`<div class='day' style='grid-template-columns:52px 30px 40px 1fr 34px'><b>${i?new Date(t+'T12:00').toLocaleDateString('en-US',{weekday:'short'}):'Today'}</b><span title='${w[1]}'>${w[0]}</span><small style='color:var(--mute)'>${pp>=10?pp+'%':''}</small><span style='display:flex;align-items:center;gap:6px'><small>${r(a)}°</small><span style='flex:1;height:6px;border-radius:3px;background:var(--line);position:relative'><span class='bar' style='position:absolute;left:${(a-lo)/sp*100}%;width:${Math.max(4,(b-a)/sp*100)}%;height:6px'></span></span></span><b style='text-align:right'>${r(b)}°</b></div>`});
  o+=`<p class='note'>Forecast for ${FC.n}. Type a town at the top to change it. Weather data by Open-Meteo.com.</p>`;el.innerHTML=o}
+function cpairs(x){if(!x)return[];if(x.cn)return x.cn.map((n,i)=>[n,(x.st&&(x.st[i]||x.st[0]))||'']);cof(x);return cc[x.id]&&cc[x.id].p||[]}
+function ctyH(id,dark){const P=cpairs(D.find(q=>q.id===id));if(!P.length)return'';const G={};P.forEach(([n,st])=>{(G[st||'Other']=G[st||'Other']||[]).push(n)});const sts=Object.keys(G).sort();
+ return `<div class='cty${dark?' dk':''}'><b>Counties (${P.length})</b>${sts.map(st=>`<div class='cs'>${sts.length>1||st!=='Other'?`<span>${st}</span>`:''}${[...new Set(G[st])].sort().join(', ')}</div>`).join('')}</div>`}
 function settings(){
  return `<h2>Alert types you follow</h2>`+Object.keys(TYPES).sort((a,b)=>TYPES[b].s-TYPES[a].s).map(k=>`<button class="sw" role="switch" aria-checked="${follow[k]}" style="--c:${TYPES[k].c}" data-s="${k}"><span>${TYPES[k].n}</span><i>${follow[k]?"On":"Off"}</i></button>`).join("")+`<p class="note">Warnings mean the hazard is happening or about to. Watches mean conditions allow it. Advisories mean an inconvenience or hazard is likely.</p>`;
 }
