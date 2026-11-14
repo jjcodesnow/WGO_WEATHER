@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#141c2a">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261114155148">
+<meta name="wgo-version" content="20261114155519">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -292,7 +292,7 @@ function design(){
  if(S&&S.kind==='area'&&!tool){const c=TYPES[S.k].c;S.pts.forEach((q,i)=>{const n=S.pts[(i+1)%S.pts.length],mx=(q[0]+n[0])/2,my=(q[1]+n[1])/2;s+=`<g data-e='${i}'><circle cx='${mx}' cy='${my}' r='${7*k}' style='fill:transparent'/><circle cx='${mx}' cy='${my}' r='${1*k}' style='fill:${c};opacity:.55;pointer-events:none'/></g>`});S.pts.forEach((q,i)=>{s+=`<g data-v='${i}'><circle cx='${q[0]}' cy='${q[1]}' r='${7*k}' style='fill:transparent'/><circle cx='${q[0]}' cy='${q[1]}' r='${1.6*k}' style='fill:${rm?'#d62828':'#fff'};stroke:${c};stroke-width:${.6*k}px;pointer-events:none'/></g>`})}
  if(draft.length)s+=`<g style='pointer-events:none'><polyline points='${pts(draft)}' style='fill:none;stroke:${tc};stroke-width:1.5px;stroke-dasharray:3 2'/>`+draft.map((q,i)=>`<circle cx='${q[0]}' cy='${q[1]}' r='${(i?2.2:3.5)*k}' style='fill:${tc};stroke:#fff;stroke-width:1px'/>`).join('')+`</g>`;
  s+='</svg>';
- const a=[],zc=`<button data-da='zo'>Zoom out</button><button data-da='zi'>Zoom in</button><button data-da='pan'>${pan?'Pan: on':'Pan: off'}</button><button data-da='snp'>${snap?'Snap: on':'Snap: off'}</button><button data-da='rad'>${radar?'Radar: on':'Radar: off'}</button>${radar?`<button data-da='sat'>${sat?'Ocean rain: on':'Ocean rain: off'}</button>`:''}${radar&&RF.length?`<button data-da='rpl'>${rplay?'⏸ Pause':'▶ Play'}</button><span id='rtm' class='note' style='margin:0'>${rlabel()}</span>`:''}`;
+ const a=[],zc=`<button data-da='zo'>Zoom out</button><button data-da='zi'>Zoom in</button><button data-da='pan'>${pan?'Pan: on':'Pan: off'}</button><button data-da='snp'>${snap?'Snap: on':'Snap: off'}</button><button data-da='rad'>${radar?'Radar: on':'Radar: off'}</button>${radar?`<button data-da='sat'>${{live:'Ocean: live clouds',rain:'Ocean: rain (7 hr old)',off:'Ocean: off'}[oceanMode()]}</button>`:''}${radar&&RF.length?`<button data-da='rpl'>${rplay?'⏸ Pause':'▶ Play'}</button><span id='rtm' class='note' style='margin:0'>${rlabel()}</span>`:''}`;
  if(tool&&tool.k)a.push(`<button data-da='bcy'>${bycty?'By county: on':'By county: off'}</button>`);
  if(tool&&tool.k)a.push(`<button data-da='free'>${free?'Freehand: on':'Freehand: off'}</button>`);
  if(S&&S.kind==='area'&&!tool)a.push(`<button data-da='rm'>${rm?'Done removing':'Remove corner'}</button>`);
@@ -310,14 +310,14 @@ function design(){
 function setupDesign(){
  if(tab==='map')fillStrip();
  if(full){const r0=$('#dmap').getBoundingClientRect(),a=r0.height/r0.width;if(r0.width&&Math.abs(a-AR)>.004){setAR(a);render();return}}
- const dz=$('#dz'),svg=$('#dmap'),pt=e=>{const r=svg.getBoundingClientRect();return[Math.max(0,Math.min(200,vb.x+(e.clientX-r.left)/r.width*vb.w)),Math.max(0,Math.min(125,vb.y+(e.clientY-r.top)/r.height*vb.w*AR))]};
+ const dz=$('#dz'),svg=$('#dmap'),pt=e=>{const r=svg.getBoundingClientRect();return[Math.max(BX0,Math.min(BX1,vb.x+(e.clientX-r.left)/r.width*vb.w)),Math.max(BY0,Math.min(BY1,vb.y+(e.clientY-r.top)/r.height*vb.w*AR))]};
  let drag=null;
  dz.onclick=e=>{
   const pb=e.target.closest('[data-pp]');if(pb){const v=pb.dataset.pp;if(v==='x')pop=null;else if(v==='mo')pop.more=!pop.more;else pop.open=pop.open===+v?null:+v;render();return}
   const t=e.target.closest('[data-dt]'),a=e.target.closest('[data-da]'),was=clr;
   if(t){draft=[];clr=false;pop=null;const v=t.dataset.dt;tool=v==='s'?null:v==='c'?{cty:1}:v[0]==='a'?{k:v.slice(2)}:{ic:v.slice(2)};render();return}
   if(a){const v=a.dataset.da;clr=false;
-   if(v==='full'){full=!full;pop=null;fsPrep(full);setAR(full?innerHeight/innerWidth:.625)}else if(v==='cal')calert();else if(v==='bcy')bycty=!bycty;else if(v==='ccl')selC={};else if(v==='snp')snap=!snap;else if(v==='sat')sat=!sat;else if(v==='rad'){radar=!radar;if(radar)getRadar().then(()=>{if(MT())render()});else stopRadar()}else if(v==='rpl'){if(rplay){stopRadar();userPaused=true}else{userPaused=false;playRadar()}}else if(v==='go')gotoLoc();else if(v==='zi'||v==='zo')zoom(v==='zi'?.5:2);else if(v==='pan'){pan=!pan;draft=[]}else if(v==='fin'&&draft.length>=3)finish();else if(v==='free'){free=!free;draft=[]}else if(v==='rm')rm=!rm;else if(v==='undo')draft.pop();else if(v==='cancel')draft=[];
+   if(v==='full'){full=!full;pop=null;fsPrep(full);setAR(full?innerHeight/innerWidth:.625)}else if(v==='cal')calert();else if(v==='bcy')bycty=!bycty;else if(v==='ccl')selC={};else if(v==='snp')snap=!snap;else if(v==='sat'){const om=oceanMode();ocean=om==='live'?'rain':om==='rain'?'off':(SF.length?'live':'rain')}else if(v==='rad'){radar=!radar;if(radar)getRadar().then(()=>{if(MT())render()});else stopRadar()}else if(v==='rpl'){if(rplay){stopRadar();userPaused=true}else{userPaused=false;playRadar()}}else if(v==='go')gotoLoc();else if(v==='zi'||v==='zo')zoom(v==='zi'?.5:2);else if(v==='pan'){pan=!pan;draft=[]}else if(v==='fin'&&draft.length>=3)finish();else if(v==='free'){free=!free;draft=[]}else if(v==='rm')rm=!rm;else if(v==='undo')draft.pop();else if(v==='cancel')draft=[];
    else if(v==='del'){D=D.filter(x=>x.id!==dsel);dsel=null;save()}
    else if(v==='clr'){if(was){D=[];dsel=null;save()}else clr=true}
    render();return}
@@ -344,7 +344,7 @@ function setupDesign(){
   if(v&&S){if(v.dataset.e!==undefined){const i=+v.dataset.e;S.pts.splice(i+1,0,pt(e));drag={S,vi:i+1,m:true}}else drag={S,vi:+v.dataset.v,m:false};svg.setPointerCapture(e.pointerId);return}
   lastMv=false;od(e)};
  svg.onpointermove=e=>{
-  if(panD){const r=svg.getBoundingClientRect(),q=vb.w/r.width;vb.x=Math.max(0,Math.min(200-vb.w,panD.vx-(e.clientX-panD.x)*q));vb.y=clY(panD.vy-(e.clientY-panD.y)*q,vb.w);svg.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.w*AR);return}
+  if(panD){const r=svg.getBoundingClientRect(),q=vb.w/r.width;vb.x=clX(panD.vx-(e.clientX-panD.x)*q,vb.w);vb.y=clY(panD.vy-(e.clientY-panD.y)*q,vb.w);svg.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.w*AR);return}
   if(fd){const p=snapTo(pt(e),svg),l=draft[draft.length-1];if(Math.hypot(p[0]-l[0],p[1]-l[1])>2.5*vb.w/200){draft.push(p);fh.setAttribute('points',pts(draft))}return}
   if(drag&&drag.vi!==undefined){drag.S.pts[drag.vi]=snapTo(pt(e),svg);drag.m=true;svg.querySelector(`[data-id='${drag.S.id}'] polygon`).setAttribute('points',pts(drag.S.pts));return}
   om(e)};
@@ -358,12 +358,12 @@ function setupDesign(){
  ['pointerdown','pointermove','pointerup'].forEach(t=>svg.addEventListener(t,e=>{if(pin)e.stopImmediatePropagation()},true));
  svg.addEventListener('gesturestart',e=>e.preventDefault());
  svg.addEventListener('touchstart',e=>{if(e.touches.length!==2)return;e.preventDefault();const m=tm(e.touches),r=svg.getBoundingClientRect();pin={d:m.d,w:vb.w,ax:vb.x+(m.x-r.left)/r.width*vb.w,ay:vb.y+(m.y-r.top)/r.height*vb.w*AR};if(drag&&drag.el)drag.el.removeAttribute('transform');drag=null;panD=null;if(fd){fd=false;draft=[];if(fh)fh.remove()}},{passive:false});
- svg.addEventListener('touchmove',e=>{if(!pin||e.touches.length<2)return;e.preventDefault();const m=tm(e.touches),r=svg.getBoundingClientRect(),nw=Math.max(8,Math.min(200,pin.w*pin.d/Math.max(1,m.d))),fx=(m.x-r.left)/r.width,fy=(m.y-r.top)/r.height;vb.w=nw;vb.x=Math.max(0,Math.min(200-nw,pin.ax-fx*nw));vb.y=clY(pin.ay-fy*nw*AR,nw);svg.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.w*AR)},{passive:false});
+ svg.addEventListener('touchmove',e=>{if(!pin||e.touches.length<2)return;e.preventDefault();const m=tm(e.touches),r=svg.getBoundingClientRect(),nw=Math.max(8,Math.min(BW,pin.w*pin.d/Math.max(1,m.d))),fx=(m.x-r.left)/r.width,fy=(m.y-r.top)/r.height;vb.w=nw;vb.x=clX(pin.ax-fx*nw,nw);vb.y=clY(pin.ay-fy*nw*AR,nw);svg.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.w*AR)},{passive:false});
  svg.addEventListener('touchend',e=>{if(pin&&e.touches.length<2){pin=null;lastUp=Date.now();lastMv=true;setTimeout(render,0)}})}
-function zoom(f){const nw=Math.max(8,Math.min(200,vb.w*f)),cx=vb.x+vb.w/2,cy=vb.y+vb.w*AR/2;vb.w=nw;vb.x=Math.max(0,Math.min(200-nw,cx-nw/2));vb.y=clY(cy-nw*AR/2,nw)}
+function zoom(f){const nw=Math.max(8,Math.min(BW,vb.w*f)),cx=vb.x+vb.w/2,cy=vb.y+vb.w*AR/2;vb.w=nw;vb.x=clX(cx-nw/2,nw);vb.y=clY(cy-nw*AR/2,nw)}
 function base(){
- if(US)return `<rect width='200' height='125' style='fill:var(--bg)'/><g transform='scale(.205128)'><path d='${US.nation}' style='fill:var(--surface)'/><path d='${US.counties}' style='fill:none;stroke:var(--mute);stroke-width:.8px;opacity:.6;vector-effect:non-scaling-stroke'/><path d='${US.states}' style='fill:none;stroke:var(--ink);stroke-width:2px;vector-effect:non-scaling-stroke'/><path d='${US.nation}' style='fill:none;stroke:var(--ink);stroke-width:3.5px;vector-effect:non-scaling-stroke'/></g>`;
- let g=`<rect width='200' height='125' style='fill:var(--surface)'/>`;for(let i=25;i<200;i+=25)g+=`<path class='gl' d='M${i} 0V125M0 ${i}H200'/>`;
+ if(US)return `<rect x='${BX0}' y='${BY0}' width='${BW}' height='${BH}' style='fill:var(--bg)'/><g transform='scale(.205128)'><path d='${US.nation}' style='fill:var(--surface)'/><path d='${US.counties}' style='fill:none;stroke:var(--mute);stroke-width:.8px;opacity:.6;vector-effect:non-scaling-stroke'/><path d='${US.states}' style='fill:none;stroke:var(--ink);stroke-width:2px;vector-effect:non-scaling-stroke'/><path d='${US.nation}' style='fill:none;stroke:var(--ink);stroke-width:3.5px;vector-effect:non-scaling-stroke'/></g>`;
+ let g=`<rect x='${BX0}' y='${BY0}' width='${BW}' height='${BH}' style='fill:var(--surface)'/>`;for(let i=25;i<200;i+=25)g+=`<path class='gl' d='M${i} 0V125M0 ${i}H200'/>`;
  return g+`<text class='rl' x='4' y='10' style='font-size:6px'>${usErr?'The real map could not load. Showing a plain grid.':'Loading the US map...'}</text>`}
 async function loadUS(){try{
  const u='https://cdn.jsdelivr.net/npm/us-atlas@3.0.1/counties-albers-10m.json',m=await import(u,{with:{type:'json'}}),t=m.default,P=d3.geoPath();
@@ -396,7 +396,10 @@ function radarL(){if(!radar)return'';if(!RF.length)return `<text class='lbl' sty
  const tiles=zz=>{const L=[],a0=tx(lo0,zz),a1=tx(lo1,zz),b0=ty(la1,zz),b1=ty(la0,zz);for(let x=a0;x<=a1;x++)for(let y=b0;y<=b1;y++){const p0=pr(tl(x,zz),tt(y,zz)),p1=pr(tl(x+1,zz),tt(y,zz)),p2=pr(tl(x,zz),tt(y+1,zz));L.push({x,y,m:[p1[0]-p0[0],p1[1]-p0[1],p2[0]-p0[0],p2[1]-p0[1],p0[0],p0[1]].map(v=>v.toFixed(3)).join(' ')})}return L},T=tiles(z);
  // NASA satellite rain (IMERG) fills in the ocean, where radar can't reach.
  // It is about 6 to 7 hours old, so it is hidden over the US, where radar is live.
- let S='';if(sat&&US){const zs=Math.min(6,z),TS=tiles(zs);S=`<defs><mask id='ocm' maskUnits='userSpaceOnUse' x='-100' y='-100' width='400' height='325'><rect x='-100' y='-100' width='400' height='325' fill='#fff'/><g transform='scale(.205128)'><path d='${US.nation}' fill='#000'/></g></mask></defs><g mask='url(#ocm)' style='pointer-events:none;opacity:.75'>`+[...Array(SATN).keys()].map(k=>`<g data-sf='${k}' style='display:${k===si?'inline':'none'}'>`+TS.map(t=>`<image href='https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/IMERG_Precipitation_Rate_30min/default/${satTime(SATN-1-k)}/GoogleMapsCompatible_Level6/${zs}/${t.y}/${t.x}.png' width='1.004' height='1.004' preserveAspectRatio='none' transform='matrix(${t.m})'/>`).join('')+'</g>').join('')+'</g>'}
+ let S='';const om=oceanMode();if(om!=='off'&&US){const zs=Math.min(6,z),TS=tiles(zs),img=u=>TS.map(t=>`<image href='${u(t)}' width='1.004' height='1.004' preserveAspectRatio='none' transform='matrix(${t.m})'/>`).join(''),cur=oceanIdx();
+  S=`<defs><mask id='ocm' maskUnits='userSpaceOnUse' x='-200' y='-200' width='600' height='500'><rect x='-200' y='-200' width='600' height='500' fill='#fff'/><g transform='scale(.205128)'><path d='${US.nation}' fill='#000'/></g></mask></defs><g mask='url(#ocm)' style='pointer-events:none;opacity:${om==='live'?.6:.75}'>`+
+  (om==='live'?SF.map((f,i)=>`<g data-of='${i}' style='display:${i===cur?'inline':'none'}'>`+img(t=>`${RH}${f.path}/256/${zs}/${t.x}/${t.y}/0/0_0.png`)+'</g>').join('')
+   :IMT().map((st,i)=>`<g data-of='${i}' style='display:${i===cur?'inline':'none'}'>`+img(t=>`https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/IMERG_Precipitation_Rate_30min/default/${st}/GoogleMapsCompatible_Level6/${zs}/${t.y}/${t.x}.png`)+'</g>').join(''))+'</g>'}
  return S+`<g style='pointer-events:none;opacity:${RSRC==='lwx'?.85:.7}'>`+RF.map((f,i)=>`<g data-rf='${i}' style='display:${i===ri?'inline':'none'}'>`+T.map(t=>`<image href='${rurl(f,z,t.x,t.y)}' onerror='radarBad()' width='1.004' height='1.004' preserveAspectRatio='none' transform='matrix(${t.m})'/>`).join('')+'</g>').join('')+'</g>'}
 function lp(){if(!loc)return msg?`<p class='note' style='margin:0 0 8px'>${msg}</p>`:'';const c=CTY.length?cAt([loc.x,loc.y]):null,hit=D.filter(x=>x.kind==='area'&&(dist({x:loc.x,y:loc.y},x.pts)===0||(c&&cof(x).includes(c.n)&&sof(x).includes(c.s)))),on=hit.filter(x=>!exd(x));return `<div class='lp'><b>${loc.n}</b>${c?' · '+c.n+' County':''}<br>${on.length?on.map(x=>`<span class='tag' style='--c:${TYPES[x.k].c}'>${TYPES[x.k].n.split(' ').pop().toUpperCase()}</span>${TYPES[x.k].n}${tl(x)}${cl(x)?' · '+cl(x):''}`).join('<br>'):'No active alerts here.'}${hit.length>on.length?'<br><small>Expired alerts are not counted.</small>':''}</div>`}
 function srch(){return `${lp()}`}
@@ -416,7 +419,8 @@ function head(){const al=active(),top=al[0],c=loc&&CTY.length?cAt([loc.x,loc.y])
 let tS=null,tE=null;const li=ms=>{const d=new Date(ms);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16)};
 const MT=()=>tab==='design'||tab==='map';
 let pop=null,lastMv=false,AR=.625,full=false;
-const clY=(y,w)=>{const h=w*AR;return h>=125?(125-h)/2:Math.max(0,Math.min(125-h,y))};
+const BX0=-70,BX1=270,BY0=-45,BY1=170,BW=BX1-BX0,BH=BY1-BY0,clX=(x,w)=>w>=BW?BX0+(BW-w)/2:Math.max(BX0,Math.min(BX1-w,x));
+const clY=(y,w)=>{const h=w*AR;return h>=BH?BY0+(BH-h)/2:Math.max(BY0,Math.min(BY1-h,y))};
 function setAR(a){const c=vb.y+vb.w*AR/2;AR=a;vb.y=clY(c-vb.w*AR/2,vb.w)}
 addEventListener('resize',()=>{if(full&&MT()){setAR(innerHeight/innerWidth);render()}});
 const LV=['','Low','Possible','Elevated','High','Extreme'];
@@ -433,7 +437,7 @@ const RZ=9;let RF=[],RH='',ri=0,rplay=null,rtime=0,rerr=false,rnow=0;
 function getRadarIEM(){RSRC='iem';const st=5*6e4,b=Math.floor((Date.now()-10*6e4)/st)*st,p=n=>String(n).padStart(2,'0');RF=[];for(let i=12;i>=0;i-=2){const d=new Date(b-i*st);RF.push({time:d.getTime()/1000,s:''+d.getUTCFullYear()+p(d.getUTCMonth()+1)+p(d.getUTCDate())+p(d.getUTCHours())+p(d.getUTCMinutes())})}rnow=RF.length;ri=RF.length-1;rtime=Date.now();rerr=false}
 function stopRadar(){if(rplay)clearInterval(rplay);rplay=null}
 function rlabel(){const f=RF[ri];if(!f)return'';if(tab==='map'&&ri===rnow-1)return 'Now';const t=new Date(f.time*1000).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});return t+(ri>=rnow?' (forecast)':ri===rnow-1?' (latest)':'')}
-function showRF(){document.querySelectorAll('[data-rf]').forEach(g=>g.style.display=+g.dataset.rf===ri?'inline':'none');const t=$('#rtm');if(t)t.textContent=rlabel();const sl=$('#rsl');if(sl)sl.value=ri}
+function showRF(){document.querySelectorAll('[data-rf]').forEach(g=>g.style.display=+g.dataset.rf===ri?'inline':'none');const oi=oceanIdx();document.querySelectorAll('[data-of]').forEach(g=>g.style.display=+g.dataset.of===oi?'inline':'none');const t=$('#rtm');if(t)t.textContent=rlabel();const sl=$('#rsl');if(sl)sl.value=ri}
 const WC={0:['☀️','Clear'],1:['🌤️','Mostly clear'],2:['⛅','Partly cloudy'],3:['☁️','Cloudy'],45:['🌫️','Fog'],48:['🌫️','Freezing fog'],51:['🌦️','Light drizzle'],53:['🌦️','Drizzle'],55:['🌧️','Heavy drizzle'],56:['🌧️','Freezing drizzle'],57:['🌧️','Freezing drizzle'],61:['🌧️','Light rain'],63:['🌧️','Rain'],65:['🌧️','Heavy rain'],66:['🌧️','Freezing rain'],67:['🌧️','Freezing rain'],71:['🌨️','Light snow'],73:['🌨️','Snow'],75:['❄️','Heavy snow'],77:['🌨️','Snow grains'],80:['🌦️','Showers'],81:['🌧️','Showers'],82:['⛈️','Heavy showers'],85:['🌨️','Snow showers'],86:['❄️','Heavy snow showers'],95:['⛈️','Thunderstorms'],96:['⛈️','Storms with hail'],99:['⛈️','Storms with hail']};
 const wc=(c,day)=>{const w=WC[c]||['☁️','—'];return day===0&&c<=1?['🌙',c?'Mostly clear':'Clear']:w};
 let FC=null,FK='',FCH='';
@@ -494,7 +498,7 @@ async function syncPush(strict){if(!pushOn||!PUSH_API||!pushOK())return;
  catch(e){if(strict)throw e}}
 let FAV=(()=>{try{return JSON.parse(localStorage.getItem('wgo-favs'))||[]}catch(e){return[]}})();
 const saveFav=()=>{try{localStorage.setItem('wgo-favs',JSON.stringify(FAV))}catch(e){}},fvKey=p=>p.la.toFixed(3)+','+p.lo.toFixed(3);
-function setLoc(p){loc=p;msg='';try{$('#q').blur()}catch(e){};const q=$('#q');if(q)q.value=p.n;vb.w=30;vb.x=Math.max(0,Math.min(170,p.x-15));vb.y=clY(p.y-15*AR,30);render()}
+function setLoc(p){loc=p;msg='';try{$('#q').blur()}catch(e){};const q=$('#q');if(q)q.value=p.n;vb.w=30;vb.x=clX(p.x-15,30);vb.y=clY(p.y-15*AR,30);render()}
 function isFav(){return !!(loc&&loc.la!=null&&FAV.some(f=>fvKey(f)===fvKey(loc)))}
 function toggleFav(){if(!loc||loc.la==null){msg='Find a place first, then tap the heart to save it.';loc=null;render();return}
  if(isFav())FAV=FAV.filter(f=>fvKey(f)!==fvKey(loc));else FAV.push({n:loc.n,la:loc.la,lo:loc.lo});saveFav();render()}
@@ -508,15 +512,22 @@ function focusAlert(id){const x=D.find(q=>String(q.id)===String(id)&&q.kind==='a
  const name=c?c.n+' County, '+c.s:(x.cn?x.cn[0]+' County'+(x.st&&x.st[0]?', '+x.st[0]:''):(cl(x)||TYPES[x.k].n+' area'));
  loc={n:name,x:cx,y:cy,la:ll?ll[1]:null,lo:ll?ll[0]:null};msg='';const q=$('#q');if(q)q.value=name;
  tab='map';full=false;tool=null;dsel=null;setAR(.625);
- const w=Math.max(8,Math.min(200,Math.max(x1-x0,(y1-y0)/AR)*1.8));vb.w=w;vb.x=Math.max(0,Math.min(200-w,cx-w/2));vb.y=clY(cy-w*AR/2,w);
+ const w=Math.max(8,Math.min(200,Math.max(x1-x0,(y1-y0)/AR)*1.8));vb.w=w;vb.x=clX(cx-w/2,w);vb.y=clY(cy-w*AR/2,w);
  pop={x:cx,y:cy,ids:[x.id],cn:c?c.n+' County':(cl(x)||'this area'),more:false,open:null};render();
  const m=$('#dmap');if(m)m.scrollIntoView({block:'center'})}
-let RSRC='',lwxBad=0,sat=true;const SATN=4;let si=SATN-1;const satTime=(back=0)=>new Date(Math.floor((Date.now()-7*36e5)/18e5)*18e5-back*18e5).toISOString().slice(0,19)+'Z';
-function showSF(){document.querySelectorAll('[data-sf]').forEach(g=>g.style.display=+g.dataset.sf===si?'inline':'none')}
+let RSRC='',lwxBad=0,ocean='auto',SF=[];
+// Ocean layer: 'live' = LibreWXR's satellite cloud pictures (about as recent as the radar),
+// 'rain' = NASA's IMERG rain estimate (7 to 9 hours old), or 'off'. Both play along with the radar.
+const oceanMode=()=>ocean==='auto'?(SF.length?'live':'rain'):ocean;
+const IMT=()=>{const b=Math.floor((Date.now()-7*36e5)/18e5)*18e5;return [3,2,1,0].map(i=>new Date(b-i*18e5).toISOString().slice(0,19)+'Z')};
+function oceanIdx(){const om=oceanMode(),f=RF[ri];if(om==='live'){if(!SF.length)return -1;if(!f)return SF.length-1;let k=0;SF.forEach((x,i)=>{if(Math.abs(x.time-f.time)<Math.abs(SF[k].time-f.time))k=i});return k}
+ const n=4;return RF.length>1?Math.round(ri/(RF.length-1)*(n-1)):n-1}
+const oceanNote=()=>{const om=oceanMode();return om==='live'?'Ocean: live satellite clouds':om==='rain'?'Ocean rain: NASA satellite estimate, 7 to 9 hours old':''};
+
 const LWX='https://api.librewxr.net';
 async function getRadar(){if(RF.length&&Date.now()-rtime<3e5)return;
  if(lwxBad<3){try{const j=await (await fetch(LWX+'/public/weather-maps.json',{cache:'no-store'})).json(),past=(j.radar&&j.radar.past)||[],nc=(j.radar&&j.radar.nowcast)||[];if(!past.length)throw 0;
-  RSRC='lwx';RH=/^https:\/\//.test(j.host||'')?j.host:LWX;RF=past.concat(nc);rnow=past.length;ri=past.length-1;rtime=Date.now();rerr=false;return}catch(e){}}
+  RSRC='lwx';RH=/^https:\/\//.test(j.host||'')?j.host:LWX;SF=((j.satellite&&j.satellite.infrared)||[]).slice(-8);RF=past.concat(nc);rnow=past.length;ri=past.length-1;rtime=Date.now();rerr=false;return}catch(e){}}
  getRadarIEM()}
 function rurl(f,z,x,y){return RSRC==='lwx'?`${RH}${f.path}/256/${z}/${x}/${y}/4/1_1.png`:`https://mesonet.agron.iastate.edu/c/tile.py/1.0.0/ridge::USCOMP-N0Q-${f.s}/${z}/${x}/${y}.png`}
 function radarBad(){if(RSRC!=='lwx'||++lwxBad<3)return;stopRadar();RF=[];rtime=0;getRadarIEM();if(MT())render()}
@@ -525,13 +536,13 @@ function legendH(){const g=c=>`<span class='lg' style='background:linear-gradien
  F=(x,y,r)=>`<g stroke='#fff' stroke-width='1.6' stroke-linecap='round'><path d='M${x} ${y-r}V${y+r}M${x-r*.87} ${y-r/2}L${x+r*.87} ${y+r/2}M${x-r*.87} ${y+r/2}L${x+r*.87} ${y-r/2}'/></g>`,
  ic=b=>`<svg width='22' height='16' viewBox='0 0 22 16' aria-hidden='true'>${b}</svg>`,
  rain=ic(D1(6,9,3.2)+D1(15,8,4)),snow=ic(F(11,8,6)),mix=ic(D1(5,9,3)+F(15,8,5)),hail=ic(`<g stroke='#fff' stroke-width='1.8' stroke-linecap='round'><path d='M4 13L8 3M8.5 13L12.5 3'/></g>`+D1(17,9,3.4));
- return RSRC==='lwx'?`<div class='lgd' role='img' aria-label='Radar key: rain green to white, snow light to dark blue, rain and snow mix pink, hail purple'><div>${rain}${g('#7fe07f 0%,#2f9a3a 22%,#0f4a12 38%,#f3d23c 48%,#e0702a 58%,#c0281e 70%,#8b1a1a 82%,#ffffff 92%')}</div><div>${snow}${g('#a9f2ff 0%,#7fd6e6 25%,#3c8e9e 50%,#1e4f5e 72%,#16303f 100%')}</div><div>${mix}${g('#f4b3d2 0%,#e07bb0 35%,#b94080 70%,#8c1a55 100%')}</div><div>${hail}${g('#c9b6f2 0%,#9b7fe0 40%,#6c4cc4 75%,#4b2f96 100%')}</div>${sat?`<small class='lgn'>Ocean rain: NASA satellite estimate, 7 to 9 hours old</small>`:''}</div>`
- :`<div class='lgd one' role='img' aria-label='Radar key: rain or snow from light to heavy'><div>${rain}${g('#4ad7e8,#2f8ef0,#1fc23a,#0c7d1a,#f5e132,#f28f1c,#e3241b,#b5125f,#f0f0f0')}</div>${sat?`<small class='lgn'>Ocean rain: NASA satellite estimate, 7 to 9 hours old</small>`:''}</div>`}
+ return RSRC==='lwx'?`<div class='lgd' role='img' aria-label='Radar key: rain green to white, snow light to dark blue, rain and snow mix pink, hail purple'><div>${rain}${g('#7fe07f 0%,#2f9a3a 22%,#0f4a12 38%,#f3d23c 48%,#e0702a 58%,#c0281e 70%,#8b1a1a 82%,#ffffff 92%')}</div><div>${snow}${g('#a9f2ff 0%,#7fd6e6 25%,#3c8e9e 50%,#1e4f5e 72%,#16303f 100%')}</div><div>${mix}${g('#f4b3d2 0%,#e07bb0 35%,#b94080 70%,#8c1a55 100%')}</div><div>${hail}${g('#c9b6f2 0%,#9b7fe0 40%,#6c4cc4 75%,#4b2f96 100%')}</div>${oceanNote()?`<small class='lgn'>${oceanNote()}</small>`:''}</div>`
+ :`<div class='lgd one' role='img' aria-label='Radar key: rain or snow from light to heavy'><div>${rain}${g('#4ad7e8,#2f8ef0,#1fc23a,#0c7d1a,#f5e132,#f28f1c,#e3241b,#b5125f,#f0f0f0')}</div>${oceanNote()?`<small class='lgn'>${oceanNote()}</small>`:''}</div>`}
 // On the Map tab the slider runs from now into the forecast. If there is no
 // forecast radar, it plays the past radar up to now instead, so the rain still moves.
 const hasFc=()=>RF.length-1>rnow-1,rlo=()=>tab==='map'&&hasFc()?Math.max(0,rnow-1):0;
 let userPaused=false;
-function playRadar(){if(rplay||RF.length<2)return;rplay=setInterval(()=>{if(!RF.length||!MT()||!radar){stopRadar();return}ri=ri+1>=RF.length||ri<rlo()?rlo():ri+1;showRF();si=(si+1)%SATN;showSF()},700)}
+function playRadar(){if(rplay||RF.length<2)return;rplay=setInterval(()=>{if(!RF.length||!MT()||!radar){stopRadar();return}ri=ri+1>=RF.length||ri<rlo()?rlo():ri+1;showRF()},700)}
 function autoPlay(){if(tab==='map'&&radar&&!userPaused&&RF.length>1&&!rplay){playRadar();const b=document.querySelector('.rpb');if(b){b.textContent='\u275a\u275a';b.setAttribute('aria-label','Pause radar')}}}
 const t12=s=>{const d=new Date(s*1000),h=d.getHours(),m=d.getMinutes();return (h%12||12)+':'+String(m).padStart(2,'0')+(h<12?'a':'p')};
 function bottomH(){const lo=rlo(),hasF=RF.length-1>lo;if(RF.length&&ri<lo)ri=lo;const nowT=`<span id='rnowt'>${t12(Date.now()/1000)}</span>`;
