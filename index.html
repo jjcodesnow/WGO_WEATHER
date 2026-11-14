@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#141c2a">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261114094038">
+<meta name="wgo-version" content="20261114095314">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -126,6 +126,8 @@ nav{overflow-x:auto}nav button{flex:1 0 auto;padding:0 12px}
 .tms{display:flex;flex-wrap:wrap;gap:8px;width:100%}
 .tms label{display:flex;flex-direction:column;font-size:13px;color:var(--mute);gap:2px;flex:1;min-width:150px}
 .act .tms input{width:100%;color:var(--ink)}
+#fav{font-size:22px;line-height:1}
+#favs{margin:-4px 0 10px}
 .lp{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;margin:0 0 8px;font-size:15px}
 @media (prefers-reduced-motion:no-preference){.alert[open] .body{animation:o .15s ease-out}@keyframes o{from{opacity:0}to{opacity:1}}}
 </style>
@@ -137,9 +139,10 @@ nav{overflow-x:auto}nav button{flex:1 0 auto;padding:0 12px}
   <header class="brand"><div><span class='tg'>Oswego's Very Own</span><h1>WGO <i>9</i></h1><span class='wx'>Weather</span></div></header>
   <div class="top">
     <label for="q" style="position:absolute;left:-9999px">Location</label>
-    <input id="q" list="pl" placeholder="Type your city or town" autocomplete="off" aria-label="City or town" style="flex:1;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);min-height:44px"><button class="icon" id="go" aria-label="Find this place" style="padding:0 14px">Go</button><datalist id="pl"></datalist>
+    <input id="q" list="pl" placeholder="Type your city or town" autocomplete="off" aria-label="City or town" style="flex:1;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);min-height:44px"><button class="icon" id="go" aria-label="Find this place" style="padding:0 14px">Go</button><button class="icon" id="fav" aria-label="Save this place as a favorite" aria-pressed="false">♡</button><datalist id="pl"></datalist>
     <button class="icon" id="theme" aria-label="Switch light or dark theme">◐</button>
   </div>
+  <div class="chips" id="favs" hidden></div>
   <section class="hero" id="hero"></section>
   <div class="stats" id="stats"></div>
   <nav role="tablist" aria-label="Sections">
@@ -350,13 +353,13 @@ async function gotoLoc(){const q=($('#q')||{value:''}).value.trim().toLowerCase(
  else if(q)p=PLC.find(a=>a.n.toLowerCase()===q)||PLC.find(a=>a.n.toLowerCase().includes(q));
  if(!p&&q&&!m){try{const r=await fetch('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(q.split(',')[0].trim())+'&count=5&language=en&format=json&countryCode=US'),j=await r.json(),h=j.results||[],st=(q.split(',')[1]||'').trim(),f=h.find(a=>st&&(a.admin1||'').toLowerCase().startsWith(st))||h[0];if(f){const z=proj(f.latitude,f.longitude);if(z)p={n:f.name+(f.admin1?', '+f.admin1:''),x:z[0],y:z[1],la:f.latitude,lo:f.longitude}}}catch(e){}}
  if(!p){loc=null;msg=PLC.length?'I could not find that place. Pick one from the suggestions, or type latitude, longitude.':'The map is still loading. Try again in a moment.';render();return}
- loc=p;msg='';vb.w=30;vb.x=Math.max(0,Math.min(170,p.x-15));vb.y=clY(p.y-15*AR,30);render()}
+ setLoc(p)}
 function addC(c){c.g.forEach(pl=>{const r=pl[0],n=Math.ceil(r.length/150);D.push({id:nid(),kind:'area',k:tool.k,pts:r.filter((_,i)=>i%n===0),cn:[c.n],st:[c.s],t0:tS||Date.now(),exp:tE||(tS||Date.now())+dur*6e4})})}
 function cof(x){if(x.cn)return x.cn;if(!CTY.length)return[];const key=x.pts.reduce((s,q)=>s+q[0]*3+q[1],0).toFixed(2);if(cc[x.id]&&cc[x.id].k===key)return cc[x.id].v;const xs=x.pts.map(q=>q[0]),ys=x.pts.map(q=>q[1]),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys),v=[];CTY.forEach(c=>{const b=c.b;if(b[2]<x0||b[0]>x1||b[3]<y0||b[1]>y1)return;if(dist({x:c.cx,y:c.cy},x.pts)===0||c.g.some(pl=>x.pts.some(q=>dist({x:q[0],y:q[1]},pl[0])===0)))v.push(c)});const names=v.map(c=>c.n).sort(),ss=[...new Set(v.map(c=>c.s).filter(Boolean))].sort();cc[x.id]={k:key,v:names,s:ss,p:v.map(c=>[c.n,c.s])};return names}
 const sof=x=>x.st?[...new Set(x.st)]:(cof(x),cc[x.id]?cc[x.id].s:[]),cl=x=>{const n=cof(x);return n.length?n.slice(0,3).join(', ')+(n.length>3?' +'+(n.length-3):'')+(n.length>1?' Cos.':' Co.')+(sof(x).length?' · '+sof(x).join(', '):''):''};
 function head(){const al=active(),top=al[0],c=loc&&CTY.length?cAt([loc.x,loc.y]):null;
  $('#hero').style.setProperty('--c',top?top.T.c:'var(--accent)');
- $('#hero').innerHTML=top?`<div class='lvl'>${al.length} active alert${al.length>1?'s':''}${loc?' for '+loc.n:''}. Most serious:</div><h1>${top.T.n}</h1><div>${top.area}. Expires in ${top.m>9000?'no set time':fmt(top.m)}.</div>`:loc?`<div class='lvl'>${loc.n}${c?' · '+c.n+' County, '+c.s:''}</div><h1>All clear</h1><div>No active alerts for this place.</div>`:`<div class='lvl'>${msg?'Place not found':'No location set'}</div><h1>${msg?'Try another name':'Type your town'}</h1><div>${msg||'Type a city or town above and tap Go to see its alerts.'}</div>`;
+ $('#hero').innerHTML=top?`<div class='lvl'>${al.length} active alert${al.length>1?'s':''}${loc?' for '+loc.n:''}. Most serious:</div><h1>${top.T.n}</h1><div>${top.area}. Expires in ${top.m>9000?'no set time':fmt(top.m)}.</div>`:loc?`<div class='lvl'>${loc.n}${c?' · '+c.n+' County, '+c.s:''}</div><h1>All clear</h1><div>No active alerts for this place.</div>`:`<div class='lvl'>${msg&&!msg.startsWith('Find a place')?'Place not found':'No location set'}</div><h1>${msg&&!msg.startsWith('Find a place')?'Try another name':'Type your town'}</h1><div>${msg||'Type a city or town above and tap Go to see its alerts.'}</div>`;
  $('#stats').innerHTML=''}
 let tS=null,tE=null;const li=ms=>{const d=new Date(ms);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16)};
 let pop=null,lastMv=false,AR=.625,full=false;
@@ -435,16 +438,26 @@ async function syncPush(strict){if(!pushOn||!PUSH_API||!pushOK())return;
   const now=Date.now(),alerts=D.filter(x=>x.kind==='area'&&follow[x.k]).map(x=>{const s0=x.t0||now,e0=x.exp||s0+36e5,w=cl(x);return{id:String(x.id),start:s0,end:e0,title:TYPES[x.k].n,body:(w?w+' · ':'')+(x.t0?ft(s0)+' – ':'Until ')+ft(e0)}}).filter(a=>a.end>now);
   const r=await post('/sync',{sub:sub.toJSON(),alerts});if(strict&&!r.ok)throw new Error(r.error||'could not reach the alert server')}
  catch(e){if(strict)throw e}}
+let FAV=(()=>{try{return JSON.parse(localStorage.getItem('wgo-favs'))||[]}catch(e){return[]}})();
+const saveFav=()=>{try{localStorage.setItem('wgo-favs',JSON.stringify(FAV))}catch(e){}},fvKey=p=>p.la.toFixed(3)+','+p.lo.toFixed(3);
+function setLoc(p){loc=p;msg='';const q=$('#q');if(q)q.value=p.n;vb.w=30;vb.x=Math.max(0,Math.min(170,p.x-15));vb.y=clY(p.y-15*AR,30);render()}
+function isFav(){return !!(loc&&loc.la!=null&&FAV.some(f=>fvKey(f)===fvKey(loc)))}
+function toggleFav(){if(!loc||loc.la==null){msg='Find a place first, then tap the heart to save it.';loc=null;render();return}
+ if(isFav())FAV=FAV.filter(f=>fvKey(f)!==fvKey(loc));else FAV.push({n:loc.n,la:loc.la,lo:loc.lo});saveFav();render()}
+function goFav(i){const f=FAV[i];if(!f)return;const z=proj(f.la,f.lo);if(!z)return;setLoc({n:f.n,x:z[0],y:z[1],la:f.la,lo:f.lo})}
+function favUI(){const b=$('#fav'),on=isFav();if(b){b.textContent=on?'♥':'♡';b.style.color=on?'#d62828':'';b.setAttribute('aria-pressed',on);b.setAttribute('aria-label',on?'Remove this place from favorites':'Save this place as a favorite')}
+ const el=$('#favs');if(!el)return;el.hidden=!FAV.length;el.innerHTML=FAV.map((f,i)=>`<button class='chip' style='--c:#d62828' aria-pressed='${!!(loc&&loc.la!=null&&fvKey(f)===fvKey(loc))}' data-fv='${i}'><span style='color:#d62828' aria-hidden='true'>♥</span> ${f.n}</button>`).join('')}
 function settings(){
  return `<h2>Alert types you follow</h2>`+Object.keys(TYPES).sort((a,b)=>TYPES[b].s-TYPES[a].s).map(k=>`<button class="sw" role="switch" aria-checked="${follow[k]}" style="--c:${TYPES[k].c}" data-s="${k}"><span>${TYPES[k].n}</span><i>${follow[k]?"On":"Off"}</i></button>`).join("")+`<p class="note">Warnings mean the hazard is happening or about to. Watches mean conditions allow it. Advisories mean an inconvenience or hazard is likely.</p>`+pushH();
 }
 function render(){
+ favUI();
  document.body.style.overflow=full&&tab==='design'?'hidden':'';
  head();
  $("#view").innerHTML=tab==="alerts"?alerts():tab==="map"?map():tab==="design"?design():tab==="forecast"?forecast():settings();if(tab==="map")setupMap();if(tab==="design")setupDesign();if(tab==="forecast")loadFc();$("#hero").hidden=$("#stats").hidden=tab==="design";
  document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-selected",b.dataset.t===tab));
 }
-$("#pl").innerHTML=PL.map(p=>`<option value="${p[0]}">`).join("");$("#q").onkeydown=e=>{if(e.key==="Enter")gotoLoc()};$("#go").onclick=gotoLoc;
+$("#pl").innerHTML=PL.map(p=>`<option value="${p[0]}">`).join("");$("#q").onkeydown=e=>{if(e.key==="Enter")gotoLoc()};$("#go").onclick=gotoLoc;$("#fav").onclick=toggleFav;$("#favs").onclick=e=>{const b=e.target.closest("[data-fv]");if(b)goFav(+b.dataset.fv)};
 
 document.querySelector("nav").onclick=e=>{const b=e.target.closest("button");if(b){tab=b.dataset.t;render()}};
 $("#view").onclick=e=>{
