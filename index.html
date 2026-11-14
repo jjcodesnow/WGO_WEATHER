@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#141c2a">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261114150651">
+<meta name="wgo-version" content="20261114150842">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -569,8 +569,12 @@ if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('messag
  if(was&&v&&was!==v){const t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.innerHTML='<b aria-hidden="true">\u2713</b> App updated';document.body.appendChild(t);
   const bye=()=>{t.classList.remove('on');setTimeout(()=>t.remove(),300)};t.onclick=bye;requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('on')));setTimeout(bye,4000)}})();
 (function(){const mine=(document.querySelector('meta[name=wgo-version]')||{}).content;let last=0;
- async function check(){if(Date.now()-last<6e4)return;last=Date.now();try{const t=await (await fetch(location.pathname+'?check='+Date.now(),{cache:'no-store'})).text(),m=t.match(/wgo-version"\s+content="([^"]+)"/);if(m&&m[1]!==mine)location.replace(location.pathname+'?v='+m[1]+(new URLSearchParams(location.search).get('alert')?'&alert='+encodeURIComponent(new URLSearchParams(location.search).get('alert')):''))}catch(e){}}
- check();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')check()})})();
+ async function check(){if(Date.now()-last<6e4)return;last=Date.now();try{const t=await (await fetch(location.pathname+'?check='+Date.now(),{cache:'no-store'})).text(),m=t.match(/wgo-version"\s+content="([^"]+)"/);if(m&&m[1]!==mine){if(busy()){last=0;return}location.replace(location.pathname+'?v='+m[1]+(new URLSearchParams(location.search).get('alert')?'&alert='+encodeURIComponent(new URLSearchParams(location.search).get('alert')):''))}}catch(e){}}
+ // Don't reload in the middle of drawing, dragging, typing or picking a time.
+ let down=false;addEventListener('pointerdown',()=>{down=true},true);addEventListener('pointerup',()=>{down=false},true);addEventListener('pointercancel',()=>{down=false},true);
+ const busy=()=>draft.length>0||down||(document.activeElement&&/^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName));
+ check();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')check()});
+ setInterval(()=>{if(document.visibilityState==='visible')check()},6e4)})();
 </script>
 </body>
 </html>
