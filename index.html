@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#141c2a">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261114144719">
+<meta name="wgo-version" content="20261114145321">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -200,6 +200,8 @@ const TYPES={
  ehw:{n:"Extreme Heat Warning",s:4,c:"#a1126c",d:0,tip:["Stay in air conditioning as much as you can","Drink plenty of water, even if you aren\u2019t thirsty","Check on older adults, young children and pets","Never leave people or pets in a parked car"]},
  ehww:{n:"Extreme Heat Watch",s:2,c:"#800000",d:0,tip:["Dangerous heat is possible in the next day or two","Plan to limit time outside during the hottest hours","Find a cool place you can go, like a library or cooling center"]},
  hta:{n:"Heat Advisory",s:2,c:"#e06a3b",d:0,tip:["Take breaks in the shade or air conditioning","Drink plenty of water","Wear light, loose clothing","Never leave people or pets in a parked car"]},
+ frw:{n:"Fire Warning",s:4,c:"#a0522d",d:0,tip:["A wildfire is threatening this area","Leave right away if officials tell you to evacuate","Grab your go-bag, medicines, pets and phone charger","Close windows and doors before you leave, and follow the route officials give"]},
+ fwa:{n:"Fire Weather Watch",s:2,c:"#c8913c",d:0,tip:["Dangerous fire weather is possible in the next day or two","Don\u2019t plan any outdoor burning","Clear dry leaves and brush away from your home","Know your evacuation route"]},
  rfw:{n:"Red Flag Warning",s:3,c:"#ff1493",d:0,tip:["Fires can start easily and spread fast","Don\u2019t burn yard waste or have open fires","Be careful with anything that makes sparks, like mowers and grills"]},
  dfa:{n:"Dense Fog Advisory",s:1,c:"#708090",d:0,tip:["Slow down and use low-beam headlights","Leave extra distance between you and other cars","Allow extra time to get where you\u2019re going"]},
  aqa:{n:"Air Quality Alert",s:1,c:"#6b6b6b",d:0,tip:["Limit time outside, especially hard exercise","People with asthma or heart or lung conditions should stay inside","Keep windows closed"]},
@@ -208,7 +210,7 @@ const TYPES={
  sps:{n:"Special Weather Statement",s:1,c:"#c98a2b",d:0,tip:["Stay aware of changing weather in your area","Strong winds, small hail or heavy downpours are possible","Be ready to act if a warning is issued"]},
  wi:{n:"Wind Advisory",s:1,c:"#a9825a",d:0,tip:["Secure trash cans, patio furniture and loose items","Take extra care driving a high-profile vehicle","Watch for downed branches and power lines"]}
 };
-const GROUPS=[['Storms',['tw','tww','sw','sww','sps']],['Flooding',['ffw','ffww','fw','fww']],['Winter storms',['blz','isw','wsw','wsww','wwa']],['Cold and frost',['ecw','ecww','cwa','fzw','fzww','fra']],['Heat',['ehw','ehww','hta']],['Wind, fire, fog and air',['wi','rfw','dfa','aqa']]];
+const GROUPS=[['Storms',['tw','tww','sw','sww','sps']],['Flooding',['ffw','ffww','fw','fww']],['Winter storms',['blz','isw','wsw','wsww','wwa']],['Cold and frost',['ecw','ecww','cwa','fzw','fzww','fra']],['Heat',['ehw','ehww','hta']],['Wind, fire, fog and air',['frw','rfw','fwa','wi','dfa','aqa']]];
 const CITIES={
  okc:{n:"Oklahoma City, OK",t:74,f:78,cond:"Humid, storms building",ic:"⛈️",w:"S 22 mph",h:78,uv:6,vis:"6 mi",
   a:[["tw","Cleveland County","Tornado near Moore moving northeast at 30 mph",45],["sw","Oklahoma County","Wind gusts to 70 mph and quarter-size hail",90],["tww","Central Oklahoma","Until 10 PM CDT",300],["fww","Southern Oklahoma","Heavy rain on saturated ground",600]]},
@@ -229,7 +231,7 @@ try{const s=localStorage.getItem("sw-follow");if(s)follow=Object.assign(follow,J
 const $=s=>document.querySelector(s),C=()=>CITIES[city];
 const fmt=m=>m<60?m+" min":(Math.round(m/6)/10)+" hr";
 let you={x:100,y:100},sel=null;
-const R={ffw:25,ffww:55,blz:50,isw:50,ecw:60,ecww:60,cwa:60,fra:55,ehw:60,ehww:60,hta:60,rfw:50,dfa:45,aqa:60,fzww:55,fzw:50,sps:40,tw:11,sw:20,fw:24,fww:55,sww:60,tww:65,wsw:45,wwa:50,wsww:60,wi:55};
+const R={frw:30,fwa:55,ffw:25,ffww:55,blz:50,isw:50,ecw:60,ecww:60,cwa:60,fra:55,ehw:60,ehww:60,hta:60,rfw:50,dfa:45,aqa:60,fzww:55,fzw:50,sps:40,tw:11,sw:20,fw:24,fww:55,sww:60,tww:65,wsw:45,wwa:50,wsww:60,wi:55};
 function geo(k,i){const ang=i*2.4+k.length,d=i*30+14,cx=100+Math.cos(ang)*d*.9,cy=100+Math.sin(ang)*d*.9,r=R[k],p=[];for(let j=0;j<10;j++){const t=j/10*6.283,rr=r*(.78+.22*Math.sin(j*2.3+i+k.length));p.push([cx+Math.cos(t)*rr*1.3,cy+Math.sin(t)*rr*.8])}return p}
 function dist(p,poly){let ins=false,min=1e9;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const[a,b]=poly[i],[c,d]=poly[j];if((b>p.y)!==(d>p.y)&&p.x<(c-a)*(p.y-b)/(d-b)+a)ins=!ins;const dx=c-a,dy=d-b,t=Math.max(0,Math.min(1,((p.x-a)*dx+(p.y-b)*dy)/(dx*dx+dy*dy||1))),ex=a+t*dx-p.x,ey=b+t*dy-p.y;min=Math.min(min,Math.hypot(ex,ey))}return ins?0:min}
 function active(){const now=Date.now(),c0=loc&&CTY.length?cAt([loc.x,loc.y]):null;return D.filter(x=>x.kind==='area'&&follow[x.k]&&!(x.exp&&x.exp<now)&&(!loc||dist({x:loc.x,y:loc.y},x.pts)===0||(c0&&cof(x).includes(c0.n)&&sof(x).includes(c0.s)))).map(x=>({k:x.k,area:cl(x)||'Drawn area',txt:x.cn?'County alert':'Alert area',m:x.exp?Math.max(1,Math.round((x.exp-now)/6e4)):9999,T:TYPES[x.k],poly:x.pts,d:loc?dist({x:loc.x,y:loc.y},x.pts):null,i:x.id,s0:x.t0,e:x.exp})).sort((a,b)=>b.T.s-a.T.s)}
