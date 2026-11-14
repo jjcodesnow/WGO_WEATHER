@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261113215054">
+<meta name="wgo-version" content="20261113220255">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -94,6 +94,13 @@ nav{overflow-x:auto}nav button{flex:1 0 auto;padding:0 12px}
 .pop .mo{flex:none;border:1.5px solid #fff;border-radius:8px;padding:4px 8px;font-weight:600;font-size:14px;background:transparent;color:#fff;cursor:pointer;min-height:36px}
 .pop ul{margin:6px 0 2px;padding-left:20px;font-size:14px;color:#eee}
 .pip{position:absolute;z-index:6;width:14px;height:14px;background:#232323;transform:translate(-50%,-50%) rotate(45deg);pointer-events:none}
+.mw{position:relative}
+.mw.fs{position:fixed;inset:0;z-index:50;background:var(--bg)}
+.mw.fs #dmap{height:100%;border:0;border-radius:0}
+.mbs{position:absolute;top:8px;right:8px;display:flex;flex-direction:column;gap:6px;z-index:4}
+.mw.fs .mbs{top:calc(8px + env(safe-area-inset-top,0px));right:calc(8px + env(safe-area-inset-right,0px))}
+.mb{width:44px;height:44px;padding:0;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:grid;place-items:center;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.2);font-size:24px;line-height:1}
+.mb[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
 .lp{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;margin:0 0 8px;font-size:15px}
 @media (prefers-reduced-motion:no-preference){.alert[open] .body{animation:o .15s ease-out}@keyframes o{from{opacity:0}to{opacity:1}}}
 </style>
@@ -199,7 +206,7 @@ function design(){
  const pal=`<button class='chip' style='--c:var(--accent)' aria-pressed='${!tool}' data-dt='s'>Select and move</button><button class='chip' style='--c:var(--accent)' aria-pressed='${!!tool&&!!tool.cty}' data-dt='c'>Select counties</button>`+Object.keys(TYPES).sort((a,b)=>TYPES[b].s-TYPES[a].s).map(k=>`<button class='chip' style='--c:${TYPES[k].c}' aria-pressed='${!!tool&&tool.k===k}' data-dt='a:${k}'>${TYPES[k].n}</button>`).join('');
  const ics=WI.map(i=>`<button class='chip' style='--c:var(--accent)' aria-label='Place forecast icon ${i}' aria-pressed='${!!tool&&tool.ic===i}' data-dt='m:${i}'>${i}</button>`).join('');
  const hint=pan?'Pan is on. Drag the map to move around and use Zoom in to see counties. Turn Pan off to draw or select.':tool&&tool.k&&bycty?'Tap a county to put the alert on its boundary. The county name is added for you.':tool&&tool.k&&free?'Press and drag on the map to draw the outline. Lift your finger to finish.':tool&&tool.k?(draft.length?draft.length+' corner'+(draft.length>1?'s':'')+' placed. Keep tapping, then tap Finish area or the first corner.':'Tap the map to place the corners of the area.'):tool&&tool.cty?'Tap counties to select or unselect them. New corners snap to the borders of selected counties.':tool?'Set a temperature below, then tap the map to place the forecast icon.':'Pick an alert type or a forecast icon, then tap the map. Tap a shape to select it. Drag it to move, or drag its corner dots to reshape. Drag a faint dot between two corners to add a corner.';
- let s=`<svg id='dmap' style='${pan||tool&&tool.k&&free?'touch-action:none':''}' viewBox='${vb.x} ${vb.y} ${vb.w} ${vb.w*.625}' role='img' aria-label='Design canvas. 1 grid square is 25 miles.'>`;
+ let s=`<svg id='dmap' style='${pan||full||tool&&tool.k&&free?'touch-action:none':''}' viewBox='${vb.x} ${vb.y} ${vb.w} ${vb.w*AR}' role='img' aria-label='Design canvas. 1 grid square is 25 miles.'>`;
  s+=base()+cfill()+radarL();
  s+=``;
  D.forEach(x=>{const on=x.id===dsel;
@@ -221,16 +228,17 @@ function design(){
  if(tool&&tool.k&&Object.keys(selC).length)a.push(`<button class='pri' data-da='cal'>Alert selected counties</button>`);
  if(Object.keys(selC).length)a.push(`<button data-da='ccl'>Clear counties</button>`);
  if(D.length&&!draft.length)a.push(`<button data-da='clr'>${clr?'Tap again to clear all':'Clear all'}</button>`);
- return `<div id='dz'>${srch()}<div class='chips wrap'>${pal}</div><div class='chips wrap'>${ics}</div><p class='note' style='margin:0 0 8px'>${hint}</p><div class='act' style='margin:0 0 8px'>${zc}</div><div style='position:relative'>${s}${popH()}</div>${S&&S.kind==='area'?`<div class='lp'><b>${TYPES[S.k].n}</b>${tl(S)}<br>Counties: ${cof(S).join(', ')||'none found'}<br>States: ${sof(S).join(', ')||'none found'}</div>`:''}<div class='act'>${a.join('')}</div></div>`}
+ return `<div id='dz'>${srch()}<div class='chips wrap'>${pal}</div><div class='chips wrap'>${ics}</div><p class='note' style='margin:0 0 8px'>${hint}</p><div class='act' style='margin:0 0 8px'>${zc}</div><div class='mw${full?' fs':''}'>${s}${popH()}<div class='mbs'><button class='mb' data-da='full' aria-label='${full?'Exit full screen':'Make the map full screen'}'>${full?"<svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M9 3v6H3M21 9h-6V3M15 21v-6h6M3 15h6v6'/></svg>":"<svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M3 9V3h6M15 3h6v6M21 15v6h-6M9 21H3v-6'/></svg>"}</button>${full?`<button class='mb' data-da='zi' aria-label='Zoom in'>+</button><button class='mb' data-da='zo' aria-label='Zoom out'>−</button><button class='mb' data-da='pan' aria-pressed='${pan}' aria-label='Drag to move the map'><svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M12 2v20M2 12h20M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3'/></svg></button>${radar&&RF.length?`<button class='mb' data-da='rpl' aria-label='${rplay?'Pause radar':'Play radar'}'>${rplay?'⏸':'▶'}</button>`:''}`:''}</div></div>${S&&S.kind==='area'?`<div class='lp'><b>${TYPES[S.k].n}</b>${tl(S)}<br>Counties: ${cof(S).join(', ')||'none found'}<br>States: ${sof(S).join(', ')||'none found'}</div>`:''}<div class='act'>${a.join('')}</div></div>`}
 function setupDesign(){
- const dz=$('#dz'),svg=$('#dmap'),pt=e=>{const r=svg.getBoundingClientRect();return[Math.max(0,Math.min(200,vb.x+(e.clientX-r.left)/r.width*vb.w)),Math.max(0,Math.min(125,vb.y+(e.clientY-r.top)/r.height*vb.w*.625))]};
+ if(full){const r0=$('#dmap').getBoundingClientRect(),a=r0.height/r0.width;if(r0.width&&Math.abs(a-AR)>.004){setAR(a);render();return}}
+ const dz=$('#dz'),svg=$('#dmap'),pt=e=>{const r=svg.getBoundingClientRect();return[Math.max(0,Math.min(200,vb.x+(e.clientX-r.left)/r.width*vb.w)),Math.max(0,Math.min(125,vb.y+(e.clientY-r.top)/r.height*vb.w*AR))]};
  let drag=null;
  dz.onclick=e=>{
   const pb=e.target.closest('[data-pp]');if(pb){const v=pb.dataset.pp;if(v==='x')pop=null;else if(v==='mo')pop.more=!pop.more;else pop.open=pop.open===+v?null:+v;render();return}
   const t=e.target.closest('[data-dt]'),a=e.target.closest('[data-da]'),was=clr;
   if(t){draft=[];clr=false;pop=null;const v=t.dataset.dt;tool=v==='s'?null:v==='c'?{cty:1}:v[0]==='a'?{k:v.slice(2)}:{ic:v.slice(2)};render();return}
   if(a){const v=a.dataset.da;clr=false;
-   if(v==='cal')calert();else if(v==='bcy')bycty=!bycty;else if(v==='ccl')selC={};else if(v==='snp')snap=!snap;else if(v==='rad'){radar=!radar;if(radar)getRadar().then(()=>{if(tab==='design')render()});else stopRadar()}else if(v==='rpl'){if(rplay)stopRadar();else if(RF.length)rplay=setInterval(()=>{if(!RF.length||tab!=='design'||!radar){stopRadar();return}ri=(ri+1)%RF.length;showRF()},700)}else if(v==='go')gotoLoc();else if(v==='zi'||v==='zo')zoom(v==='zi'?.5:2);else if(v==='pan'){pan=!pan;draft=[]}else if(v==='fin'&&draft.length>=3)finish();else if(v==='free'){free=!free;draft=[]}else if(v==='rm')rm=!rm;else if(v==='undo')draft.pop();else if(v==='cancel')draft=[];
+   if(v==='full'){full=!full;pop=null;setAR(full?innerHeight/innerWidth:.625)}else if(v==='cal')calert();else if(v==='bcy')bycty=!bycty;else if(v==='ccl')selC={};else if(v==='snp')snap=!snap;else if(v==='rad'){radar=!radar;if(radar)getRadar().then(()=>{if(tab==='design')render()});else stopRadar()}else if(v==='rpl'){if(rplay)stopRadar();else if(RF.length)rplay=setInterval(()=>{if(!RF.length||tab!=='design'||!radar){stopRadar();return}ri=(ri+1)%RF.length;showRF()},700)}else if(v==='go')gotoLoc();else if(v==='zi'||v==='zo')zoom(v==='zi'?.5:2);else if(v==='pan'){pan=!pan;draft=[]}else if(v==='fin'&&draft.length>=3)finish();else if(v==='free'){free=!free;draft=[]}else if(v==='rm')rm=!rm;else if(v==='undo')draft.pop();else if(v==='cancel')draft=[];
    else if(v==='del'){D=D.filter(x=>x.id!==dsel);dsel=null;save()}
    else if(v==='clr'){if(was){D=[];dsel=null;save()}else clr=true}
    render();return}
@@ -255,7 +263,7 @@ function setupDesign(){
   if(v&&S){if(v.dataset.e!==undefined){const i=+v.dataset.e;S.pts.splice(i+1,0,pt(e));drag={S,vi:i+1,m:true}}else drag={S,vi:+v.dataset.v,m:false};svg.setPointerCapture(e.pointerId);return}
   lastMv=false;od(e)};
  svg.onpointermove=e=>{
-  if(panD){const r=svg.getBoundingClientRect(),q=vb.w/r.width;vb.x=Math.max(0,Math.min(200-vb.w,panD.vx-(e.clientX-panD.x)*q));vb.y=Math.max(0,Math.min(125-vb.w*.625,panD.vy-(e.clientY-panD.y)*q));svg.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.w*.625);return}
+  if(panD){const r=svg.getBoundingClientRect(),q=vb.w/r.width;vb.x=Math.max(0,Math.min(200-vb.w,panD.vx-(e.clientX-panD.x)*q));vb.y=clY(panD.vy-(e.clientY-panD.y)*q,vb.w);svg.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.w*AR);return}
   if(fd){const p=snapTo(pt(e),svg),l=draft[draft.length-1];if(Math.hypot(p[0]-l[0],p[1]-l[1])>2.5*vb.w/200){draft.push(p);fh.setAttribute('points',pts(draft))}return}
   if(drag&&drag.vi!==undefined){drag.S.pts[drag.vi]=snapTo(pt(e),svg);drag.m=true;svg.querySelector(`[data-id='${drag.S.id}'] polygon`).setAttribute('points',pts(drag.S.pts));return}
   om(e)};
@@ -268,10 +276,10 @@ function setupDesign(){
  let pin=null;const tm=t=>({x:(t[0].clientX+t[1].clientX)/2,y:(t[0].clientY+t[1].clientY)/2,d:Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY)});
  ['pointerdown','pointermove','pointerup'].forEach(t=>svg.addEventListener(t,e=>{if(pin)e.stopImmediatePropagation()},true));
  svg.addEventListener('gesturestart',e=>e.preventDefault());
- svg.addEventListener('touchstart',e=>{if(e.touches.length!==2)return;e.preventDefault();const m=tm(e.touches),r=svg.getBoundingClientRect();pin={d:m.d,w:vb.w,ax:vb.x+(m.x-r.left)/r.width*vb.w,ay:vb.y+(m.y-r.top)/r.height*vb.w*.625};if(drag&&drag.el)drag.el.removeAttribute('transform');drag=null;panD=null;if(fd){fd=false;draft=[];if(fh)fh.remove()}},{passive:false});
- svg.addEventListener('touchmove',e=>{if(!pin||e.touches.length<2)return;e.preventDefault();const m=tm(e.touches),r=svg.getBoundingClientRect(),nw=Math.max(8,Math.min(200,pin.w*pin.d/Math.max(1,m.d))),fx=(m.x-r.left)/r.width,fy=(m.y-r.top)/r.height;vb.w=nw;vb.x=Math.max(0,Math.min(200-nw,pin.ax-fx*nw));vb.y=Math.max(0,Math.min(125-nw*.625,pin.ay-fy*nw*.625));svg.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.w*.625)},{passive:false});
+ svg.addEventListener('touchstart',e=>{if(e.touches.length!==2)return;e.preventDefault();const m=tm(e.touches),r=svg.getBoundingClientRect();pin={d:m.d,w:vb.w,ax:vb.x+(m.x-r.left)/r.width*vb.w,ay:vb.y+(m.y-r.top)/r.height*vb.w*AR};if(drag&&drag.el)drag.el.removeAttribute('transform');drag=null;panD=null;if(fd){fd=false;draft=[];if(fh)fh.remove()}},{passive:false});
+ svg.addEventListener('touchmove',e=>{if(!pin||e.touches.length<2)return;e.preventDefault();const m=tm(e.touches),r=svg.getBoundingClientRect(),nw=Math.max(8,Math.min(200,pin.w*pin.d/Math.max(1,m.d))),fx=(m.x-r.left)/r.width,fy=(m.y-r.top)/r.height;vb.w=nw;vb.x=Math.max(0,Math.min(200-nw,pin.ax-fx*nw));vb.y=clY(pin.ay-fy*nw*AR,nw);svg.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.w*AR)},{passive:false});
  svg.addEventListener('touchend',e=>{if(pin&&e.touches.length<2){pin=null;lastUp=Date.now();lastMv=true;setTimeout(render,0)}})}
-function zoom(f){const nw=Math.max(8,Math.min(200,vb.w*f)),cx=vb.x+vb.w/2,cy=vb.y+vb.w*.3125;vb.w=nw;vb.x=Math.max(0,Math.min(200-nw,cx-nw/2));vb.y=Math.max(0,Math.min(125-nw*.625,cy-nw*.3125))}
+function zoom(f){const nw=Math.max(8,Math.min(200,vb.w*f)),cx=vb.x+vb.w/2,cy=vb.y+vb.w*AR/2;vb.w=nw;vb.x=Math.max(0,Math.min(200-nw,cx-nw/2));vb.y=clY(cy-nw*AR/2,nw)}
 function base(){
  if(US)return `<rect width='200' height='125' style='fill:var(--bg)'/><g transform='scale(.205128)'><path d='${US.nation}' style='fill:var(--surface)'/><path d='${US.counties}' style='fill:none;stroke:var(--mute);stroke-width:.8px;opacity:.6;vector-effect:non-scaling-stroke'/><path d='${US.states}' style='fill:none;stroke:var(--ink);stroke-width:2px;vector-effect:non-scaling-stroke'/><path d='${US.nation}' style='fill:none;stroke:var(--ink);stroke-width:3.5px;vector-effect:non-scaling-stroke'/></g>`;
  let g=`<rect width='200' height='125' style='fill:var(--surface)'/>`;for(let i=25;i<200;i+=25)g+=`<path class='gl' d='M${i} 0V125M0 ${i}H200'/>`;
@@ -290,13 +298,13 @@ function cAt(p){for(const c of CTY){const b=c.b;if(p[0]<b[0]||p[0]>b[2]||p[1]<b[
 function snapTo(p,svg){if(!snap)return p;const ids=Object.keys(selC);if(!ids.length)return p;let best=null,bd=14/(svg.getBoundingClientRect().width/vb.w);ids.forEach(id=>{const c=CTY.find(q=>q.id===id);if(c)c.g.forEach(pl=>{const r=pl[0];for(let i=0;i<r.length-1;i++){const a=r[i],b=r[i+1],dx=b[0]-a[0],dy=b[1]-a[1],t=Math.max(0,Math.min(1,((p[0]-a[0])*dx+(p[1]-a[1])*dy)/(dx*dx+dy*dy||1))),x=a[0]+t*dx,y=a[1]+t*dy,d=Math.hypot(x-p[0],y-p[1]);if(d<bd){bd=d;best=[x,y]}}})});return best||p}
 function cfill(){let s='';Object.keys(selC).forEach(id=>{const c=CTY.find(q=>q.id===id);if(c)c.g.forEach(pl=>s+=`<polygon points='${pts(pl[0])}' style='fill:var(--accent);fill-opacity:.18;stroke:var(--accent);stroke-width:2px;vector-effect:non-scaling-stroke;pointer-events:none'/>`)});return s}
 function calert(){Object.keys(selC).forEach(id=>{const c=CTY.find(q=>q.id===id);if(c)addC(c)});selC={};tool=null;save()}
-function placesL(k){const inv=(x,y)=>x>vb.x&&x<vb.x+vb.w&&y>vb.y&&y<vb.y+vb.w*.625,f=`font-size:5px;stroke-width:1.4px`;let s=`<g style='pointer-events:none'>`;
+function placesL(k){const inv=(x,y)=>x>vb.x&&x<vb.x+vb.w&&y>vb.y&&y<vb.y+vb.w*AR,f=`font-size:5px;stroke-width:1.4px`;let s=`<g style='pointer-events:none'>`;
  if(vb.w<=45)CTY.forEach(c=>{if(inv(c.cx,c.cy))s+=`<text class='lbl' style='font-size:3px;stroke-width:1px;font-style:italic;fill:var(--mute)' transform='translate(${c.cx} ${c.cy}) scale(${k})'>${c.n} Co.</text>`});
  PLC.forEach(p=>{if((p.t==='t'&&vb.w>60)||!inv(p.x,p.y))return;s+=`<circle cx='${p.x}' cy='${p.y}' r='${(p.t==='c'?2:1.2)*k}' style='fill:var(--ink)'/><text class='lbl' style='${f}' transform='translate(${p.x} ${p.y-2*k}) scale(${k})'>${p.n.split(',')[0]}</text>`});
  if(loc)s+=`<circle cx='${loc.x}' cy='${loc.y}' r='${3*k}' style='fill:#d62828;stroke:#fff;stroke-width:${k}px'/><text class='lbl' style='${f}' transform='translate(${loc.x} ${loc.y-5*k}) scale(${k})'>${loc.n}</text>`;
  return s+'</g>'}
 function radarL(){if(!radar)return'';if(!RF.length)return `<text class='lbl' style='font-size:5px' transform='translate(${vb.x+vb.w/2} ${vb.y+8*vb.w/200}) scale(${vb.w/200})'>${rerr?'Radar could not load':'Loading radar…'}</text>`;
- const AP=d3.geoAlbers().scale(1300).translate([487.5,305]),pr=(lo,la)=>{const q=AP([lo,la]);return[q[0]*K,q[1]*K]},h=vb.w*.625;let lo0=1e9,lo1=-1e9,la0=1e9,la1=-1e9;
+ const AP=d3.geoAlbers().scale(1300).translate([487.5,305]),pr=(lo,la)=>{const q=AP([lo,la]);return[q[0]*K,q[1]*K]},h=vb.w*AR;let lo0=1e9,lo1=-1e9,la0=1e9,la1=-1e9;
  for(let i=0;i<=6;i++)for(let j=0;j<=6;j++){const q=AP.invert([(vb.x+vb.w*i/6)/K,(vb.y+h*j/6)/K]);if(!q)continue;lo0=Math.min(lo0,q[0]);lo1=Math.max(lo1,q[0]);la0=Math.min(la0,q[1]);la1=Math.max(la1,q[1])}
  lo0=Math.max(lo0,-130);lo1=Math.min(lo1,-60);la0=Math.max(la0,20);la1=Math.min(la1,53);if(lo0>=lo1||la0>=la1)return'';
  const tx=(lo,z)=>Math.floor((lo+180)/360*2**z),ty=(la,z)=>{const r=la*Math.PI/180;return Math.floor((1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*2**z)},tl=(x,z)=>x/2**z*360-180,tt=(y,z)=>Math.atan(Math.sinh(Math.PI*(1-2*y/2**z)))*180/Math.PI;
@@ -311,7 +319,7 @@ async function gotoLoc(){const q=($('#q')||{value:''}).value.trim().toLowerCase(
  else if(q)p=PLC.find(a=>a.n.toLowerCase()===q)||PLC.find(a=>a.n.toLowerCase().includes(q));
  if(!p&&q&&!m){try{const r=await fetch('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(q.split(',')[0].trim())+'&count=5&language=en&format=json&countryCode=US'),j=await r.json(),h=j.results||[],st=(q.split(',')[1]||'').trim(),f=h.find(a=>st&&(a.admin1||'').toLowerCase().startsWith(st))||h[0];if(f){const z=proj(f.latitude,f.longitude);if(z)p={n:f.name+(f.admin1?', '+f.admin1:''),x:z[0],y:z[1],la:f.latitude,lo:f.longitude}}}catch(e){}}
  if(!p){loc=null;msg=PLC.length?'I could not find that place. Pick one from the suggestions, or type latitude, longitude.':'The map is still loading. Try again in a moment.';render();return}
- loc=p;msg='';vb.w=30;vb.x=Math.max(0,Math.min(170,p.x-15));vb.y=Math.max(0,Math.min(106,p.y-9.4));render()}
+ loc=p;msg='';vb.w=30;vb.x=Math.max(0,Math.min(170,p.x-15));vb.y=clY(p.y-15*AR,30);render()}
 function addC(c){c.g.forEach(pl=>{const r=pl[0],n=Math.ceil(r.length/150);D.push({id:nid(),kind:'area',k:tool.k,pts:r.filter((_,i)=>i%n===0),cn:[c.n],st:[c.s],t0:Date.now(),exp:Date.now()+dur*6e4})})}
 function cof(x){if(x.cn)return x.cn;if(!CTY.length)return[];const key=x.pts.reduce((s,q)=>s+q[0]*3+q[1],0).toFixed(2);if(cc[x.id]&&cc[x.id].k===key)return cc[x.id].v;const xs=x.pts.map(q=>q[0]),ys=x.pts.map(q=>q[1]),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys),v=[];CTY.forEach(c=>{const b=c.b;if(b[2]<x0||b[0]>x1||b[3]<y0||b[1]>y1)return;if(dist({x:c.cx,y:c.cy},x.pts)===0||c.g.some(pl=>x.pts.some(q=>dist({x:q[0],y:q[1]},pl[0])===0)))v.push(c)});const names=v.map(c=>c.n).sort(),ss=[...new Set(v.map(c=>c.s).filter(Boolean))].sort();cc[x.id]={k:key,v:names,s:ss};return names}
 const sof=x=>x.st||(cof(x),cc[x.id]?cc[x.id].s:[]),cl=x=>{const n=cof(x);return n.length?n.slice(0,3).join(', ')+(n.length>3?' +'+(n.length-3):'')+(n.length>1?' Cos.':' Co.')+(sof(x).length?' · '+sof(x).join(', '):''):''};
@@ -319,14 +327,17 @@ function head(){const al=active(),top=al[0],c=loc&&CTY.length?cAt([loc.x,loc.y])
  $('#hero').style.setProperty('--c',top?top.T.c:'var(--accent)');
  $('#hero').innerHTML=top?`<div class='lvl'>${al.length} active alert${al.length>1?'s':''}${loc?' for '+loc.n:''}. Most serious:</div><h1>${top.T.n}</h1><div>${top.area}. Expires in ${top.m>9000?'no set time':fmt(top.m)}.</div>`:loc?`<div class='lvl'>${loc.n}${c?' · '+c.n+' County, '+c.s:''}</div><h1>All clear</h1><div>No active alerts for this place.</div>`:`<div class='lvl'>${msg?'Place not found':'No location set'}</div><h1>${msg?'Try another name':'Type your town'}</h1><div>${msg||'Type a city or town above and tap Go to see its alerts.'}</div>`;
  $('#stats').innerHTML=''}
-let pop=null,lastMv=false;
+let pop=null,lastMv=false,AR=.625,full=false;
+const clY=(y,w)=>{const h=w*AR;return h>=125?(125-h)/2:Math.max(0,Math.min(125-h,y))};
+function setAR(a){const c=vb.y+vb.w*AR/2;AR=a;vb.y=clY(c-vb.w*AR/2,vb.w)}
+addEventListener('resize',()=>{if(full&&tab==='design'){setAR(innerHeight/innerWidth);render()}});
 const LV=['','Low','Possible','Elevated','High','Extreme'];
 function ft(ms){const p=new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit',weekday:'short',timeZoneName:'short'}).formatToParts(new Date(ms)),g=t=>(p.find(x=>x.type===t)||{}).value||'',m=g('minute');return (g('hour')+(m==='00'?'':':'+m)+g('dayPeriod')+' '+g('timeZoneName')+' '+g('weekday')).toUpperCase()}
-function openPop(e,svg){const r=svg.getBoundingClientRect(),p=[vb.x+(e.clientX-r.left)/r.width*vb.w,vb.y+(e.clientY-r.top)/r.height*vb.w*.625],c=CTY.length?cAt(p):null,now=Date.now();
+function openPop(e,svg){const r=svg.getBoundingClientRect(),p=[vb.x+(e.clientX-r.left)/r.width*vb.w,vb.y+(e.clientY-r.top)/r.height*vb.w*AR],c=CTY.length?cAt(p):null,now=Date.now();
  const L=D.filter(x=>x.kind==='area'&&!(x.exp&&x.exp<now)&&(dist({x:p[0],y:p[1]},x.pts)===0||(c&&cof(x).includes(c.n)&&sof(x).includes(c.s)))).sort((a,b)=>TYPES[b.k].s-TYPES[a.k].s);
  pop=L.length?{x:p[0],y:p[1],ids:L.map(x=>x.id),cn:c?c.n+' County':(cl(L[0])||'this area'),more:false,open:null}:null}
 function popH(){if(!pop)return'';const L=pop.ids.map(id=>D.find(x=>x.id===id)).filter(x=>x&&!exd(x));if(!L.length){pop=null;return''}
- const X=(pop.x-vb.x)/vb.w*100,Y=(pop.y-vb.y)/(vb.w*.625)*100;if(X<0||X>100||Y<0||Y>100)return'';
+ const X=(pop.x-vb.x)/vb.w*100,Y=(pop.y-vb.y)/(vb.w*AR)*100;if(X<0||X>100||Y<0||Y>100)return'';
  const top=TYPES[L[0].k],below=Y<50,show=pop.more?L:[L[0]];
  const row=(x,i)=>{const T=TYPES[x.k],when=(x.t0?ft(x.t0)+' – ':'UNTIL ')+(x.exp?ft(x.exp):'NO END TIME');return `<button class='ar' data-pp='${i}' style='--c:${T.c}'><span class='ic'>!</span><span style='flex:1;min-width:0'><b>${T.n}</b><small>${when}</small></span>${i===0&&L.length>1&&!pop.more?`<span class='mo' data-pp='mo'>+${L.length-1} more</span>`:''}<span aria-hidden='true' style='color:#999;font-size:20px'>›</span></button>${pop.open===i?`<ul>${T.tip.map(t=>`<li>${t}</li>`).join('')}</ul>`:''}`};
  return `<div class='pip' style='left:${X}%;top:calc(${Y}% ${below?'+':'-'} 12px)'></div><div class='pop' role='dialog' aria-label='Alerts here' style='left:clamp(6px,calc(${X}% - 165px),calc(100% - min(330px,calc(100% - 12px)) - 6px));${below?`top:calc(${Y}% + 12px)`:`bottom:calc(${100-Y}% + 12px)`}'><button class='x' data-pp='x' aria-label='Close'>×</button><div class='t'>Threat indicated in ${pop.cn}</div><h3>Severe Risk: ${LV[top.s]}</h3>${show.map(row).join('')}${pop.more&&L.length>1?`<button class='ar' data-pp='mo' style='justify-content:center;min-height:40px'>Show less</button>`:''}</div>`}
@@ -355,6 +366,7 @@ function settings(){
  return `<h2>Alert types you follow</h2>`+Object.keys(TYPES).sort((a,b)=>TYPES[b].s-TYPES[a].s).map(k=>`<button class="sw" role="switch" aria-checked="${follow[k]}" style="--c:${TYPES[k].c}" data-s="${k}"><span>${TYPES[k].n}</span><i>${follow[k]?"On":"Off"}</i></button>`).join("")+`<p class="note">Warnings mean the hazard is happening or about to. Watches mean conditions allow it. Advisories mean an inconvenience or hazard is likely.</p>`;
 }
 function render(){
+ document.body.style.overflow=full&&tab==='design'?'hidden':'';
  head();
  $("#view").innerHTML=tab==="alerts"?alerts():tab==="map"?map():tab==="design"?design():tab==="forecast"?forecast():settings();if(tab==="map")setupMap();if(tab==="design")setupDesign();if(tab==="forecast")loadFc();$("#hero").hidden=$("#stats").hidden=tab==="design";
  document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-selected",b.dataset.t===tab));
