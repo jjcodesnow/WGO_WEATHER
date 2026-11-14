@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#141c2a">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261114152617">
+<meta name="wgo-version" content="20261114154044">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -388,7 +388,7 @@ function placesL(k){const inv=(x,y)=>x>vb.x&&x<vb.x+vb.w&&y>vb.y&&y<vb.y+vb.w*AR
 function radarL(){if(!radar)return'';if(!RF.length)return `<text class='lbl' style='font-size:5px' transform='translate(${vb.x+vb.w/2} ${vb.y+8*vb.w/200}) scale(${vb.w/200})'>${rerr?'Radar could not load':'Loading radar…'}</text>`;
  const AP=d3.geoAlbers().scale(1300).translate([487.5,305]),pr=(lo,la)=>{const q=AP([lo,la]);return[q[0]*K,q[1]*K]},h=vb.w*AR;let lo0=1e9,lo1=-1e9,la0=1e9,la1=-1e9;
  for(let i=0;i<=6;i++)for(let j=0;j<=6;j++){const q=AP.invert([(vb.x+vb.w*i/6)/K,(vb.y+h*j/6)/K]);if(!q)continue;lo0=Math.min(lo0,q[0]);lo1=Math.max(lo1,q[0]);la0=Math.min(la0,q[1]);la1=Math.max(la1,q[1])}
- lo0=Math.max(lo0,-130);lo1=Math.min(lo1,-60);la0=Math.max(la0,20);la1=Math.min(la1,53);if(lo0>=lo1||la0>=la1)return'';
+ lo0=Math.max(lo0,-175);lo1=Math.min(lo1,-45);la0=Math.max(la0,5);la1=Math.min(la1,62);if(lo0>=lo1||la0>=la1)return'';
  const tx=(lo,z)=>Math.floor((lo+180)/360*2**z),ty=(la,z)=>{const r=la*Math.PI/180;return Math.floor((1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*2**z)},tl=(x,z)=>x/2**z*360-180,tt=(y,z)=>Math.atan(Math.sinh(Math.PI*(1-2*y/2**z)))*180/Math.PI;
  let z=Math.max(4,Math.min(RZ,Math.round(Math.log2(200/vb.w))+5)),x0,x1,y0,y1;
  for(;;){x0=tx(lo0,z);x1=tx(lo1,z);y0=ty(la1,z);y1=ty(la0,z);if((x1-x0+1)*(y1-y0+1)<=30||z<=4)break;z--}
