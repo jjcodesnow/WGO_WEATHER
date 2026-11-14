@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#141c2a">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261114151028">
+<meta name="wgo-version" content="20261114151218">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -490,7 +490,7 @@ async function syncPush(strict){if(!pushOn||!PUSH_API||!pushOK())return;
  catch(e){if(strict)throw e}}
 let FAV=(()=>{try{return JSON.parse(localStorage.getItem('wgo-favs'))||[]}catch(e){return[]}})();
 const saveFav=()=>{try{localStorage.setItem('wgo-favs',JSON.stringify(FAV))}catch(e){}},fvKey=p=>p.la.toFixed(3)+','+p.lo.toFixed(3);
-function setLoc(p){loc=p;msg='';const q=$('#q');if(q)q.value=p.n;vb.w=30;vb.x=Math.max(0,Math.min(170,p.x-15));vb.y=clY(p.y-15*AR,30);render()}
+function setLoc(p){loc=p;msg='';try{$('#q').blur()}catch(e){};const q=$('#q');if(q)q.value=p.n;vb.w=30;vb.x=Math.max(0,Math.min(170,p.x-15));vb.y=clY(p.y-15*AR,30);render()}
 function isFav(){return !!(loc&&loc.la!=null&&FAV.some(f=>fvKey(f)===fvKey(loc)))}
 function toggleFav(){if(!loc||loc.la==null){msg='Find a place first, then tap the heart to save it.';loc=null;render();return}
  if(isFav())FAV=FAV.filter(f=>fvKey(f)!==fvKey(loc));else FAV.push({n:loc.n,la:loc.la,lo:loc.lo});saveFav();render()}
@@ -569,12 +569,12 @@ if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('messag
  if(was&&v&&was!==v){const t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.innerHTML='<b aria-hidden="true">\u2713</b> App has been updated';document.body.appendChild(t);
   const bye=()=>{t.classList.remove('on');setTimeout(()=>t.remove(),300)};t.onclick=bye;requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('on')));setTimeout(bye,4000)}})();
 (function(){const mine=(document.querySelector('meta[name=wgo-version]')||{}).content;let last=0;
- async function check(){if(Date.now()-last<6e4)return;last=Date.now();try{const t=await (await fetch(location.pathname+'?check='+Date.now(),{cache:'no-store'})).text(),m=t.match(/wgo-version"\s+content="([^"]+)"/);if(m&&m[1]!==mine){if(busy()){last=0;return}location.replace(location.pathname+'?v='+m[1]+(new URLSearchParams(location.search).get('alert')?'&alert='+encodeURIComponent(new URLSearchParams(location.search).get('alert')):''))}}catch(e){}}
+ async function check(){if(Date.now()-last<15e3)return;last=Date.now();try{const t=await (await fetch(location.pathname+'?check='+Date.now(),{cache:'no-store'})).text(),m=t.match(/wgo-version"\s+content="([^"]+)"/);if(m&&m[1]!==mine){if(busy()){last=0;return}location.replace(location.pathname+'?v='+m[1]+(new URLSearchParams(location.search).get('alert')?'&alert='+encodeURIComponent(new URLSearchParams(location.search).get('alert')):''))}}catch(e){}}
  // Don't reload in the middle of drawing, dragging, typing or picking a time.
  let down=false;addEventListener('pointerdown',()=>{down=true},true);addEventListener('pointerup',()=>{down=false},true);addEventListener('pointercancel',()=>{down=false},true);
- const busy=()=>draft.length>0||down||(document.activeElement&&/^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName));
+ const busy=()=>draft.length>0||down||(document.activeElement&&/^(dst|den|dtemp|dexp|q)$/.test(document.activeElement.id)&&!(document.activeElement.id==='q'&&!document.activeElement.value));
  check();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')check()});
- setInterval(()=>{if(document.visibilityState==='visible')check()},6e4)})();
+ setInterval(()=>{if(document.visibilityState==='visible')check()},2e4);addEventListener('focus',check);addEventListener('pageshow',check)})();
 </script>
 </body>
 </html>
