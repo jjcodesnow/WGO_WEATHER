@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#141c2a">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261114161758">
+<meta name="wgo-version" content="20261114162304">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -362,7 +362,7 @@ function setupDesign(){
  svg.addEventListener('touchend',e=>{if(pin&&e.touches.length<2){pin=null;lastUp=Date.now();lastMv=true;setTimeout(render,0)}})}
 function zoom(f){const nw=Math.max(8,Math.min(BW,vb.w*f)),cx=vb.x+vb.w/2,cy=vb.y+vb.w*AR/2;vb.w=nw;vb.x=clX(cx-nw/2,nw);vb.y=clY(cy-nw*AR/2,nw)}
 function base(){
- if(US)return `<rect x='${BX0}' y='${BY0}' width='${BW}' height='${BH}' style='fill:var(--bg)'/><g transform='scale(.205128)'>${CAN?`<path d='${CAN}' style='fill:var(--surface);stroke:var(--ink);stroke-width:2px;vector-effect:non-scaling-stroke'/>`:''}<path d='${US.nation}' style='fill:var(--surface)'/><path d='${US.counties}' style='fill:none;stroke:var(--mute);stroke-width:.8px;opacity:.6;vector-effect:non-scaling-stroke'/><path d='${US.states}' style='fill:none;stroke:var(--ink);stroke-width:2px;vector-effect:non-scaling-stroke'/><path d='${US.nation}' style='fill:none;stroke:var(--ink);stroke-width:3.5px;vector-effect:non-scaling-stroke'/></g>`;
+ if(US)return `<rect x='${BX0}' y='${BY0}' width='${BW}' height='${BH}' style='fill:var(--bg)'/><g transform='scale(.205128)'>${CAN?`<path d='${CAN}' style='fill:var(--surface);stroke:var(--ink);stroke-width:2px;vector-effect:non-scaling-stroke'/>`:''}${CANP?`<path d='${CANP}' style='fill:none;stroke:var(--ink);stroke-width:1.3px;opacity:.75;vector-effect:non-scaling-stroke'/>`:''}<path d='${US.nation}' style='fill:var(--surface)'/><path d='${US.counties}' style='fill:none;stroke:var(--mute);stroke-width:.8px;opacity:.6;vector-effect:non-scaling-stroke'/><path d='${US.states}' style='fill:none;stroke:var(--ink);stroke-width:2px;vector-effect:non-scaling-stroke'/><path d='${US.nation}' style='fill:none;stroke:var(--ink);stroke-width:3.5px;vector-effect:non-scaling-stroke'/></g>`;
  let g=`<rect x='${BX0}' y='${BY0}' width='${BW}' height='${BH}' style='fill:var(--surface)'/>`;for(let i=25;i<200;i+=25)g+=`<path class='gl' d='M${i} 0V125M0 ${i}H200'/>`;
  return g+`<text class='rl' x='4' y='10' style='font-size:6px'>${usErr?'The real map could not load. Showing a plain grid.':'Loading the US map...'}</text>`}
 async function loadUS(){try{
@@ -583,9 +583,15 @@ function myRainL(){if(!myr)return'';const AP=d3.geoAlbers().scale(1300).translat
   o+=`<g transform='matrix(${[p1[0]-p0[0],p1[1]-p0[1],p2[0]-p0[0],p2[1]-p0[1],p0[0],p0[1]].map(v=>v.toFixed(3)).join(' ')})'><svg width='1.01' height='1.01' viewBox='${(i*cw).toFixed(2)} ${(j*ch).toFixed(2)} ${cw.toFixed(2)} ${ch.toFixed(2)}' preserveAspectRatio='none'><image href='myrain.png' width='${MYR.w}' height='${MYR.h}'/></svg></g>`}
  return o+'</g>'}
 // Canada: the country outline from world-atlas, drawn in the same map frame as the US.
-let CAN='';
+let CAN='',CANP='';
 async function loadCanada(){try{const m=await import('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json',{with:{type:'json'}}),t=m.default,f=topojson.feature(t,t.objects.countries).features.find(x=>String(x.id)==='124');
- if(f){CAN=d3.geoPath(d3.geoAlbers().scale(1300).translate([487.5,305]))(f)||'';render()}}catch(e){}}
+ if(f){CAN=d3.geoPath(d3.geoAlbers().scale(1300).translate([487.5,305]))(f)||'';render()}}catch(e){}
+ loadProvinces()}
+// Province and territory borders for Canada, from Natural Earth. Lines out over open water are skipped.
+async function loadProvinces(){for(const u of['https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@v5.1.2/geojson/ne_50m_admin_1_states_provinces_lines.geojson','https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_50m_admin_1_states_provinces_lines.geojson']){
+ try{const r=await fetch(u);if(!r.ok)continue;const g=await r.json();
+  const fs=g.features.filter(x=>{const p=x.properties||{},v=Object.values(p).map(String);return(v.includes('CAN')||v.includes('Canada'))&&!/water/i.test(p.featurecla||p.FEATURECLA||'')});
+  if(!fs.length)continue;CANP=d3.geoPath(d3.geoAlbers().scale(1300).translate([487.5,305]))({type:'FeatureCollection',features:fs})||'';render();return}catch(e){}}}
 function settings(){
  return `<h2>Alert types you follow</h2>`+GROUPS.map(([g,ks])=>`<h3 class="grh">${g}</h3>`+ks.map(k=>`<button class="sw" role="switch" aria-checked="${follow[k]}" style="--c:${TYPES[k].c}" data-s="${k}"><span>${TYPES[k].n}</span><i>${follow[k]?"On":"Off"}</i></button>`).join("")).join("")+`<p class="note">Warnings mean the hazard is happening or about to. Watches mean conditions allow it. Advisories mean an inconvenience or hazard is likely.</p>`+pushH()+`<h2>App updates</h2><div class="lp" id="updst">${updText()}</div><div class="act"><button data-up="1">Check for updates now</button></div>`;
 }
