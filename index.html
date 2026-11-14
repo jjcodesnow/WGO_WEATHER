@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#141c2a">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261114162304">
+<meta name="wgo-version" content="20261114163545">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -380,14 +380,21 @@ function cAt(p){for(const c of CTY){const b=c.b;if(p[0]<b[0]||p[0]>b[2]||p[1]<b[
 function snapTo(p,svg){if(!snap)return p;const ids=Object.keys(selC);if(!ids.length)return p;let best=null,bd=14/(svg.getBoundingClientRect().width/vb.w);ids.forEach(id=>{const c=CTY.find(q=>q.id===id);if(c)c.g.forEach(pl=>{const r=pl[0];for(let i=0;i<r.length-1;i++){const a=r[i],b=r[i+1],dx=b[0]-a[0],dy=b[1]-a[1],t=Math.max(0,Math.min(1,((p[0]-a[0])*dx+(p[1]-a[1])*dy)/(dx*dx+dy*dy||1))),x=a[0]+t*dx,y=a[1]+t*dy,d=Math.hypot(x-p[0],y-p[1]);if(d<bd){bd=d;best=[x,y]}}})});return best||p}
 function cfill(){let s='';Object.keys(selC).forEach(id=>{const c=CTY.find(q=>q.id===id);if(c)c.g.forEach(pl=>s+=`<polygon points='${pts(pl[0])}' style='fill:var(--accent);fill-opacity:.18;stroke:var(--accent);stroke-width:2px;vector-effect:non-scaling-stroke;pointer-events:none'/>`)});return s}
 function calert(){Object.keys(selC).forEach(id=>{const c=CTY.find(q=>q.id===id);if(c)addC(c)});selC={};tool=null;save()}
+// Current weather for each town on the map: temperature and an icon under the name.
+let CW=null;
+async function loadCW(){if(!PLC.length)return;try{const P=PLC.filter(Boolean),u='https://api.open-meteo.com/v1/forecast?latitude='+P.map(p=>p.la).join(',')+'&longitude='+P.map(p=>p.lo).join(',')+'&current=temperature_2m,weather_code,is_day&temperature_unit=fahrenheit&timezone=auto',r=await fetch(u);if(!r.ok)return;let j=await r.json();if(!Array.isArray(j))j=[j];
+ const m={};P.forEach((p,i)=>{const c=j[i]&&j[i].current;if(c)m[p.n]=c});CW={t:Date.now(),m};render()}catch(e){}}
+function cwx(p){const c=CW&&CW.m[p.n];if(!c)return'';const w=WC[c.weather_code]||['',''],ic=!c.is_day&&c.weather_code<=1?'🌙':!c.is_day&&c.weather_code===2?'☁️':w[0];
+ return `<text class='lbl' style='font-size:4px;stroke-width:1.2px;font-weight:700' transform='translate(${p.x} ${p.y+5*k}) scale(${k})'>${Math.round(c.temperature_2m)}° ${ic}</text>`}
+setInterval(()=>{if(document.visibilityState==='visible'&&PLC.length&&(!CW||Date.now()-CW.t>9e5))loadCW()},5e3);
 function placesL(k){const inv=(x,y)=>x>vb.x&&x<vb.x+vb.w&&y>vb.y&&y<vb.y+vb.w*AR,f=`font-size:5px;stroke-width:1.4px`;let s=`<g style='pointer-events:none'>`;
  // Country names only show when zoomed out; they hide once you zoom in.
  if(vb.w>=120){const cn=(la,lo,t,ca,st)=>{const c=proj(la,lo,ca);if(c)s+=`<text class='lbl' style='font-size:9px;stroke:none;letter-spacing:2px;${st||'fill:var(--mute);opacity:.7'}' transform='translate(${c[0]} ${c[1]}) scale(${Math.min(k,1.6)})'>${t}</text>`};
   if(US)cn(39.3,-98.6,'UNITED STATES',false,'fill:var(--ink);opacity:.85');if(CAN)cn(58,-100,'CANADA',true)}
  if(vb.w<=45)CTY.forEach(c=>{if(inv(c.cx,c.cy))s+=`<text class='lbl' style='font-size:3px;stroke-width:1px;font-style:italic;fill:var(--mute)' transform='translate(${c.cx} ${c.cy}) scale(${k})'>${c.n} Co.</text>`});
- const bx=[],hit=(a)=>bx.some(b=>a[0]<b[2]&&a[2]>b[0]&&a[1]<b[3]&&a[3]>b[1]),box=(x,y,n)=>{const w=n.length*2.3*k/2+.5*k;return[x-w,y-8*k,x+w,y+2*k]};
+ const bx=[],hit=(a)=>bx.some(b=>a[0]<b[2]&&a[2]>b[0]&&a[1]<b[3]&&a[3]>b[1]),box=(x,y,n)=>{const w=n.length*2.3*k/2+.5*k;return[x-w,y-8*k,x+w,y+(CW?7:2)*k]};
  if(loc)bx.push(box(loc.x,loc.y-3*k,loc.n));
- const O={c:0,m:2,t:3},BIG=['San Francisco','San Jose','Jacksonville','Austin','Fort Worth','Columbus','Baltimore','Louisville','El Paso','Tucson','Fresno','Sacramento','Albuquerque','Tulsa','Raleigh','Tampa','Pittsburgh','Cincinnati','Anchorage','Honolulu','Buffalo','Orlando','Wichita','Virginia Beach','Newark','Colorado Springs','Spokane','Boise','Des Moines','Birmingham','Richmond','Salt Lake City','Little Rock','Knoxville'],TOP=['New York','Los Angeles','Chicago','Houston','Phoenix','Philadelphia','Dallas','Washington','Atlanta','Miami','Seattle','Denver','Boston','Detroit','Minneapolis'],rk=p=>{const n=p.n.split(',')[0];return p.t==='c'&&TOP.includes(n)?TOP.indexOf(n)-20:p.t==='m'&&BIG.includes(n)?1:O[p.t]};PLC.filter(p=>!(p.t==='t'&&vb.w>60)&&inv(p.x,p.y)).sort((a,b)=>rk(a)-rk(b)).forEach(p=>{const n=p.n.split(',')[0],b=box(p.x,p.y,n);if(hit(b))return;bx.push(b);s+=`<circle cx='${p.x}' cy='${p.y}' r='${(p.t==='c'?2:p.t==='m'?1.6:1.2)*k}' style='fill:var(--ink)'/><text class='lbl' style='${f}' transform='translate(${p.x} ${p.y-2*k}) scale(${k})'>${n}</text>`});
+ const O={c:0,m:2,t:3},BIG=['San Francisco','San Jose','Jacksonville','Austin','Fort Worth','Columbus','Baltimore','Louisville','El Paso','Tucson','Fresno','Sacramento','Albuquerque','Tulsa','Raleigh','Tampa','Pittsburgh','Cincinnati','Anchorage','Honolulu','Buffalo','Orlando','Wichita','Virginia Beach','Newark','Colorado Springs','Spokane','Boise','Des Moines','Birmingham','Richmond','Salt Lake City','Little Rock','Knoxville'],TOP=['New York','Los Angeles','Chicago','Houston','Phoenix','Philadelphia','Dallas','Washington','Atlanta','Miami','Seattle','Denver','Boston','Detroit','Minneapolis'],rk=p=>{const n=p.n.split(',')[0];return p.t==='c'&&TOP.includes(n)?TOP.indexOf(n)-20:p.t==='m'&&BIG.includes(n)?1:O[p.t]};PLC.filter(p=>!(p.t==='t'&&vb.w>60)&&inv(p.x,p.y)).sort((a,b)=>rk(a)-rk(b)).forEach(p=>{const n=p.n.split(',')[0],b=box(p.x,p.y,n);if(hit(b))return;bx.push(b);s+=`<circle cx='${p.x}' cy='${p.y}' r='${(p.t==='c'?2:p.t==='m'?1.6:1.2)*k}' style='fill:var(--ink)'/><text class='lbl' style='${f}' transform='translate(${p.x} ${p.y-2*k}) scale(${k})'>${n}</text>`+cwx(p)});
  if(loc)s+=`<circle cx='${loc.x}' cy='${loc.y}' r='${3*k}' style='fill:#d62828;stroke:#fff;stroke-width:${k}px'/><text class='lbl' style='${f}' transform='translate(${loc.x} ${loc.y-5*k}) scale(${k})'>${loc.n}</text>`;
  return s+'</g>'}
 function radarL(){if(!radar)return'';if(!RF.length)return `<text class='lbl' style='font-size:5px' transform='translate(${vb.x+vb.w/2} ${vb.y+8*vb.w/200}) scale(${vb.w/200})'>${rerr?'Radar could not load':'Loading radar…'}</text>`;
