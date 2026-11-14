@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#141c2a">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261114105144">
+<meta name="wgo-version" content="20261114105751">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -153,6 +153,7 @@ nav{overflow-x:auto}nav button{flex:1 0 auto;padding:0 12px}
   <div class="stats" id="stats"></div>
   <nav role="tablist" aria-label="Sections">
     <button role="tab" aria-selected="true" data-t="alerts">Alerts</button>
+    <button role="tab" aria-selected="false" data-t="map">Map</button>
     <button role="tab" aria-selected="false" data-t="design">Design</button>
     <button role="tab" aria-selected="false" data-t="forecast">Forecast</button>
     <button role="tab" aria-selected="false" data-t="settings">My alerts</button>
@@ -277,7 +278,9 @@ function design(){
  if(tool&&tool.k&&Object.keys(selC).length)a.push(`<button class='pri' data-da='cal'>Alert selected counties</button>`);
  if(Object.keys(selC).length)a.push(`<button data-da='ccl'>Clear counties</button>`);
  if(D.length&&!draft.length)a.push(`<button data-da='clr'>${clr?'Tap again to clear all':'Clear all'}</button>`);
- return `<div id='dz'>${srch()}<div class='chips wrap'>${pal}</div><div class='chips wrap'>${ics}</div><p class='note' style='margin:0 0 8px'>${hint}</p><div class='act' style='margin:0 0 8px'>${zc}</div><div class='mw${full?' fs':''}'>${s}${popH()}${radar&&RF.length?legendH():''}<div class='mbs'><button class='mb' data-da='full' aria-label='${full?'Exit full screen':'Make the map full screen'}'>${full?"<svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M9 3v6H3M21 9h-6V3M15 21v-6h6M3 15h6v6'/></svg>":"<svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M3 9V3h6M15 3h6v6M21 15v6h-6M9 21H3v-6'/></svg>"}</button>${full?`<button class='mb' data-da='zi' aria-label='Zoom in'>+</button><button class='mb' data-da='zo' aria-label='Zoom out'>−</button><button class='mb' data-da='pan' aria-pressed='${pan}' aria-label='Drag to move the map'><svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M12 2v20M2 12h20M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3'/></svg></button>${radar&&RF.length?`<button class='mb' data-da='rpl' aria-label='${rplay?'Pause radar':'Play radar'}'>${rplay?'⏸':'▶'}</button>`:''}`:''}</div></div>${S&&S.kind==='area'?`<div class='lp'><b>${TYPES[S.k].n}</b>${tl(S)}<br>Counties: ${cof(S).join(', ')||'none found'}<br>States: ${sof(S).join(', ')||'none found'}</div>`:''}<div class='act'>${a.join('')}</div></div>`}
+ const MAP=`<div class='mw${full?' fs':''}'>${s}${popH()}${radar&&RF.length?legendH():''}<div class='mbs'><button class='mb' data-da='full' aria-label='${full?'Exit full screen':'Make the map full screen'}'>${full?"<svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M9 3v6H3M21 9h-6V3M15 21v-6h6M3 15h6v6'/></svg>":"<svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M3 9V3h6M15 3h6v6M21 15v6h-6M9 21H3v-6'/></svg>"}</button>${full?`<button class='mb' data-da='zi' aria-label='Zoom in'>+</button><button class='mb' data-da='zo' aria-label='Zoom out'>−</button><button class='mb' data-da='pan' aria-pressed='${pan}' aria-label='Drag to move the map'><svg width='22' height='22' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' aria-hidden='true'><path d='M12 2v20M2 12h20M9 5l3-3 3 3M9 19l3 3 3-3M5 9l-3 3 3 3M19 9l3 3-3 3'/></svg></button>${radar&&RF.length?`<button class='mb' data-da='rpl' aria-label='${rplay?'Pause radar':'Play radar'}'>${rplay?'⏸':'▶'}</button>`:''}`:''}</div></div>`;
+ if(tab==='map')return `<div id='dz'>${srch()}<div class='act' style='margin:0 0 8px'>${zc.replace(/<button data-da='snp'>[^<]*<\/button>/,'')}</div>${MAP}</div>`;
+ return `<div id='dz'>${srch()}<div class='chips wrap'>${pal}</div><div class='chips wrap'>${ics}</div><p class='note' style='margin:0 0 8px'>${hint}</p><div class='act' style='margin:0 0 8px'>${zc}</div>${MAP}${S&&S.kind==='area'?`<div class='lp'><b>${TYPES[S.k].n}</b>${tl(S)}<br>Counties: ${cof(S).join(', ')||'none found'}<br>States: ${sof(S).join(', ')||'none found'}</div>`:''}<div class='act'>${a.join('')}</div></div>`}
 function setupDesign(){
  if(full){const r0=$('#dmap').getBoundingClientRect(),a=r0.height/r0.width;if(r0.width&&Math.abs(a-AR)>.004){setAR(a);render();return}}
  const dz=$('#dz'),svg=$('#dmap'),pt=e=>{const r=svg.getBoundingClientRect();return[Math.max(0,Math.min(200,vb.x+(e.clientX-r.left)/r.width*vb.w)),Math.max(0,Math.min(125,vb.y+(e.clientY-r.top)/r.height*vb.w*AR))]};
@@ -287,12 +290,12 @@ function setupDesign(){
   const t=e.target.closest('[data-dt]'),a=e.target.closest('[data-da]'),was=clr;
   if(t){draft=[];clr=false;pop=null;const v=t.dataset.dt;tool=v==='s'?null:v==='c'?{cty:1}:v[0]==='a'?{k:v.slice(2)}:{ic:v.slice(2)};render();return}
   if(a){const v=a.dataset.da;clr=false;
-   if(v==='full'){full=!full;pop=null;setAR(full?innerHeight/innerWidth:.625)}else if(v==='cal')calert();else if(v==='bcy')bycty=!bycty;else if(v==='ccl')selC={};else if(v==='snp')snap=!snap;else if(v==='rad'){radar=!radar;if(radar)getRadar().then(()=>{if(tab==='design')render()});else stopRadar()}else if(v==='rpl'){if(rplay)stopRadar();else if(RF.length)rplay=setInterval(()=>{if(!RF.length||tab!=='design'||!radar){stopRadar();return}ri=(ri+1)%RF.length;showRF()},700)}else if(v==='go')gotoLoc();else if(v==='zi'||v==='zo')zoom(v==='zi'?.5:2);else if(v==='pan'){pan=!pan;draft=[]}else if(v==='fin'&&draft.length>=3)finish();else if(v==='free'){free=!free;draft=[]}else if(v==='rm')rm=!rm;else if(v==='undo')draft.pop();else if(v==='cancel')draft=[];
+   if(v==='full'){full=!full;pop=null;setAR(full?innerHeight/innerWidth:.625)}else if(v==='cal')calert();else if(v==='bcy')bycty=!bycty;else if(v==='ccl')selC={};else if(v==='snp')snap=!snap;else if(v==='rad'){radar=!radar;if(radar)getRadar().then(()=>{if(MT())render()});else stopRadar()}else if(v==='rpl'){if(rplay)stopRadar();else if(RF.length)rplay=setInterval(()=>{if(!RF.length||!MT()||!radar){stopRadar();return}ri=(ri+1)%RF.length;showRF()},700)}else if(v==='go')gotoLoc();else if(v==='zi'||v==='zo')zoom(v==='zi'?.5:2);else if(v==='pan'){pan=!pan;draft=[]}else if(v==='fin'&&draft.length>=3)finish();else if(v==='free'){free=!free;draft=[]}else if(v==='rm')rm=!rm;else if(v==='undo')draft.pop();else if(v==='cancel')draft=[];
    else if(v==='del'){D=D.filter(x=>x.id!==dsel);dsel=null;save()}
    else if(v==='clr'){if(was){D=[];dsel=null;save()}else clr=true}
    render();return}
   if(!e.target.closest('#dmap')||pan)return;
-  if(!tool){if(!lastMv)openPop(e,svg);if(Date.now()-lastUp<400){render();return}if(!e.target.closest('[data-id]')){dsel=null;render()}return}
+  if(!tool){if(!lastMv)openPop(e,svg);if(Date.now()-lastUp<400){render();return}if(!e.target.closest('[data-id]'))dsel=null;render();return}
   const p=tool.k?snapTo(pt(e),svg):pt(e);
   if(tool.cty){const c=cAt(p);if(c){if(selC[c.id])delete selC[c.id];else selC[c.id]=1}render();return}
   if(tool.k&&bycty){const c=cAt(p);if(c){addC(c);save()}render();return}
@@ -302,7 +305,7 @@ function setupDesign(){
  dz.onkeydown=e=>{if(e.key==='Enter'&&e.target.id==='q')gotoLoc()};
  dz.onchange=e=>{if(e.target.id==='dst'||e.target.id==='den'){const v=new Date(e.target.value).getTime(),st=e.target.id==='dst';if(isNaN(v))return;const S=D.find(x=>x.id===dsel);if(!tool&&S&&S.kind==='area'){if(st)S.t0=v;else S.exp=v;if(!S.t0)S.t0=Date.now();if(S.exp<=S.t0)S.exp=S.t0+36e5;save()}else{if(st)tS=v;else tE=v;const s0=tS||Date.now();if(tE&&tE<=s0)tE=s0+36e5}render();return}
   if(e.target.id==='dexp'){const v=Math.max(1,Math.round(+e.target.value)),S=D.find(x=>x.id===dsel);if(isNaN(v))return;if(!tool&&S&&S.kind==='area'){S.exp=Date.now()+v*6e4;save();render()}else dur=v;return}if(e.target.id!=='dtemp')return;const v=Math.round(+e.target.value),S=D.find(x=>x.id===dsel);if(isNaN(v))return;if(!tool&&S&&S.kind==='mark'){S.t=v;save();render()}else dtemp=v};
- svg.onpointerdown=e=>{const el=e.target.closest('[data-id]');if(tool||!el)return;drag={id:+el.dataset.id,el,p:pt(e),dx:0,dy:0,m:false};svg.setPointerCapture(e.pointerId)};
+ svg.onpointerdown=e=>{const el=e.target.closest('[data-id]');if(tool||!el||tab==='map')return;drag={id:+el.dataset.id,el,p:pt(e),dx:0,dy:0,m:false};svg.setPointerCapture(e.pointerId)};
  svg.onpointermove=e=>{if(!drag)return;const p=pt(e);drag.dx=p[0]-drag.p[0];drag.dy=p[1]-drag.p[1];if(Math.hypot(drag.dx,drag.dy)>1.5)drag.m=true;if(drag.m)drag.el.setAttribute('transform',`translate(${drag.dx} ${drag.dy})`)};
  svg.onpointerup=()=>{if(!drag)return;const d=drag,x=D.find(q=>q.id===d.id);drag=null;lastUp=Date.now();lastMv=d.m;if(d.m)pop=null;if(d.m&&x){if(x.kind==='mark'){x.x+=d.dx;x.y+=d.dy}else x.pts=x.pts.map(q=>[q[0]+d.dx,q[1]+d.dy]);save()}dsel=d.id;render()};
  let fd=false,fh=null;const od=svg.onpointerdown,om=svg.onpointermove,ou=svg.onpointerup;
@@ -380,10 +383,11 @@ function head(){const al=active(),top=al[0],c=loc&&CTY.length?cAt([loc.x,loc.y])
  $('#hero').innerHTML=top?`<div class='lvl'>${al.length} active alert${al.length>1?'s':''}${loc?' for '+loc.n:''}. Most serious:</div><h1>${top.T.n}</h1><div>${top.area}. Expires in ${top.m>9000?'no set time':fmt(top.m)}.</div>`:loc?`<div class='lvl'>${loc.n}${c?' · '+c.n+' County, '+c.s:''}</div><h1>All clear</h1><div>No active alerts for this place.</div>`:`<div class='lvl'>${msg&&!msg.startsWith('Find a place')?'Place not found':'No location set'}</div><h1>${msg&&!msg.startsWith('Find a place')?'Try another name':'Type your town'}</h1><div>${msg||'Type a city or town above and tap Go to see its alerts.'}</div>`;
  $('#stats').innerHTML=''}
 let tS=null,tE=null;const li=ms=>{const d=new Date(ms);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16)};
+const MT=()=>tab==='design'||tab==='map';
 let pop=null,lastMv=false,AR=.625,full=false;
 const clY=(y,w)=>{const h=w*AR;return h>=125?(125-h)/2:Math.max(0,Math.min(125-h,y))};
 function setAR(a){const c=vb.y+vb.w*AR/2;AR=a;vb.y=clY(c-vb.w*AR/2,vb.w)}
-addEventListener('resize',()=>{if(full&&tab==='design'){setAR(innerHeight/innerWidth);render()}});
+addEventListener('resize',()=>{if(full&&MT()){setAR(innerHeight/innerWidth);render()}});
 const LV=['','Low','Possible','Elevated','High','Extreme'];
 function ft(ms){const p=new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit',weekday:'short',timeZoneName:'short'}).formatToParts(new Date(ms)),g=t=>(p.find(x=>x.type===t)||{}).value||'',m=g('minute');return (g('hour')+(m==='00'?'':':'+m)+g('dayPeriod')+' '+g('timeZoneName')+' '+g('weekday')).toUpperCase()}
 function openPop(e,svg){const r=svg.getBoundingClientRect(),p=[vb.x+(e.clientX-r.left)/r.width*vb.w,vb.y+(e.clientY-r.top)/r.height*vb.w*AR],c=CTY.length?cAt(p):null,now=Date.now();
@@ -471,7 +475,7 @@ function focusAlert(id){const x=D.find(q=>String(q.id)===String(id)&&q.kind==='a
  const c=CTY.length?cAt([cx,cy]):null,ll=(()=>{try{return d3.geoAlbersUsa().scale(1300).translate([487.5,305]).invert([cx/K,cy/K])}catch(e){return null}})();
  const name=c?c.n+' County, '+c.s:(x.cn?x.cn[0]+' County'+(x.st&&x.st[0]?', '+x.st[0]:''):(cl(x)||TYPES[x.k].n+' area'));
  loc={n:name,x:cx,y:cy,la:ll?ll[1]:null,lo:ll?ll[0]:null};msg='';const q=$('#q');if(q)q.value=name;
- tab='design';full=false;tool=null;dsel=null;setAR(.625);
+ tab='map';full=false;tool=null;dsel=null;setAR(.625);
  const w=Math.max(8,Math.min(200,Math.max(x1-x0,(y1-y0)/AR)*1.8));vb.w=w;vb.x=Math.max(0,Math.min(200-w,cx-w/2));vb.y=clY(cy-w*AR/2,w);
  pop={x:cx,y:cy,ids:[x.id],cn:c?c.n+' County':(cl(x)||'this area'),more:false,open:null};render();
  const m=$('#dmap');if(m)m.scrollIntoView({block:'center'})}
@@ -481,7 +485,7 @@ async function getRadar(){if(RF.length&&Date.now()-rtime<3e5)return;
   RSRC='lwx';RH=/^https:\/\//.test(j.host||'')?j.host:LWX;RF=past.concat(nc);rnow=past.length;ri=past.length-1;rtime=Date.now();rerr=false;return}catch(e){}}
  getRadarIEM()}
 function rurl(f,z,x,y){return RSRC==='lwx'?`${RH}${f.path}/256/${z}/${x}/${y}/4/1_1.png`:`https://mesonet.agron.iastate.edu/c/tile.py/1.0.0/ridge::USCOMP-N0Q-${f.s}/${z}/${x}/${y}.png`}
-function radarBad(){if(RSRC!=='lwx'||++lwxBad<3)return;stopRadar();RF=[];rtime=0;getRadarIEM();if(tab==='design')render()}
+function radarBad(){if(RSRC!=='lwx'||++lwxBad<3)return;stopRadar();RF=[];rtime=0;getRadarIEM();if(MT())render()}
 function legendH(){const g=c=>`<span class='lg' style='background:linear-gradient(90deg,${c})'></span>`,
  D1=(x,y,r)=>`<path d='M${x} ${y-r*1.6}C${x-r*.6} ${y-r*.6} ${x-r} ${y-r*.1} ${x-r} ${y+r*.3}a${r} ${r} 0 0 0 ${2*r} 0c0-.4-.4-.9-${r}-${r*1.9}z' fill='#fff'/>`,
  F=(x,y,r)=>`<g stroke='#fff' stroke-width='1.6' stroke-linecap='round'><path d='M${x} ${y-r}V${y+r}M${x-r*.87} ${y-r/2}L${x+r*.87} ${y+r/2}M${x-r*.87} ${y+r/2}L${x+r*.87} ${y-r/2}'/></g>`,
@@ -494,14 +498,14 @@ function settings(){
 }
 function render(){
  favUI();
- document.body.style.overflow=full&&tab==='design'?'hidden':'';
+ document.body.style.overflow=full&&MT()?'hidden':'';
  head();
- $("#view").innerHTML=tab==="alerts"?alerts():tab==="map"?map():tab==="design"?design():tab==="forecast"?forecast():settings();if(tab==="map")setupMap();if(tab==="design")setupDesign();if(tab==="forecast")loadFc();$("#hero").hidden=$("#stats").hidden=tab==="design";
+ $("#view").innerHTML=tab==="alerts"?alerts():tab==="map"?design():tab==="design"?design():tab==="forecast"?forecast():settings();if(tab==="map")setupDesign();if(tab==="design")setupDesign();if(tab==="forecast")loadFc();$("#hero").hidden=$("#stats").hidden=MT();
  document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-selected",b.dataset.t===tab));
 }
 $("#pl").innerHTML=PL.map(p=>`<option value="${p[0]}">`).join("");$("#q").onkeydown=e=>{if(e.key==="Enter")gotoLoc()};$("#go").onclick=gotoLoc;$("#fav").onclick=toggleFav;$("#favs").onclick=e=>{const b=e.target.closest("[data-fv]");if(b)goFav(+b.dataset.fv)};
 
-document.querySelector("nav").onclick=e=>{const b=e.target.closest("button");if(b){tab=b.dataset.t;render()}};
+document.querySelector("nav").onclick=e=>{const b=e.target.closest("button");if(b){tab=b.dataset.t;if(tab!=="design"){tool=null;draft=[];dsel=null}if(tab==="map"&&!radar){radar=true;getRadar().then(()=>{if(MT())render()})}render()}};
 $("#view").onclick=e=>{
  const m=e.target.closest("[data-m]");if(m){const i=+m.dataset.m;sel=sel===i?null:i;render();return}
  const f=e.target.closest("[data-f]");if(f){filter=f.dataset.f||null;render();return}
