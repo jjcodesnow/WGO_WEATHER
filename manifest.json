@@ -1,0 +1,14 @@
+{
+  "name": "WGO 9 Weather",
+  "short_name": "WGO 9",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#141c2a",
+  "theme_color": "#141c2a",
+  "icons": [
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}

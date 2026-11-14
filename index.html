@@ -7,8 +7,12 @@
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#141c2a">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261114084744">
+<meta name="wgo-version" content="20261114085925">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -220,7 +224,7 @@ function setupMap(){const svg=$("#map"),me=$("#you");
  me.onkeydown=e=>{const k={ArrowLeft:[-5,0],ArrowRight:[5,0],ArrowUp:[0,-5],ArrowDown:[0,5]}[e.key];if(k){e.preventDefault();you.x=cl(you.x+k[0]);you.y=cl(you.y+k[1]);mv()}}}
 let D=[],tool=null,draft=[],dsel=null,dtemp=72,clr=false,lastUp=0,free=false,rm=false,pan=false,panD=null,vb={x:0,y:0,w:200},US=null,usErr=false;
 try{const s=localStorage.getItem('sw-design2');if(s)D=JSON.parse(s)}catch(e){}
-const nid=()=>Math.floor(Math.random()*1e9),save=()=>{try{localStorage.setItem('sw-design2',JSON.stringify(D))}catch(e){}};
+const nid=()=>Math.floor(Math.random()*1e9),save=()=>{try{localStorage.setItem('sw-design2',JSON.stringify(D))}catch(e){}qSync()};
 const WI=['☀️','⛅','☁️','🌧️','⛈️','🌨️','💨','🌫️'];
 const cen=p=>[p.reduce((s,q)=>s+q[0],0)/p.length,p.reduce((s,q)=>s+q[1],0)/p.length];
 const pts=p=>p.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join(' ');
@@ -397,8 +401,42 @@ function drawFc(){const el=$('#fc');if(!el||!FC)return;const j=FC.j,c=j.current,
 function cpairs(x){if(!x)return[];if(x.cn)return x.cn.map((n,i)=>[n,(x.st&&(x.st[i]||x.st[0]))||'']);cof(x);return cc[x.id]&&cc[x.id].p||[]}
 function ctyH(id,dark){const P=cpairs(D.find(q=>q.id===id));if(!P.length)return'';const G={};P.forEach(([n,st])=>{(G[st||'Other']=G[st||'Other']||[]).push(n)});const sts=Object.keys(G).sort();
  return `<div class='cty${dark?' dk':''}'><b>Counties (${P.length})</b>${sts.map(st=>`<div class='cs'>${sts.length>1||st!=='Other'?`<span>${st}</span>`:''}${[...new Set(G[st])].sort().join(', ')}</div>`).join('')}</div>`}
+const PUSH_API='';
+const PST={msg:'',busy:false},lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+let pushOn=(()=>{try{return localStorage.getItem('wgo-push')==='1'}catch(e){return false}})(),qs=null;
+const pushOK=()=>'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;
+const isApp=()=>navigator.standalone||matchMedia('(display-mode: standalone)').matches;
+const u8=s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')+'==='.slice((s.length+3)%4)),c=>c.charCodeAt(0));
+const post=(p,b)=>fetch(PUSH_API+p,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(b)}).then(r=>r.json());
+async function getSub(){const reg=await navigator.serviceWorker.getRegistration();return reg?reg.pushManager.getSubscription():null}
+function pushH(){let st,btn='';
+ if(!PUSH_API)st='Phone notifications are almost ready. The alert server still needs to be set up.';
+ else if(!pushOK())st=/iPhone|iPad/.test(navigator.userAgent)&&!isApp()?'To get notifications, open WGO 9 Weather from your Home Screen. In Safari, tap Share, then Add to Home Screen.':'This browser can’t show notifications.';
+ else if(Notification.permission==='denied')st='Notifications are blocked for WGO 9. Turn them on in your phone’s Settings, under Notifications.';
+ else if(pushOn){st='On. You’ll get a notification on this phone when an alert you draw starts, even when the app is closed.';btn=`<button data-pu='test'>Send a test</button><button data-pu='off'>Turn off</button>`}
+ else{st='Get a notification on this phone when an alert you draw starts, even when the app is closed.';btn=`<button class='pri' data-pu='on'>Turn on notifications</button>`}
+ return `<h2>Phone notifications</h2><div class='lp'>${st}${PST.msg?`<br><small>${PST.msg}</small>`:''}</div><div class='act'>${PST.busy?'<span class="note" style="margin:0">Working…</span>':btn}</div>`}
+async function pushAct(v){if(PST.busy)return;
+ try{
+  if(v==='on'){const p=await Notification.requestPermission();if(p!=='granted'){PST.msg='Notifications were not allowed.';render();return}
+   PST.busy=true;PST.msg='';render();
+   const reg=await navigator.serviceWorker.register('sw.js');await navigator.serviceWorker.ready;
+   const key=(await (await fetch(PUSH_API+'/vapid')).json()).key;
+   let sub=await reg.pushManager.getSubscription();if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:u8(key)});
+   pushOn=true;lsSet('wgo-push','1');await syncPush(true);PST.msg='Notifications are on. Tap Send a test to check.'}
+  else if(v==='test'){PST.busy=true;render();const sub=await getSub();if(!sub){pushOn=false;lsSet('wgo-push','0');PST.msg='Notifications were turned off on this phone. Turn them on again.'}
+   else{await syncPush(true);const r=await post('/test',{sub:sub.toJSON()});PST.msg=r.ok?'Test sent. It should arrive in a few seconds.':'The test could not be sent ('+(r.error||'error '+r.status)+').'}}
+  else if(v==='off'){PST.busy=true;render();const sub=await getSub();if(sub){await post('/unsub',{sub:sub.toJSON()}).catch(()=>{});await sub.unsubscribe()}pushOn=false;lsSet('wgo-push','0');PST.msg='Notifications are off.'}
+ }catch(e){PST.msg='Something went wrong: '+(e&&e.message||e)}
+ PST.busy=false;render()}
+function qSync(){if(!pushOn||!PUSH_API)return;clearTimeout(qs);qs=setTimeout(()=>syncPush(),1500)}
+async function syncPush(strict){if(!pushOn||!PUSH_API||!pushOK())return;
+ try{const sub=await getSub();if(!sub){pushOn=false;lsSet('wgo-push','0');return}
+  const now=Date.now(),alerts=D.filter(x=>x.kind==='area'&&follow[x.k]).map(x=>{const s0=x.t0||now,e0=x.exp||s0+36e5,w=cl(x);return{id:String(x.id),start:s0,end:e0,title:TYPES[x.k].n,body:(w?w+' · ':'')+(x.t0?ft(s0)+' – ':'Until ')+ft(e0)}}).filter(a=>a.end>now);
+  const r=await post('/sync',{sub:sub.toJSON(),alerts});if(strict&&!r.ok)throw new Error(r.error||'could not reach the alert server')}
+ catch(e){if(strict)throw e}}
 function settings(){
- return `<h2>Alert types you follow</h2>`+Object.keys(TYPES).sort((a,b)=>TYPES[b].s-TYPES[a].s).map(k=>`<button class="sw" role="switch" aria-checked="${follow[k]}" style="--c:${TYPES[k].c}" data-s="${k}"><span>${TYPES[k].n}</span><i>${follow[k]?"On":"Off"}</i></button>`).join("")+`<p class="note">Warnings mean the hazard is happening or about to. Watches mean conditions allow it. Advisories mean an inconvenience or hazard is likely.</p>`;
+ return `<h2>Alert types you follow</h2>`+Object.keys(TYPES).sort((a,b)=>TYPES[b].s-TYPES[a].s).map(k=>`<button class="sw" role="switch" aria-checked="${follow[k]}" style="--c:${TYPES[k].c}" data-s="${k}"><span>${TYPES[k].n}</span><i>${follow[k]?"On":"Off"}</i></button>`).join("")+`<p class="note">Warnings mean the hazard is happening or about to. Watches mean conditions allow it. Advisories mean an inconvenience or hazard is likely.</p>`+pushH();
 }
 function render(){
  document.body.style.overflow=full&&tab==='design'?'hidden':'';
@@ -412,10 +450,11 @@ document.querySelector("nav").onclick=e=>{const b=e.target.closest("button");if(
 $("#view").onclick=e=>{
  const m=e.target.closest("[data-m]");if(m){const i=+m.dataset.m;sel=sel===i?null:i;render();return}
  const f=e.target.closest("[data-f]");if(f){filter=f.dataset.f||null;render();return}
- const s=e.target.closest("[data-s]");if(s){follow[s.dataset.s]=!follow[s.dataset.s];try{localStorage.setItem("sw-follow",JSON.stringify(follow))}catch(x){}render()}
+ const pu=e.target.closest("[data-pu]");if(pu){pushAct(pu.dataset.pu);return}
+ const s=e.target.closest("[data-s]");if(s){follow[s.dataset.s]=!follow[s.dataset.s];try{localStorage.setItem("sw-follow",JSON.stringify(follow))}catch(x){}qSync();render()}
 };
 $("#theme").onclick=()=>{const r=document.documentElement,d=getComputedStyle(r).colorScheme==="dark";r.dataset.theme=d?"light":"dark"};
-render();loadUS();
+render();loadUS().then(()=>qSync());
 (function(){const el=document.createElement('div');el.className='ptr';el.setAttribute('aria-hidden','true');el.innerHTML='<b>↓</b><span>Pull to refresh</span>';document.body.appendChild(el);
  const on=navigator.standalone||matchMedia('(display-mode: standalone)').matches||/[?&]ptr=1/.test(location.search);if(!on)return;
  let y0=null,dy=0,busy=false;const T=90,skip=t=>t.closest('#dmap,.mw,.row,.chips,input,select,textarea,.pop');
