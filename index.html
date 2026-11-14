@@ -8,7 +8,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261113230816">
+<meta name="wgo-version" content="20261113231100">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -311,9 +311,9 @@ function cfill(){let s='';Object.keys(selC).forEach(id=>{const c=CTY.find(q=>q.i
 function calert(){Object.keys(selC).forEach(id=>{const c=CTY.find(q=>q.id===id);if(c)addC(c)});selC={};tool=null;save()}
 function placesL(k){const inv=(x,y)=>x>vb.x&&x<vb.x+vb.w&&y>vb.y&&y<vb.y+vb.w*AR,f=`font-size:5px;stroke-width:1.4px`;let s=`<g style='pointer-events:none'>`;
  if(vb.w<=45)CTY.forEach(c=>{if(inv(c.cx,c.cy))s+=`<text class='lbl' style='font-size:3px;stroke-width:1px;font-style:italic;fill:var(--mute)' transform='translate(${c.cx} ${c.cy}) scale(${k})'>${c.n} Co.</text>`});
- const bx=[],hit=(a)=>bx.some(b=>a[0]<b[2]&&a[2]>b[0]&&a[1]<b[3]&&a[3]>b[1]),box=(x,y,n)=>{const w=n.length*2.6*k/2+k;return[x-w,y-8*k,x+w,y+2*k]};
+ const bx=[],hit=(a)=>bx.some(b=>a[0]<b[2]&&a[2]>b[0]&&a[1]<b[3]&&a[3]>b[1]),box=(x,y,n)=>{const w=n.length*2.3*k/2+.5*k;return[x-w,y-8*k,x+w,y+2*k]};
  if(loc)bx.push(box(loc.x,loc.y-3*k,loc.n));
- const O={c:0,m:2,t:3},BIG=['San Francisco','San Jose','Jacksonville','Austin','Fort Worth','Columbus','Baltimore','Louisville','El Paso','Tucson','Fresno','Sacramento','Albuquerque','Tulsa','Raleigh','Tampa','Pittsburgh','Cincinnati','Anchorage','Honolulu','Buffalo','Orlando','Wichita','Virginia Beach','Newark','Colorado Springs','Spokane','Boise','Des Moines','Birmingham','Richmond','Salt Lake City','Little Rock','Knoxville'],rk=p=>p.t==='m'&&BIG.includes(p.n.split(',')[0])?1:O[p.t];PLC.filter(p=>!(p.t==='t'&&vb.w>60)&&inv(p.x,p.y)).sort((a,b)=>rk(a)-rk(b)).forEach(p=>{const n=p.n.split(',')[0],b=box(p.x,p.y,n);if(hit(b))return;bx.push(b);s+=`<circle cx='${p.x}' cy='${p.y}' r='${(p.t==='c'?2:p.t==='m'?1.6:1.2)*k}' style='fill:var(--ink)'/><text class='lbl' style='${f}' transform='translate(${p.x} ${p.y-2*k}) scale(${k})'>${n}</text>`});
+ const O={c:0,m:2,t:3},BIG=['San Francisco','San Jose','Jacksonville','Austin','Fort Worth','Columbus','Baltimore','Louisville','El Paso','Tucson','Fresno','Sacramento','Albuquerque','Tulsa','Raleigh','Tampa','Pittsburgh','Cincinnati','Anchorage','Honolulu','Buffalo','Orlando','Wichita','Virginia Beach','Newark','Colorado Springs','Spokane','Boise','Des Moines','Birmingham','Richmond','Salt Lake City','Little Rock','Knoxville'],TOP=['New York','Los Angeles','Chicago','Houston','Phoenix','Philadelphia','Dallas','Washington','Atlanta','Miami','Seattle','Denver','Boston','Detroit','Minneapolis'],rk=p=>{const n=p.n.split(',')[0];return p.t==='c'&&TOP.includes(n)?TOP.indexOf(n)-20:p.t==='m'&&BIG.includes(n)?1:O[p.t]};PLC.filter(p=>!(p.t==='t'&&vb.w>60)&&inv(p.x,p.y)).sort((a,b)=>rk(a)-rk(b)).forEach(p=>{const n=p.n.split(',')[0],b=box(p.x,p.y,n);if(hit(b))return;bx.push(b);s+=`<circle cx='${p.x}' cy='${p.y}' r='${(p.t==='c'?2:p.t==='m'?1.6:1.2)*k}' style='fill:var(--ink)'/><text class='lbl' style='${f}' transform='translate(${p.x} ${p.y-2*k}) scale(${k})'>${n}</text>`});
  if(loc)s+=`<circle cx='${loc.x}' cy='${loc.y}' r='${3*k}' style='fill:#d62828;stroke:#fff;stroke-width:${k}px'/><text class='lbl' style='${f}' transform='translate(${loc.x} ${loc.y-5*k}) scale(${k})'>${loc.n}</text>`;
  return s+'</g>'}
 function radarL(){if(!radar)return'';if(!RF.length)return `<text class='lbl' style='font-size:5px' transform='translate(${vb.x+vb.w/2} ${vb.y+8*vb.w/200}) scale(${vb.w/200})'>${rerr?'Radar could not load':'Loading radar…'}</text>`;
