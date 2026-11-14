@@ -116,7 +116,7 @@ nav{overflow-x:auto}nav button{flex:1 0 auto;padding:0 12px}
     <button role="tab" aria-selected="false" data-t="settings">My alerts</button>
   </nav>
   <div id="view"></div>
-  <p class="note">Sample data for design and testing. Connect a live source such as the National Weather Service API before relying on it for safety.</p>
+  <p class="note">Alerts are the ones you draw, not official warnings. Radar by RainViewer. Forecast by Open-Meteo.</p>
 </main>
 <script>
 const TYPES={
@@ -170,14 +170,7 @@ function alerts(){
  if(!list.length)return h+`<div class="empty">No alerts for this place. Open “My alerts” to change which types you see.</div>`;
  return h+list.map((a,i)=>`<details class="alert" style="--c:${a.T.c}" ${i===0?"open":""}><summary><span class="tag ${a.k==="tww"?"dk":""}">${a.T.n.split(" ").pop().toUpperCase()}</span><h3 style="display:inline">${a.T.n}</h3><div class="sub">${a.area} · ${a.d===null?"no location set":a.d?Math.round(a.d*15)+" mi away":"you’re inside this area"} · expires in ${fmt(a.m)}</div></summary><div class="body"><p style="margin:0">${a.txt}.</p><b>What to do</b><ul>${a.T.tip.map(t=>`<li>${t}</li>`).join("")}</ul></div></details>`).join("");
 }
-function forecast(){
- const c=C();let h=`<h2>Next 12 hours</h2><div class="row">`;
- for(let i=0;i<12;i++){const hr=(new Date().getHours()+i)%24,t=Math.round(c.t+3*Math.sin(i/3)-i*.4),lab=(hr%12||12)+(hr<12?" AM":" PM");h+=`<div class="hr"><span>${i?lab:"Now"}</span><b>${ICONS[(i+city.length)%4===3&&c.a.length?4:(i%3)]}</b><b>${t}°</b></div>`}
- h+=`</div><h2>7 days</h2>`;
- const D=["Today","Fri","Sat","Sun","Mon","Tue","Wed"];
- D.forEach((d,i)=>{const hi=Math.round(c.t+4+Math.cos(i)*5-i),lo=hi-14+i%3;h+=`<div class="day"><b>${d}</b><span>${ICONS[(i*2+city.length)%6]}</span><div class="bar" style="width:${50+(hi%40)}%"></div><span>${hi}° / ${lo}°</span></div>`});
- return h;
-}
+function forecast(){return `<div id='fc'><div class='empty'>Loading the forecast…</div></div>`}
 function mlist(){return active().sort((x,y)=>x.d-y.d).map(a=>`<button class="sw" style="--c:${a.T.c};${sel===a.i?"box-shadow:0 0 0 2px "+a.T.c:""}" data-m="${a.i}"><span><b>${a.T.n}</b><br><small>${a.area}${sel===a.i?". "+a.txt:""}</small></span><i>${a.d?Math.round(a.d)+" mi":"Inside"}</i></button>`).join("")||`<div class="empty">No alerts to map. Open “My alerts” to turn types back on.</div>`}
 function map(){
  let s=`<svg id="map" viewBox="0 0 200 200" role="img" aria-label="Alert map. 1 grid square is 25 miles.">`;
@@ -215,7 +208,7 @@ function design(){
  if(S&&S.kind==='area'&&!tool){const c=TYPES[S.k].c;S.pts.forEach((q,i)=>{const n=S.pts[(i+1)%S.pts.length],mx=(q[0]+n[0])/2,my=(q[1]+n[1])/2;s+=`<g data-e='${i}'><circle cx='${mx}' cy='${my}' r='${7*k}' style='fill:transparent'/><circle cx='${mx}' cy='${my}' r='${1*k}' style='fill:${c};opacity:.55;pointer-events:none'/></g>`});S.pts.forEach((q,i)=>{s+=`<g data-v='${i}'><circle cx='${q[0]}' cy='${q[1]}' r='${7*k}' style='fill:transparent'/><circle cx='${q[0]}' cy='${q[1]}' r='${1.6*k}' style='fill:${rm?'#d62828':'#fff'};stroke:${c};stroke-width:${.6*k}px;pointer-events:none'/></g>`})}
  if(draft.length)s+=`<g style='pointer-events:none'><polyline points='${pts(draft)}' style='fill:none;stroke:${tc};stroke-width:1.5px;stroke-dasharray:3 2'/>`+draft.map((q,i)=>`<circle cx='${q[0]}' cy='${q[1]}' r='${(i?2.2:3.5)*k}' style='fill:${tc};stroke:#fff;stroke-width:1px'/>`).join('')+`</g>`;
  s+='</svg>';
- const a=[],zc=`<button data-da='zo'>Zoom out</button><button data-da='zi'>Zoom in</button><button data-da='pan'>${pan?'Pan: on':'Pan: off'}</button><button data-da='snp'>${snap?'Snap: on':'Snap: off'}</button><button data-da='rad'>${radar?'Radar: on':'Radar: off'}</button>`;
+ const a=[],zc=`<button data-da='zo'>Zoom out</button><button data-da='zi'>Zoom in</button><button data-da='pan'>${pan?'Pan: on':'Pan: off'}</button><button data-da='snp'>${snap?'Snap: on':'Snap: off'}</button><button data-da='rad'>${radar?'Radar: on':'Radar: off'}</button>${radar&&RF.length?`<button data-da='rpl'>${rplay?'⏸ Pause':'▶ Play'}</button><span id='rtm' class='note' style='margin:0'>${rlabel()}</span>`:''}`;
  if(tool&&tool.k)a.push(`<button data-da='bcy'>${bycty?'By county: on':'By county: off'}</button>`);
  if(tool&&tool.k)a.push(`<button data-da='free'>${free?'Freehand: on':'Freehand: off'}</button>`);
  if(S&&S.kind==='area'&&!tool)a.push(`<button data-da='rm'>${rm?'Done removing':'Remove corner'}</button>`);
@@ -236,7 +229,7 @@ function setupDesign(){
   const t=e.target.closest('[data-dt]'),a=e.target.closest('[data-da]'),was=clr;
   if(t){draft=[];clr=false;pop=null;const v=t.dataset.dt;tool=v==='s'?null:v==='c'?{cty:1}:v[0]==='a'?{k:v.slice(2)}:{ic:v.slice(2)};render();return}
   if(a){const v=a.dataset.da;clr=false;
-   if(v==='cal')calert();else if(v==='bcy')bycty=!bycty;else if(v==='ccl')selC={};else if(v==='snp')snap=!snap;else if(v==='rad')radar=!radar;else if(v==='go')gotoLoc();else if(v==='zi'||v==='zo')zoom(v==='zi'?.5:2);else if(v==='pan'){pan=!pan;draft=[]}else if(v==='fin'&&draft.length>=3)finish();else if(v==='free'){free=!free;draft=[]}else if(v==='rm')rm=!rm;else if(v==='undo')draft.pop();else if(v==='cancel')draft=[];
+   if(v==='cal')calert();else if(v==='bcy')bycty=!bycty;else if(v==='ccl')selC={};else if(v==='snp')snap=!snap;else if(v==='rad'){radar=!radar;if(radar)getRadar().then(()=>{if(tab==='design')render()});else stopRadar()}else if(v==='rpl'){if(rplay)stopRadar();else if(RF.length)rplay=setInterval(()=>{if(!RF.length||tab!=='design'||!radar){stopRadar();return}ri=(ri+1)%RF.length;showRF()},700)}else if(v==='go')gotoLoc();else if(v==='zi'||v==='zo')zoom(v==='zi'?.5:2);else if(v==='pan'){pan=!pan;draft=[]}else if(v==='fin'&&draft.length>=3)finish();else if(v==='free'){free=!free;draft=[]}else if(v==='rm')rm=!rm;else if(v==='undo')draft.pop();else if(v==='cancel')draft=[];
    else if(v==='del'){D=D.filter(x=>x.id!==dsel);dsel=null;save()}
    else if(v==='clr'){if(was){D=[];dsel=null;save()}else clr=true}
    render();return}
@@ -278,7 +271,7 @@ function base(){
  return g+`<text class='rl' x='4' y='10' style='font-size:6px'>${usErr?'The real map could not load. Showing a plain grid.':'Loading the US map...'}</text>`}
 async function loadUS(){try{
  const u='https://cdn.jsdelivr.net/npm/us-atlas@3.0.1/counties-albers-10m.json',m=await import(u,{with:{type:'json'}}),t=m.default,P=d3.geoPath();
- US={nation:P(topojson.feature(t,t.objects.nation)),states:P(topojson.mesh(t,t.objects.states,(a,b)=>a!==b)),counties:P(topojson.mesh(t,t.objects.counties,(a,b)=>a!==b))};try{setCounties(t);PLC=PL.map(p=>{const z=proj(p[2],p[3]);return z&&{n:p[0],t:p[1],x:z[0],y:z[1]}}).filter(Boolean)}catch(e){}
+ US={nation:P(topojson.feature(t,t.objects.nation)),states:P(topojson.mesh(t,t.objects.states,(a,b)=>a!==b)),counties:P(topojson.mesh(t,t.objects.counties,(a,b)=>a!==b))};try{setCounties(t);PLC=PL.map(p=>{const z=proj(p[2],p[3]);return z&&{n:p[0],t:p[1],x:z[0],y:z[1],la:p[2],lo:p[3]}}).filter(Boolean)}catch(e){}
 }catch(e){usErr=true}
  render()}
 const K=.205128,PL=[['Oswego, IL','t',41.6828,-88.3515],['Montgomery, IL','t',41.7306,-88.3462],['Yorkville, IL','t',41.6411,-88.4473],['Plano, IL','t',41.662,-88.5296],['Sandwich, IL','t',41.6456,-88.6218],['Plainfield, IL','t',41.6192,-88.2062],['Minooka, IL','t',41.4547,-88.2623],['Batavia, IL','t',41.85,-88.3126],['Aurora, IL','c',41.7606,-88.3201],['Naperville, IL','c',41.7508,-88.1535],['Joliet, IL','c',41.525,-88.0817],['Oswego, NY','t',43.4553,-76.5105],['Fulton, NY','t',43.3228,-76.4177],['Pulaski, NY','t',43.5667,-76.1283],['Mexico, NY','t',43.4595,-76.2299],['Phoenix, NY','t',43.23,-76.3016],['Syracuse, NY','c',43.0481,-76.1474],['Rochester, NY','c',43.1566,-77.6088],['Buffalo, NY','c',42.8864,-78.8784],['Albany, NY','c',42.6526,-73.7562],['New York, NY','c',40.7128,-74.006],['Boston, MA','c',42.3601,-71.0589],['Philadelphia, PA','c',39.9526,-75.1652],['Washington, DC','c',38.9072,-77.0369],['Atlanta, GA','c',33.749,-84.388],['Miami, FL','c',25.7617,-80.1918],['Charlotte, NC','c',35.2271,-80.8431],['Nashville, TN','c',36.1627,-86.7816],['Memphis, TN','c',35.1495,-90.049],['New Orleans, LA','c',29.9511,-90.0715],['Houston, TX','c',29.7604,-95.3698],['Dallas, TX','c',32.7767,-96.797],['San Antonio, TX','c',29.4241,-98.4936],['Oklahoma City, OK','c',35.4676,-97.5164],['Kansas City, MO','c',39.0997,-94.5786],['St. Louis, MO','c',38.627,-90.1994],['Chicago, IL','c',41.8781,-87.6298],['Milwaukee, WI','c',43.0389,-87.9065],['Minneapolis, MN','c',44.9778,-93.265],['Detroit, MI','c',42.3314,-83.0458],['Cleveland, OH','c',41.4993,-81.6944],['Indianapolis, IN','c',39.7684,-86.1581],['Omaha, NE','c',41.2565,-95.9345],['Denver, CO','c',39.7392,-104.9903],['Salt Lake City, UT','c',40.7608,-111.891],['Phoenix, AZ','c',33.4484,-112.074],['Las Vegas, NV','c',36.1699,-115.1398],['Los Angeles, CA','c',34.0522,-118.2437],['San Diego, CA','c',32.7157,-117.1611],['Seattle, WA','c',47.6062,-122.3321],['Portland, OR','c',45.5152,-122.6784]];
@@ -295,13 +288,21 @@ function placesL(k){const inv=(x,y)=>x>vb.x&&x<vb.x+vb.w&&y>vb.y&&y<vb.y+vb.w*.6
  PLC.forEach(p=>{if((p.t==='t'&&vb.w>60)||!inv(p.x,p.y))return;s+=`<circle cx='${p.x}' cy='${p.y}' r='${(p.t==='c'?2:1.2)*k}' style='fill:var(--ink)'/><text class='lbl' style='${f}' x='${p.x}' y='${p.y-2*k}'>${p.n.split(',')[0]}</text>`});
  if(loc)s+=`<circle cx='${loc.x}' cy='${loc.y}' r='${3*k}' style='fill:#d62828;stroke:#fff;stroke-width:${k}px'/><text class='lbl' style='${f}' x='${loc.x}' y='${loc.y-5*k}'>${loc.n}</text>`;
  return s+'</g>'}
-function radarL(){if(!radar)return'';let s=`<g style='pointer-events:none'>`;for(let i=0;i<14;i++){const x=30+i*10+(i*37)%13,y=70-i*3+(i*53)%17-8,r=4+(i*7)%9;[['#3fc25f',1,.35],['#f2d13a',.62,.45],['#e03a3a',.3,.5]].forEach(c=>s+=`<ellipse cx='${x}' cy='${y}' rx='${r*c[1]*1.5}' ry='${r*c[1]}' transform='rotate(-25 ${x} ${y})' style='fill:${c[0]};fill-opacity:${c[2]}'/>`)}return s+`<text class='lbl' style='font-size:${5*vb.w/200}px' x='${vb.x+vb.w/2}' y='${vb.y+6*vb.w/200}'>Simulated radar</text></g>`}
+function radarL(){if(!radar)return'';if(!RF.length)return `<text class='lbl' style='font-size:${5*vb.w/200}px' x='${vb.x+vb.w/2}' y='${vb.y+8*vb.w/200}'>${rerr?'Radar could not load':'Loading radar…'}</text>`;
+ const AP=d3.geoAlbers().scale(1300).translate([487.5,305]),pr=(lo,la)=>{const q=AP([lo,la]);return[q[0]*K,q[1]*K]},h=vb.w*.625;let lo0=1e9,lo1=-1e9,la0=1e9,la1=-1e9;
+ for(let i=0;i<=6;i++)for(let j=0;j<=6;j++){const q=AP.invert([(vb.x+vb.w*i/6)/K,(vb.y+h*j/6)/K]);if(!q)continue;lo0=Math.min(lo0,q[0]);lo1=Math.max(lo1,q[0]);la0=Math.min(la0,q[1]);la1=Math.max(la1,q[1])}
+ lo0=Math.max(lo0,-130);lo1=Math.min(lo1,-60);la0=Math.max(la0,20);la1=Math.min(la1,53);if(lo0>=lo1||la0>=la1)return'';
+ const tx=(lo,z)=>Math.floor((lo+180)/360*2**z),ty=(la,z)=>{const r=la*Math.PI/180;return Math.floor((1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*2**z)},tl=(x,z)=>x/2**z*360-180,tt=(y,z)=>Math.atan(Math.sinh(Math.PI*(1-2*y/2**z)))*180/Math.PI;
+ let z=Math.max(5,Math.min(7,Math.round(Math.log2(200/vb.w))+5)),x0,x1,y0,y1;
+ for(;;){x0=tx(lo0,z);x1=tx(lo1,z);y0=ty(la1,z);y1=ty(la0,z);if((x1-x0+1)*(y1-y0+1)<=60||z<=4)break;z--}
+ const T=[];for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++){const p0=pr(tl(x,z),tt(y,z)),p1=pr(tl(x+1,z),tt(y,z)),p2=pr(tl(x,z),tt(y+1,z));T.push({x,y,m:[p1[0]-p0[0],p1[1]-p0[1],p2[0]-p0[0],p2[1]-p0[1],p0[0],p0[1]].map(v=>v.toFixed(3)).join(' ')})}
+ return `<g style='pointer-events:none;opacity:.7'>`+RF.map((f,i)=>`<g data-rf='${i}' style='display:${i===ri?'inline':'none'}'>`+T.map(t=>`<image href='${RH}${f.path}/256/${z}/${t.x}/${t.y}/2/1_1.png' width='1.004' height='1.004' preserveAspectRatio='none' transform='matrix(${t.m})'/>`).join('')+'</g>').join('')+'</g>'}
 function lp(){if(!loc)return msg?`<p class='note' style='margin:0 0 8px'>${msg}</p>`:'';const c=CTY.length?cAt([loc.x,loc.y]):null,hit=D.filter(x=>x.kind==='area'&&(dist({x:loc.x,y:loc.y},x.pts)===0||(c&&cof(x).includes(c.n)&&sof(x).includes(c.s)))),on=hit.filter(x=>!exd(x));return `<div class='lp'><b>${loc.n}</b>${c?' · '+c.n+' County':''}<br>${on.length?on.map(x=>`<span class='tag' style='--c:${TYPES[x.k].c}'>${TYPES[x.k].n.split(' ').pop().toUpperCase()}</span>${TYPES[x.k].n}${tl(x)}${cl(x)?' · '+cl(x):''}`).join('<br>'):'No active alerts here.'}${hit.length>on.length?'<br><small>Expired alerts are not counted.</small>':''}</div>`}
 function srch(){return `${lp()}`}
 async function gotoLoc(){const q=($('#q')||{value:''}).value.trim().toLowerCase(),m=q.match(/^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/);let p=null;
- if(m){const z=proj(+m[1],+m[2]);if(z)p={n:m[1]+', '+m[2],x:z[0],y:z[1]}}
+ if(m){const z=proj(+m[1],+m[2]);if(z)p={n:m[1]+', '+m[2],x:z[0],y:z[1],la:+m[1],lo:+m[2]}}
  else if(q)p=PLC.find(a=>a.n.toLowerCase()===q)||PLC.find(a=>a.n.toLowerCase().includes(q));
- if(!p&&q&&!m){try{const r=await fetch('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(q.split(',')[0].trim())+'&count=5&language=en&format=json&countryCode=US'),j=await r.json(),h=j.results||[],st=(q.split(',')[1]||'').trim(),f=h.find(a=>st&&(a.admin1||'').toLowerCase().startsWith(st))||h[0];if(f){const z=proj(f.latitude,f.longitude);if(z)p={n:f.name+(f.admin1?', '+f.admin1:''),x:z[0],y:z[1]}}}catch(e){}}
+ if(!p&&q&&!m){try{const r=await fetch('https://geocoding-api.open-meteo.com/v1/search?name='+encodeURIComponent(q.split(',')[0].trim())+'&count=5&language=en&format=json&countryCode=US'),j=await r.json(),h=j.results||[],st=(q.split(',')[1]||'').trim(),f=h.find(a=>st&&(a.admin1||'').toLowerCase().startsWith(st))||h[0];if(f){const z=proj(f.latitude,f.longitude);if(z)p={n:f.name+(f.admin1?', '+f.admin1:''),x:z[0],y:z[1],la:f.latitude,lo:f.longitude}}}catch(e){}}
  if(!p){loc=null;msg=PLC.length?'I could not find that place. Pick one from the suggestions, or type latitude, longitude.':'The map is still loading. Try again in a moment.';render();return}
  loc=p;msg='';vb.w=30;vb.x=Math.max(0,Math.min(170,p.x-15));vb.y=Math.max(0,Math.min(106,p.y-9.4));render()}
 function addC(c){c.g.forEach(pl=>{const r=pl[0],n=Math.ceil(r.length/150);D.push({id:nid(),kind:'area',k:tool.k,pts:r.filter((_,i)=>i%n===0),cn:[c.n],st:[c.s],t0:Date.now(),exp:Date.now()+dur*6e4})})}
@@ -322,12 +323,33 @@ function popH(){if(!pop)return'';const L=pop.ids.map(id=>D.find(x=>x.id===id)).f
  const top=TYPES[L[0].k],below=Y<50,show=pop.more?L:[L[0]];
  const row=(x,i)=>{const T=TYPES[x.k],when=(x.t0?ft(x.t0)+' – ':'UNTIL ')+(x.exp?ft(x.exp):'NO END TIME');return `<button class='ar' data-pp='${i}' style='--c:${T.c}'><span class='ic'>!</span><span style='flex:1;min-width:0'><b>${T.n}</b><small>${when}</small></span>${i===0&&L.length>1&&!pop.more?`<span class='mo' data-pp='mo'>+${L.length-1} more</span>`:''}<span aria-hidden='true' style='color:#999;font-size:20px'>›</span></button>${pop.open===i?`<ul>${T.tip.map(t=>`<li>${t}</li>`).join('')}</ul>`:''}`};
  return `<div class='pip' style='left:${X}%;top:calc(${Y}% ${below?'+':'-'} 12px)'></div><div class='pop' role='dialog' aria-label='Alerts here' style='left:clamp(6px,calc(${X}% - 165px),calc(100% - min(330px,calc(100% - 12px)) - 6px));${below?`top:calc(${Y}% + 12px)`:`bottom:calc(${100-Y}% + 12px)`}'><button class='x' data-pp='x' aria-label='Close'>×</button><div class='t'>Threat indicated in ${pop.cn}</div><h3>Severe Risk: ${LV[top.s]}</h3>${show.map(row).join('')}${pop.more&&L.length>1?`<button class='ar' data-pp='mo' style='justify-content:center;min-height:40px'>Show less</button>`:''}</div>`}
+let RF=[],RH='',ri=0,rplay=null,rtime=0,rerr=false,rnow=0;
+async function getRadar(){if(RF.length&&Date.now()-rtime<3e5)return;try{const j=await (await fetch('https://api.rainviewer.com/public/weather-maps.json')).json(),past=(j.radar&&j.radar.past)||[],nc=(j.radar&&j.radar.nowcast)||[];RH=j.host;RF=past.concat(nc);rnow=past.length;ri=Math.max(0,past.length-1);rtime=Date.now();rerr=!RF.length}catch(e){rerr=true}}
+function stopRadar(){if(rplay)clearInterval(rplay);rplay=null}
+function rlabel(){const f=RF[ri];if(!f)return'';const t=new Date(f.time*1000).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});return t+(ri>=rnow?' (forecast)':ri===rnow-1?' (latest)':'')}
+function showRF(){document.querySelectorAll('[data-rf]').forEach(g=>g.style.display=+g.dataset.rf===ri?'inline':'none');const t=$('#rtm');if(t)t.textContent=rlabel()}
+const WC={0:['☀️','Clear'],1:['🌤️','Mostly clear'],2:['⛅','Partly cloudy'],3:['☁️','Cloudy'],45:['🌫️','Fog'],48:['🌫️','Freezing fog'],51:['🌦️','Light drizzle'],53:['🌦️','Drizzle'],55:['🌧️','Heavy drizzle'],56:['🌧️','Freezing drizzle'],57:['🌧️','Freezing drizzle'],61:['🌧️','Light rain'],63:['🌧️','Rain'],65:['🌧️','Heavy rain'],66:['🌧️','Freezing rain'],67:['🌧️','Freezing rain'],71:['🌨️','Light snow'],73:['🌨️','Snow'],75:['❄️','Heavy snow'],77:['🌨️','Snow grains'],80:['🌦️','Showers'],81:['🌧️','Showers'],82:['⛈️','Heavy showers'],85:['🌨️','Snow showers'],86:['❄️','Heavy snow showers'],95:['⛈️','Thunderstorms'],96:['⛈️','Storms with hail'],99:['⛈️','Storms with hail']};
+const wc=(c,day)=>{const w=WC[c]||['☁️','—'];return day===0&&c<=1?['🌙',c?'Mostly clear':'Clear']:w};
+let FC=null,FK='';
+function fcLoc(){return loc&&loc.la!=null?loc:{n:'Oswego, IL',la:41.6828,lo:-88.3515}}
+async function loadFc(){const L=fcLoc(),key=L.la.toFixed(3)+','+L.lo.toFixed(3);if(FC&&FK===key&&Date.now()-FC.t<6e5){drawFc();return}
+ try{const u='https://api.open-meteo.com/v1/forecast?latitude='+L.la+'&longitude='+L.lo+'&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,wind_direction_10m,relative_humidity_2m,is_day&hourly=temperature_2m,weather_code,precipitation_probability,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto&forecast_days=7',j=await (await fetch(u)).json();if(!j.hourly||!j.daily||!j.current)throw 0;FC={t:Date.now(),j,n:L.n};FK=key}
+ catch(e){const el=$('#fc');if(el)el.innerHTML="<div class='empty'>Couldn’t load the forecast. Check your connection and try again.</div>";return}
+ drawFc()}
+function drawFc(){const el=$('#fc');if(!el||!FC)return;const j=FC.j,c=j.current,H=j.hourly,Dd=j.daily,r=Math.round,cw=wc(c.weather_code,c.is_day),dir=['N','NE','E','SE','S','SW','W','NW'][r(c.wind_direction_10m/45)%8];
+ const ch=c.time.slice(0,13);let i0=H.time.findIndex(t=>t.slice(0,13)>=ch);if(i0<0)i0=0;
+ const hl=t=>{const h=+t.slice(11,13);return (h%12||12)+(h<12?' AM':' PM')};
+ let o=`<div class='hero' style='margin-bottom:12px'><div class='lvl'>Right now · ${FC.n}</div><div class='now' style='border:0;margin:6px 0 0;padding:0'><div class='num'>${r(c.temperature_2m)}°</div><div><div style='font-size:22px'>${cw[0]} ${cw[1]}</div><div class='meta'>Feels like ${r(c.apparent_temperature)}° · Wind ${dir} ${r(c.wind_speed_10m)} mph · Humidity ${r(c.relative_humidity_2m)}%</div></div></div></div>`;
+ o+=`<h2>Hourly</h2><div class='row'>`;for(let i=i0;i<Math.min(i0+24,H.time.length);i++){const w=wc(H.weather_code[i],H.is_day[i]),pp=H.precipitation_probability[i];o+=`<div class='hr'><span>${i===i0?'Now':hl(H.time[i])}</span><b>${w[0]}</b><b>${r(H.temperature_2m[i])}°</b><span>${pp>=10?'💧'+pp+'%':'&nbsp;'}</span></div>`}
+ const lo=Math.min(...Dd.temperature_2m_min),hi=Math.max(...Dd.temperature_2m_max),sp=Math.max(1,hi-lo);
+ o+=`</div><h2>7 days</h2>`;Dd.time.forEach((t,i)=>{const w=wc(Dd.weather_code[i],1),a=Dd.temperature_2m_min[i],b=Dd.temperature_2m_max[i],pp=Dd.precipitation_probability_max[i];o+=`<div class='day' style='grid-template-columns:52px 30px 40px 1fr 34px'><b>${i?new Date(t+'T12:00').toLocaleDateString('en-US',{weekday:'short'}):'Today'}</b><span title='${w[1]}'>${w[0]}</span><small style='color:var(--mute)'>${pp>=10?pp+'%':''}</small><span style='display:flex;align-items:center;gap:6px'><small>${r(a)}°</small><span style='flex:1;height:6px;border-radius:3px;background:var(--line);position:relative'><span class='bar' style='position:absolute;left:${(a-lo)/sp*100}%;width:${Math.max(4,(b-a)/sp*100)}%;height:6px'></span></span></span><b style='text-align:right'>${r(b)}°</b></div>`});
+ o+=`<p class='note'>Forecast for ${FC.n}. Type a town at the top to change it. Weather data by Open-Meteo.com.</p>`;el.innerHTML=o}
 function settings(){
  return `<h2>Alert types you follow</h2>`+Object.keys(TYPES).sort((a,b)=>TYPES[b].s-TYPES[a].s).map(k=>`<button class="sw" role="switch" aria-checked="${follow[k]}" style="--c:${TYPES[k].c}" data-s="${k}"><span>${TYPES[k].n}</span><i>${follow[k]?"On":"Off"}</i></button>`).join("")+`<p class="note">Warnings mean the hazard is happening or about to. Watches mean conditions allow it. Advisories mean an inconvenience or hazard is likely.</p>`;
 }
 function render(){
  head();
- $("#view").innerHTML=tab==="alerts"?alerts():tab==="map"?map():tab==="design"?design():tab==="forecast"?forecast():settings();if(tab==="map")setupMap();if(tab==="design")setupDesign();$("#hero").hidden=$("#stats").hidden=tab==="design";
+ $("#view").innerHTML=tab==="alerts"?alerts():tab==="map"?map():tab==="design"?design():tab==="forecast"?forecast():settings();if(tab==="map")setupMap();if(tab==="design")setupDesign();if(tab==="forecast")loadFc();$("#hero").hidden=$("#stats").hidden=tab==="design";
  document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-selected",b.dataset.t===tab));
 }
 $("#pl").innerHTML=PL.map(p=>`<option value="${p[0]}">`).join("");$("#q").onkeydown=e=>{if(e.key==="Enter")gotoLoc()};$("#go").onclick=gotoLoc;
