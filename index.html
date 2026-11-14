@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#141c2a">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261114144501">
+<meta name="wgo-version" content="20261114144719">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -149,6 +149,8 @@ nav{overflow-x:auto}nav button{flex:1 0 auto;padding:0 12px}
 .wxd b{font-size:24px;line-height:1}.wxd i{font-style:normal;opacity:.6}
 .mw.fs{display:flex;flex-direction:column}.mw.fs #dmap{flex:1;min-height:0;height:auto}
 .mw.fs .mbot{padding-bottom:env(safe-area-inset-bottom,0px);background:#2557f0}
+.grp{flex-basis:100%;font-size:13px;font-weight:600;color:var(--mute);margin:6px 0 0}
+.grh{font-size:15px;color:var(--mute);margin:14px 0 6px}
 .lp{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;margin:0 0 8px;font-size:15px}
 @media (prefers-reduced-motion:no-preference){.alert[open] .body{animation:o .15s ease-out}@keyframes o{from{opacity:0}to{opacity:1}}}
 </style>
@@ -206,6 +208,7 @@ const TYPES={
  sps:{n:"Special Weather Statement",s:1,c:"#c98a2b",d:0,tip:["Stay aware of changing weather in your area","Strong winds, small hail or heavy downpours are possible","Be ready to act if a warning is issued"]},
  wi:{n:"Wind Advisory",s:1,c:"#a9825a",d:0,tip:["Secure trash cans, patio furniture and loose items","Take extra care driving a high-profile vehicle","Watch for downed branches and power lines"]}
 };
+const GROUPS=[['Storms',['tw','tww','sw','sww','sps']],['Flooding',['ffw','ffww','fw','fww']],['Winter storms',['blz','isw','wsw','wsww','wwa']],['Cold and frost',['ecw','ecww','cwa','fzw','fzww','fra']],['Heat',['ehw','ehww','hta']],['Wind, fire, fog and air',['wi','rfw','dfa','aqa']]];
 const CITIES={
  okc:{n:"Oklahoma City, OK",t:74,f:78,cond:"Humid, storms building",ic:"⛈️",w:"S 22 mph",h:78,uv:6,vis:"6 mi",
   a:[["tw","Cleveland County","Tornado near Moore moving northeast at 30 mph",45],["sw","Oklahoma County","Wind gusts to 70 mph and quarter-size hail",90],["tww","Central Oklahoma","Until 10 PM CDT",300],["fww","Southern Oklahoma","Heavy rain on saturated ground",600]]},
@@ -270,7 +273,7 @@ const pts=p=>p.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join(' ');
 function finish(){const x={id:nid(),kind:'area',k:tool.k,pts:draft,t0:tS||Date.now(),exp:tE||(tS||Date.now())+dur*6e4};D.push(x);draft=[];dsel=x.id;tool=null;save()}
 function design(){
  const k=vb.w/200,S=D.find(x=>x.id===dsel),tc=tool&&tool.k?TYPES[tool.k].c:'var(--accent)';
- const pal=`<button class='chip' style='--c:var(--accent)' aria-pressed='${!tool}' data-dt='s'>Select and move</button><button class='chip' style='--c:var(--accent)' aria-pressed='${!!tool&&!!tool.cty}' data-dt='c'>Select counties</button>`+Object.keys(TYPES).sort((a,b)=>TYPES[b].s-TYPES[a].s).map(k=>`<button class='chip' style='--c:${TYPES[k].c}' aria-pressed='${!!tool&&tool.k===k}' data-dt='a:${k}'>${TYPES[k].n}</button>`).join('');
+ const pal=`<button class='chip' style='--c:var(--accent)' aria-pressed='${!tool}' data-dt='s'>Select and move</button><button class='chip' style='--c:var(--accent)' aria-pressed='${!!tool&&!!tool.cty}' data-dt='c'>Select counties</button>`+GROUPS.map(([g,ks])=>`<div class='grp'>${g}</div>`+ks.map(k=>`<button class='chip' style='--c:${TYPES[k].c}' aria-pressed='${!!tool&&tool.k===k}' data-dt='a:${k}'>${TYPES[k].n}</button>`).join('')).join('');
  const ics=WI.map(i=>`<button class='chip' style='--c:var(--accent)' aria-label='Place forecast icon ${i}' aria-pressed='${!!tool&&tool.ic===i}' data-dt='m:${i}'>${i}</button>`).join('');
  const hint=pan?'Pan is on. Drag the map to move around and use Zoom in to see counties. Turn Pan off to draw or select.':tool&&tool.k&&bycty?'Tap a county to put the alert on its boundary. The county name is added for you.':tool&&tool.k&&free?'Press and drag on the map to draw the outline. Lift your finger to finish.':tool&&tool.k?(draft.length?draft.length+' corner'+(draft.length>1?'s':'')+' placed. Keep tapping, then tap Finish area or the first corner.':'Tap the map to place the corners of the area.'):tool&&tool.cty?'Tap counties to select or unselect them. New corners snap to the borders of selected counties.':tool?'Set a temperature below, then tap the map to place the forecast icon.':'Pick an alert type or a forecast icon, then tap the map. Tap a shape to select it. Drag it to move, or drag its corner dots to reshape. Drag a faint dot between two corners to add a corner.';
  let s=`<svg id='dmap' style='${pan||full||tool&&tool.k&&free?'touch-action:none':''}' viewBox='${vb.x} ${vb.y} ${vb.w} ${vb.w*AR}' role='img' aria-label='Design canvas. 1 grid square is 25 miles.'>`;
@@ -527,7 +530,7 @@ async function fillStrip(){const key=fcKey(),ok=await getFc(),el=$('#wxs');if(!e
 function purge(){const n=D.length;D=D.filter(x=>!(x.kind==='area'&&exd(x)));if(D.length===n)return false;if(dsel&&!D.find(q=>q.id===dsel))dsel=null;save();return true}
 setInterval(()=>{if(purge()&&!(document.activeElement&&/^(dst|den|dtemp)$/.test(document.activeElement.id)))render()},3e4);
 function settings(){
- return `<h2>Alert types you follow</h2>`+Object.keys(TYPES).sort((a,b)=>TYPES[b].s-TYPES[a].s).map(k=>`<button class="sw" role="switch" aria-checked="${follow[k]}" style="--c:${TYPES[k].c}" data-s="${k}"><span>${TYPES[k].n}</span><i>${follow[k]?"On":"Off"}</i></button>`).join("")+`<p class="note">Warnings mean the hazard is happening or about to. Watches mean conditions allow it. Advisories mean an inconvenience or hazard is likely.</p>`+pushH();
+ return `<h2>Alert types you follow</h2>`+GROUPS.map(([g,ks])=>`<h3 class="grh">${g}</h3>`+ks.map(k=>`<button class="sw" role="switch" aria-checked="${follow[k]}" style="--c:${TYPES[k].c}" data-s="${k}"><span>${TYPES[k].n}</span><i>${follow[k]?"On":"Off"}</i></button>`).join("")).join("")+`<p class="note">Warnings mean the hazard is happening or about to. Watches mean conditions allow it. Advisories mean an inconvenience or hazard is likely.</p>`+pushH();
 }
 function render(){
  favUI();
