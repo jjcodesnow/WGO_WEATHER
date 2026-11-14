@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#141c2a">
 <meta name="apple-mobile-web-app-title" content="WGO 9">
-<meta name="wgo-version" content="20261114151218">
+<meta name="wgo-version" content="20261114151807">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef2f6;--surface:#fff;--ink:#14212e;--mute:#5a6b7b;--line:#d5dde5;--accent:#1d5fa8;--r:10px;
@@ -316,7 +316,7 @@ function setupDesign(){
   const t=e.target.closest('[data-dt]'),a=e.target.closest('[data-da]'),was=clr;
   if(t){draft=[];clr=false;pop=null;const v=t.dataset.dt;tool=v==='s'?null:v==='c'?{cty:1}:v[0]==='a'?{k:v.slice(2)}:{ic:v.slice(2)};render();return}
   if(a){const v=a.dataset.da;clr=false;
-   if(v==='full'){full=!full;pop=null;setAR(full?innerHeight/innerWidth:.625)}else if(v==='cal')calert();else if(v==='bcy')bycty=!bycty;else if(v==='ccl')selC={};else if(v==='snp')snap=!snap;else if(v==='rad'){radar=!radar;if(radar)getRadar().then(()=>{if(MT())render()});else stopRadar()}else if(v==='rpl'){if(rplay)stopRadar();else if(RF.length)rplay=setInterval(()=>{if(!RF.length||!MT()||!radar){stopRadar();return}ri=ri+1>=RF.length||ri<rlo()?rlo():ri+1;showRF()},700)}else if(v==='go')gotoLoc();else if(v==='zi'||v==='zo')zoom(v==='zi'?.5:2);else if(v==='pan'){pan=!pan;draft=[]}else if(v==='fin'&&draft.length>=3)finish();else if(v==='free'){free=!free;draft=[]}else if(v==='rm')rm=!rm;else if(v==='undo')draft.pop();else if(v==='cancel')draft=[];
+   if(v==='full'){full=!full;pop=null;fsPrep(full);setAR(full?innerHeight/innerWidth:.625)}else if(v==='cal')calert();else if(v==='bcy')bycty=!bycty;else if(v==='ccl')selC={};else if(v==='snp')snap=!snap;else if(v==='rad'){radar=!radar;if(radar)getRadar().then(()=>{if(MT())render()});else stopRadar()}else if(v==='rpl'){if(rplay)stopRadar();else if(RF.length)rplay=setInterval(()=>{if(!RF.length||!MT()||!radar){stopRadar();return}ri=ri+1>=RF.length||ri<rlo()?rlo():ri+1;showRF()},700)}else if(v==='go')gotoLoc();else if(v==='zi'||v==='zo')zoom(v==='zi'?.5:2);else if(v==='pan'){pan=!pan;draft=[]}else if(v==='fin'&&draft.length>=3)finish();else if(v==='free'){free=!free;draft=[]}else if(v==='rm')rm=!rm;else if(v==='undo')draft.pop();else if(v==='cancel')draft=[];
    else if(v==='del'){D=D.filter(x=>x.id!==dsel);dsel=null;save()}
    else if(v==='clr'){if(was){D=[];dsel=null;save()}else clr=true}
    render();return}
@@ -537,6 +537,13 @@ const purgeTick=()=>{if(purge()&&!(document.activeElement&&/^(dst|den|dtemp)$/.t
 setInterval(purgeTick,1e4);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')purgeTick()});
 addEventListener('pageshow',purgeTick);
+// iPhones can leave the page zoomed in from an earlier pinch. In full screen
+// that makes the map look zoomed and shifts where taps land, so reset the
+// page zoom and scroll, and block page pinching until full screen ends.
+let fsY=0;const vpm=document.querySelector('meta[name=viewport]'),VP0=vpm?vpm.content:'',noPinch=e=>{if(full)e.preventDefault()};
+function fsPrep(on){if(on){fsY=scrollY;if(vpm)vpm.content=VP0+', maximum-scale=1';scrollTo(0,0)}else{if(vpm)vpm.content=VP0;requestAnimationFrame(()=>scrollTo(0,fsY))}}
+['gesturestart','gesturechange'].forEach(t=>document.addEventListener(t,noPinch,{passive:false}));
+document.addEventListener('touchmove',e=>{if(full&&e.touches.length>1&&!e.target.closest('#dmap'))e.preventDefault()},{passive:false});
 function settings(){
  return `<h2>Alert types you follow</h2>`+GROUPS.map(([g,ks])=>`<h3 class="grh">${g}</h3>`+ks.map(k=>`<button class="sw" role="switch" aria-checked="${follow[k]}" style="--c:${TYPES[k].c}" data-s="${k}"><span>${TYPES[k].n}</span><i>${follow[k]?"On":"Off"}</i></button>`).join("")).join("")+`<p class="note">Warnings mean the hazard is happening or about to. Watches mean conditions allow it. Advisories mean an inconvenience or hazard is likely.</p>`+pushH();
 }
